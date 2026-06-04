@@ -1,0 +1,49 @@
+name: 每日自動更新與發布
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "10 13 * * 1-6"
+    - cron: "40 13 * * 1-6"
+    - cron: "10 14 * * 1-6"
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 更新、運算與建立戰報
+        run: python update_539.py --latest --require-fresh
+      - name: 建立手機網站
+        run: python pages_build.py
+      - name: 保存最新資料與戰報
+        run: |
+          git config user.name "539 automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add data reports site
+          git diff --cached --quiet || git commit -m "每日自動更新539資料與戰報"
+          git push
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - name: 發布手機網站
+        id: deployment
+        uses: actions/deploy-pages@v4

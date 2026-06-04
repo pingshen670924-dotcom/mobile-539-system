@@ -1,0 +1,46 @@
+name: 提交社團人氣號碼
+description: 提交 Facebook 或其他公開社團本期看好的五個號碼
+title: "[人氣號碼] "
+labels: ["crowd-submission"]
+body:
+  - type: input
+    id: target_period
+    attributes:
+      label: 目標期別
+      description: 請填下一期完整期別
+      placeholder: "115000136"
+    validations:
+      required: true
+  - type: input
+    id: source_name
+    attributes:
+      label: 來源名稱
+      placeholder: "FB 539討論社"
+    validations:
+      required: true
+  - type: input
+    id: source_url
+    attributes:
+      label: 公開貼文網址
+      placeholder: "https://..."
+  - type: input
+    id: numbers
+    attributes:
+      label: 五個人氣號碼
+      description: 必須是五個不重複的01至39號碼
+      placeholder: "03 11 18 25 36"
+    validations:
+      required: true
+  - type: input
+    id: engagement
+    attributes:
+      label: 互動數
+      description: 按讚加留言總數，可留空
+      placeholder: "128"
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: 確認
+      options:
+        - label: 此資料只作人氣觀察，未通過回測前不影響主模型
+          required: true

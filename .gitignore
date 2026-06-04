@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+backups/
+logs/
+data/mobile_access_token.txt
+.env
