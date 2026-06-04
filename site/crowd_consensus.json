@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-04T09:02:50",
+  "generated_at": "2026-06-04T09:04:41",
   "target_period": 115000136,
   "source_count": 2,
   "observations": [
@@ -98,7 +98,7 @@
   "model_influence_status": "observation_only_weight_zero",
   "random_top5_expected_hits": 0.641,
   "collection": {
-    "collected": 1,
+    "collected": 0,
     "warnings": [],
     "target_period": 115000136,
     "settled": 0
