@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-06-04T09:04:41",
-  "target_period": 115000136,
-  "source_count": 2,
+  "generated_at": "2026-06-04T16:29:07",
+  "target_period": 115000137,
+  "source_count": 1,
   "observations": [
     {
       "source_id": "pilio_public_share",
@@ -11,60 +11,33 @@
       "numbers": [
         8,
         1,
-        3,
-        35,
-        10
-      ],
-      "engagement": null,
-      "collected_at": "2026-06-04T09:02:50"
-    },
-    {
-      "source_id": "pilio_web_verified_20260604",
-      "source_name": "公開彩迷熱門分享",
-      "source_type": "manual_authorized_social",
-      "source_url": "https://www.pilio.idv.tw/lto539/ltoshare539_Do.asp",
-      "numbers": [
-        12,
-        18,
-        1,
-        3,
+        2,
+        7,
         11
       ],
       "engagement": null,
-      "collected_at": "2026-06-04T15:01:05"
+      "collected_at": "2026-06-04T16:29:07"
     }
   ],
   "consensus_ranking": [
     {
       "number": 1,
-      "source_votes": 2
+      "source_votes": 1
     },
     {
-      "number": 3,
-      "source_votes": 2
+      "number": 2,
+      "source_votes": 1
+    },
+    {
+      "number": 7,
+      "source_votes": 1
     },
     {
       "number": 8,
       "source_votes": 1
     },
     {
-      "number": 10,
-      "source_votes": 1
-    },
-    {
       "number": 11,
-      "source_votes": 1
-    },
-    {
-      "number": 12,
-      "source_votes": 1
-    },
-    {
-      "number": 18,
-      "source_votes": 1
-    },
-    {
-      "number": 35,
       "source_votes": 1
     }
   ],
@@ -74,10 +47,10 @@
       "source_name": "彩迷熱門號碼分享",
       "source_type": "public_crowd_share",
       "source_url": "https://www.pilio.idv.tw/lto539/ltoshare539_Do.asp",
-      "settled_rounds": 0,
-      "avg_hits": 0,
-      "recent30_avg_hits": 0,
-      "edge_vs_random": -0.641,
+      "settled_rounds": 1,
+      "avg_hits": 2.0,
+      "recent30_avg_hits": 2.0,
+      "edge_vs_random": 1.359,
       "eligible_for_model": false,
       "model_weight_cap": 0.0
     },
@@ -86,9 +59,9 @@
       "source_name": "公開彩迷熱門分享",
       "source_type": "manual_authorized_social",
       "source_url": "https://www.pilio.idv.tw/lto539/ltoshare539_Do.asp",
-      "settled_rounds": 0,
-      "avg_hits": 0,
-      "recent30_avg_hits": 0,
+      "settled_rounds": 1,
+      "avg_hits": 0.0,
+      "recent30_avg_hits": 0.0,
       "edge_vs_random": -0.641,
       "eligible_for_model": false,
       "model_weight_cap": 0.0
@@ -98,10 +71,10 @@
   "model_influence_status": "observation_only_weight_zero",
   "random_top5_expected_hits": 0.641,
   "collection": {
-    "collected": 0,
+    "collected": 1,
     "warnings": [],
-    "target_period": 115000136,
-    "settled": 0
+    "target_period": 115000137,
+    "settled": 2
   },
   "warning": "網路人氣不等於開出機率，未通過100期與近期回測的來源權重為0"
 }
