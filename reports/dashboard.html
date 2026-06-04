@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>539 主系統儀表板</title>
+  <style>
+    body { margin:0; font-family:"Microsoft JhengHei", Arial, sans-serif; background:#f5f6f8; color:#1f2937; }
+    header { background:#111827; color:white; padding:22px 28px; }
+    main { max-width:1280px; margin:auto; padding:20px; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; }
+    .card,.panel { background:white; border:1px solid #e5e7eb; border-radius:8px; padding:16px; }
+    .card h2,.panel h2 { margin:0 0 10px; font-size:17px; color:#475569; }
+    .big { font-size:27px; font-weight:800; }
+    .muted { color:#64748b; }
+    table { width:100%; border-collapse:collapse; }
+    th,td { border-bottom:1px solid #e5e7eb; padding:8px; text-align:left; }
+    th { background:#f1f5f9; }
+    .panel { margin-top:16px; }
+    .tag { display:inline-block; background:#e0f2fe; color:#075985; padding:4px 10px; border-radius:999px; font-weight:700; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>539 主系統儀表板</h1>
+    <div>最新期別 115000135 / 開獎 02 08 17 25 38</div>
+  </header>
+  <main>
+    <div class="grid">
+      <section class="card"><h2>系統狀態</h2><div class="big">ok</div><p class="muted">備份 1 / 資料 5879 筆</p></section>
+      <section class="card"><h2>風險等級</h2><div class="big">高</div><p class="muted">回測優勢很小，不可過度放大信心</p></section>
+      <section class="card"><h2>競賽冠軍</h2><div class="big">stable_hot</div><p class="muted">Top10 1.296 / Top15 1.858</p></section>
+      <section class="card"><h2>真實追蹤</h2><div class="big">3</div><p class="muted">已結算，待結算 1</p></section>
+    </div>
+    <section class="panel"><h2>強牌組</h2><table><thead><tr><th>項目</th><th>號碼</th><th>理論機率</th><th>賠率式</th></tr></thead><tbody><tr><td>最強單支</td><td>20</td><td>0.128205</td><td>1/7.8</td></tr><tr><td>最強2中1</td><td>18 20</td><td>0.242915</td><td>1/4.12</td></tr><tr><td>最強3中1</td><td>09 18 20</td><td>0.345224</td><td>1/2.9</td></tr><tr><td>最強5中2</td><td>03 09 18 20 35</td><td>0.113973</td><td>1/8.77</td></tr><tr><td>最強9中3</td><td>03 09 16 18 20 22 24 32 35</td><td>0.070248</td><td>1/14.24</td></tr></tbody></table></section>
+    <section class="panel"><h2>多模型競賽</h2><table><thead><tr><th>模型</th><th>Top10</th><th>Top15</th><th>候選Top10</th></tr></thead><tbody><tr><td>stable_hot</td><td>1.296</td><td>1.858</td><td>02 08 06 25 21 12 36 04 20 15</td></tr><tr><td>date_neighbor</td><td>1.279</td><td>1.925</td><td>37 02 04 06 10 19 20 01 03 07</td></tr><tr><td>cold_rebound</td><td>1.271</td><td>1.929</td><td>29 27 10 33 32 01 23 16 24 11</td></tr><tr><td>ensemble</td><td>1.254</td><td>1.854</td><td>06 08 21 02 16 36 25 18 15 04</td></tr><tr><td>anti_failure</td><td>1.229</td><td>1.842</td><td>21 06 08 36 27 02 29 25 15 31</td></tr><tr><td>pair_tail</td><td>1.217</td><td>1.812</td><td>08 25 15 16 06 21 31 17 11 36</td></tr></tbody></table></section>
+    <section class="panel"><h2>預測結算追蹤</h2><table><thead><tr><th>依據期</th><th>目標期</th><th>狀態</th><th>實際期</th><th>Top5</th><th>Top10</th><th>Top15</th></tr></thead><tbody><tr><td>115000135</td><td>115000136</td><td>pending</td><td></td><td></td><td></td><td></td></tr><tr><td>115000134</td><td>115000135</td><td>settled</td><td>115000135</td><td>2</td><td>3</td><td>3</td></tr><tr><td>115000133</td><td>115000134</td><td>settled</td><td>115000134</td><td>2</td><td>2</td><td>2</td></tr><tr><td>115000132</td><td>115000133</td><td>settled</td><td>115000133</td><td>0</td><td>0</td><td>1</td></tr></tbody></table></section>
+    <section class="panel"><h2>捷徑</h2><p><a href="539最新強化戰報.html">開啟539最新強化戰報</a> / <a href="health_status.md">健康檢查</a> / <a href="model_competition.md">模型競賽報告</a></p></section>
+  </main>
+</body>
+</html>
