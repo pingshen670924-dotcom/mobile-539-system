@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-05T23:42:15",
+  "generated_at": "2026-06-05T23:55:34",
   "latest_draw": {
     "period": 115000137,
     "draw_date": "2026-06-05",
@@ -4161,7 +4161,7 @@
     }
   },
   "crowd_consensus": {
-    "generated_at": "2026-06-05T15:42:17",
+    "generated_at": "2026-06-05T15:55:35",
     "target_period": 115000138,
     "source_count": 1,
     "observations": [
@@ -4233,10 +4233,10 @@
     "model_influence_status": "observation_only_weight_zero",
     "random_top5_expected_hits": 0.641,
     "collection": {
-      "collected": 1,
+      "collected": 0,
       "warnings": [],
       "target_period": 115000138,
-      "settled": 1
+      "settled": 0
     },
     "warning": "網路人氣不等於開出機率，未通過100期與近期回測的來源權重為0"
   },
@@ -4245,7 +4245,7 @@
     "latest_date": "2026-06-05",
     "expected_latest_date": "2026-06-05",
     "lag_days": 0,
-    "checked_at": "2026-06-05T23:41:37"
+    "checked_at": "2026-06-05T23:54:55"
   },
-  "official_prediction_status": "inserted"
+  "official_prediction_status": "recalculated_same_as_official"
 }
