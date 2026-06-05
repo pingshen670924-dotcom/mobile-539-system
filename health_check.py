@@ -3,7 +3,6 @@ import sqlite3
 from collections import defaultdict
 from datetime import datetime, time as clock_time, timedelta
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -14,11 +13,6 @@ REPORT_DIR = BASE_DIR / "reports"
 DB_PATH = DATA_DIR / "539.sqlite"
 HEALTH_JSON = REPORT_DIR / "health_status.json"
 HEALTH_MD = REPORT_DIR / "health_status.md"
-TAIPEI_TZ = ZoneInfo("Asia/Taipei")
-
-
-def taipei_now():
-    return datetime.now(TAIPEI_TZ).replace(tzinfo=None)
 
 
 def fetch_one(conn, sql, params=()):
@@ -26,7 +20,7 @@ def fetch_one(conn, sql, params=()):
 
 
 def expected_latest_draw_date(now=None):
-    now = now or taipei_now()
+    now = now or datetime.now()
     candidate = now.date()
     if now.time() < clock_time(21, 0):
         candidate -= timedelta(days=1)
@@ -77,7 +71,7 @@ def build_health():
     latest_analysis_path = REPORT_DIR / "latest_analysis.json"
 
     health = {
-        "generated_at": taipei_now().isoformat(timespec="seconds"),
+        "generated_at": datetime.now().isoformat(timespec="seconds"),
         "database_exists": DB_PATH.exists(),
         "backup_count": len(backups),
         "latest_backup": str(backups[0]) if backups else None,

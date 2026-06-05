@@ -648,8 +648,18 @@ def archive_existing_prediction(conn, prediction_id, reason):
 
 def store_prediction(conn, analysis):
     latest = analysis["latest_draw"]
+    new_candidates_json = json.dumps(analysis["candidates"], ensure_ascii=False)
+    new_sets_json = json.dumps(analysis["suggested_sets"], ensure_ascii=False)
+    new_packs_json = json.dumps(analysis["strong_prediction_packs"], ensure_ascii=False)
+    new_weights_json = json.dumps(analysis["model_weights"], ensure_ascii=False)
+    new_backtest_json = json.dumps(analysis["backtest"], ensure_ascii=False)
     exists = conn.execute(
-        "SELECT id, status, candidates_json FROM predictions_539 WHERE based_on_period=?",
+        """
+        SELECT id, status, candidates_json, suggested_sets_json, strong_packs_json,
+               model_weights_json, backtest_json
+        FROM predictions_539
+        WHERE based_on_period=?
+        """,
         (latest["period"],),
     ).fetchone()
     if exists:
@@ -681,9 +691,38 @@ def store_prediction(conn, analysis):
             store_prediction_snapshot(conn, analysis, "official_prediction_corrected_by_previous_prediction_guard")
             conn.commit()
             return "corrected_pending"
+        changed = (
+            exists[2] != new_candidates_json
+            or exists[3] != new_sets_json
+            or (exists[4] or "") != new_packs_json
+            or exists[5] != new_weights_json
+            or exists[6] != new_backtest_json
+        )
+        if exists[1] == "pending" and changed:
+            archive_existing_prediction(conn, exists[0], "official_prediction_before_recalculation_update")
+            conn.execute(
+                """
+                UPDATE predictions_539
+                SET candidates_json=?, suggested_sets_json=?, strong_packs_json=?,
+                    model_weights_json=?, backtest_json=?, created_at=?
+                WHERE id=?
+                """,
+                (
+                    new_candidates_json,
+                    new_sets_json,
+                    new_packs_json,
+                    new_weights_json,
+                    new_backtest_json,
+                    datetime.now().isoformat(timespec="seconds"),
+                    exists[0],
+                ),
+            )
+            store_prediction_snapshot(conn, analysis, "official_prediction_recalculated_and_updated")
+            conn.commit()
+            return "updated_pending"
         store_prediction_snapshot(conn, analysis, "rerun_preserved_official_prediction")
         conn.commit()
-        return "preserved_pending" if exists[1] == "pending" else "preserved_settled"
+        return "recalculated_same_as_official" if exists[1] == "pending" else "preserved_settled"
     conn.execute(
         """
         INSERT INTO predictions_539 (
@@ -697,11 +736,11 @@ def store_prediction(conn, analysis):
             latest["period"],
             latest["draw_date"],
             latest["period"] + 1,
-            json.dumps(analysis["candidates"], ensure_ascii=False),
-            json.dumps(analysis["suggested_sets"], ensure_ascii=False),
-            json.dumps(analysis["strong_prediction_packs"], ensure_ascii=False),
-            json.dumps(analysis["model_weights"], ensure_ascii=False),
-            json.dumps(analysis["backtest"], ensure_ascii=False),
+            new_candidates_json,
+            new_sets_json,
+            new_packs_json,
+            new_weights_json,
+            new_backtest_json,
             datetime.now().isoformat(timespec="seconds"),
         ),
     )
@@ -828,15 +867,29 @@ def main():
 
     with sqlite3.connect(DB_PATH) as conn:
         init_db(conn)
-        prediction_status = store_prediction(conn, analysis)
-        if prediction_status == "inserted":
-            logging.info("\u5df2\u65b0\u589e\u9810\u6e2c\u7d00\u9304：based_on_period=%s", analysis["latest_draw"]["period"])
-        elif prediction_status == "corrected_pending":
-            logging.info("Pending official prediction corrected by previous-prediction guard: based_on_period=%s", analysis["latest_draw"]["period"])
-        elif prediction_status == "preserved_pending":
-            logging.info("\u5df2\u4fdd\u7559\u540c\u671f\u5f85\u7d50\u7b97\u6b63\u5f0f\u9810\u6e2c，\u672c\u6b21\u91cd\u8dd1\u53e6\u5b58\u5feb\u7167：based_on_period=%s", analysis["latest_draw"]["period"])
+        prediction_status = "stale_data_blocked"
+        if freshness and freshness["status"] != "fresh":
+            store_prediction_snapshot(conn, analysis, "stale_data_analysis_snapshot_no_official_prediction")
+            conn.commit()
+            logging.warning(
+                "Official prediction blocked because data is stale: latest=%s expected=%s",
+                freshness.get("latest_date"),
+                freshness.get("expected_latest_date"),
+            )
         else:
-            logging.info("\u6b63\u5f0f\u9810\u6e2c\u7d00\u9304\u5df2\u7d50\u7b97，\u672c\u6b21\u91cd\u8dd1\u53e6\u5b58\u5feb\u7167：based_on_period=%s", analysis["latest_draw"]["period"])
+            prediction_status = store_prediction(conn, analysis)
+            if prediction_status == "inserted":
+                logging.info("\u5df2\u65b0\u589e\u9810\u6e2c\u7d00\u9304：based_on_period=%s", analysis["latest_draw"]["period"])
+            elif prediction_status == "corrected_pending":
+                logging.info("Pending official prediction corrected by previous-prediction guard: based_on_period=%s", analysis["latest_draw"]["period"])
+            elif prediction_status == "updated_pending":
+                logging.info("Pending official prediction recalculated and updated: based_on_period=%s", analysis["latest_draw"]["period"])
+            elif prediction_status == "recalculated_same_as_official":
+                logging.info("\u5df2\u91cd\u65b0\u904b\u7b97，\u7d50\u679c\u8207\u76ee\u524d\u6b63\u5f0f\u9810\u6e2c\u76f8\u540c，\u672c\u6b21\u53e6\u5b58\u5feb\u7167：based_on_period=%s", analysis["latest_draw"]["period"])
+            else:
+                logging.info("\u6b63\u5f0f\u9810\u6e2c\u7d00\u9304\u5df2\u7d50\u7b97，\u672c\u6b21\u91cd\u8dd1\u53e6\u5b58\u5feb\u7167：based_on_period=%s", analysis["latest_draw"]["period"])
+        analysis["official_prediction_status"] = prediction_status
+        save_analysis(analysis)
         performance = prediction_performance(conn)
         logging.info("\u5be6\u969b\u9810\u6e2c\u7e3e\u6548：%s", json.dumps(performance, ensure_ascii=False))
 

@@ -27,6 +27,18 @@ def fmt_numbers(numbers):
     return " ".join(f"{int(n):02d}" for n in numbers)
 
 
+def official_status_label(status):
+    labels = {
+        "inserted": "\u5df2\u4f9d\u6700\u65b0\u958b\u734e\u91cd\u65b0\u5efa\u7acb\u6b63\u5f0f\u9810\u6e2c",
+        "updated_pending": "\u5df2\u91cd\u65b0\u904b\u7b97\u4e26\u66f4\u65b0\u6b63\u5f0f\u9810\u6e2c",
+        "corrected_pending": "\u5df2\u91cd\u65b0\u904b\u7b97\u4e26\u5957\u7528\u91cd\u8907\u865f\u5b88\u9580\u4fee\u6b63",
+        "recalculated_same_as_official": "\u5df2\u91cd\u65b0\u904b\u7b97\uff0c\u7d50\u679c\u8207\u76ee\u524d\u6b63\u5f0f\u9810\u6e2c\u76f8\u540c",
+        "stale_data_blocked": "\u8cc7\u6599\u672a\u9054\u61c9\u6709\u958b\u734e\u65e5\uff0c\u7981\u6b62\u7522\u751f\u65b0\u6b63\u5f0f\u9810\u6e2c",
+        "preserved_settled": "\u8a72\u671f\u6b63\u5f0f\u9810\u6e2c\u5df2\u7d50\u7b97\uff0c\u672c\u6b21\u53ea\u4fdd\u7559\u5feb\u7167",
+    }
+    return labels.get(status or "", status or "\u672c\u6b21\u91cd\u65b0\u904b\u7b97")
+
+
 def load_json(path):
     if not path.exists():
         return {}
@@ -76,6 +88,47 @@ def latest_settled_prediction():
         "settled_at": row[14],
         "model_weights": json.loads(row[15] or "{}"),
     }
+
+
+def latest_pending_prediction():
+    if not DB_PATH.exists():
+        return {}
+    with sqlite3.connect(DB_PATH) as conn:
+        row = conn.execute(
+            """
+            SELECT id, based_on_period, based_on_date, target_period,
+                   candidates_json, suggested_sets_json, strong_packs_json,
+                   model_weights_json, backtest_json, created_at
+            FROM predictions_539
+            WHERE status='pending'
+            ORDER BY based_on_period DESC, id DESC
+            LIMIT 1
+            """
+        ).fetchone()
+    if not row:
+        return {}
+    return {
+        "id": row[0],
+        "based_on_period": row[1],
+        "based_on_date": row[2],
+        "target_period": row[3],
+        "candidates": json.loads(row[4] or "[]"),
+        "suggested_sets": json.loads(row[5] or "[]"),
+        "strong_packs": json.loads(row[6] or "{}"),
+        "model_weights": json.loads(row[7] or "{}"),
+        "backtest": json.loads(row[8] or "{}"),
+        "created_at": row[9],
+    }
+
+
+def resolved_official_status(analysis, pending_prediction):
+    status = analysis.get("official_prediction_status")
+    if status:
+        return status
+    latest = analysis.get("latest_draw", {})
+    if pending_prediction and pending_prediction.get("based_on_period") == latest.get("period"):
+        return "recalculated_same_as_official"
+    return "recalculated_same_as_official"
 
 
 def pack_label(key):
@@ -248,6 +301,8 @@ def build_report():
     freshness = analysis.get("data_freshness", {})
     release_label = "\u6b63\u5f0f\u4e3b\u63a8" if release_gate.get("status") == "official" else "\u50c5\u4f9b\u89c0\u5bdf\uff0c\u4e0d\u5217\u6b63\u5f0f\u4e3b\u63a8"
     settled_prediction = latest_settled_prediction()
+    pending_prediction = latest_pending_prediction()
+    official_status_code = resolved_official_status(analysis, pending_prediction)
     settled_rows = settled_hit_rows(settled_prediction)
     candidate_review_rows = settled_candidate_review_rows(settled_prediction)
     audit_detail = prediction_audit(settled_prediction)
@@ -262,6 +317,8 @@ def build_report():
         f"- \u6700\u65b0\u671f\u5225\uff1a{latest['period']} ({latest['draw_date']})",
         "- \u6700\u65b0\u865f\u78bc\uff1a" + fmt_numbers(latest["numbers"]),
         f"- \u9810\u6e2c\u76ee\u6a19\u671f\uff1a{latest['period'] + 1}",
+        f"- \u6b63\u5f0f\u9810\u6e2c\u72c0\u614b\uff1a{official_status_label(official_status_code)}",
+        f"- \u76ee\u524d\u5f85\u7d50\u7b97\u6b63\u5f0f\u9810\u6e2c\uff1a\u4f9d\u64da\u671f {pending_prediction.get('based_on_period', '\u7121')} / \u76ee\u6a19\u671f {pending_prediction.get('target_period', '\u7121')} / \u5efa\u7acb {pending_prediction.get('created_at', '\u7121')}",
         "- \u91cd\u865f\u5b88\u9580\uff1a\u6700\u65b0\u958b\u734e\u865f\u672a\u901a\u904e\u9023\u838a\u7387\u6aa2\u5b9a\u4e0d\u5217\u5165\u4e3b\u63a8",
         f"- \u5de5\u696d\u5f15\u64ce\uff1a{industrial.get('engine_version', '')}",
         f"- \u9810\u6e2c\u767c\u5e03\u7b49\u7d1a\uff1a{release_label}",
@@ -523,6 +580,22 @@ def build_report():
                 f"- \u8fd1 {window} \u671f Top10\uff1a{values.get('top10_avg_hits')} / "
                 f"\u5c0d\u96a8\u6a5f\u5dee\u503c {values.get('top10_edge_vs_random')}"
             )
+        advanced = industrial.get("advanced_models", {})
+        advanced_bt = industrial.get("advanced_model_backtest", {})
+        if advanced:
+            lines.extend([
+                "",
+                "### \u9032\u968e\u9810\u6e2c\u6a21\u578b",
+                f"- \u8aaa\u660e\uff1a{advanced.get('warning')}",
+                f"- \u9032\u968e\u6a21\u578b\u5171\u8b58 Top12\uff1a{fmt_numbers(advanced.get('consensus_top12', []))}",
+            ])
+            for model in advanced.get("models", []):
+                bt_row = advanced_bt.get("models", {}).get(model.get("model"), {})
+                lines.append(
+                    f"- {model.get('name')}\uff1a{fmt_numbers(model.get('top10', []))} / "
+                    f"Top10 \u56de\u6e2c {bt_row.get('top10_avg_hits')} / "
+                    f"\u5c0d\u96a8\u6a5f\u5dee\u503c {bt_row.get('top10_edge_vs_random')}"
+                )
         if repeat_guard:
             lines.extend([
                 "",
@@ -588,6 +661,8 @@ def build_html_report(markdown_text):
     previous_guard = industrial.get("previous_prediction_guard", {})
     crowd = analysis.get("crowd_consensus", load_json(REPORT_DIR / "crowd_consensus.json"))
     settled_prediction = latest_settled_prediction()
+    pending_prediction = latest_pending_prediction()
+    official_status_code = resolved_official_status(analysis, pending_prediction)
     settled_rows = settled_hit_rows(settled_prediction)
     candidate_review_rows = settled_candidate_review_rows(settled_prediction)
     audit_detail = prediction_audit(settled_prediction)
@@ -733,6 +808,12 @@ def build_html_report(markdown_text):
     release_label = "\u6b63\u5f0f\u4e3b\u63a8" if release_status == "official" else "\u50c5\u4f9b\u89c0\u5bdf\uff0c\u7981\u6b62\u6b63\u5f0f\u4e3b\u63a8"
     freshness_label = "\u8cc7\u6599\u5df2\u66f4\u65b0" if freshness.get("status") == "fresh" else "\u8cc7\u6599\u904e\u671f\uff0c\u7981\u6b62\u9810\u6e2c"
     observation_note = "" if release_status == "official" else "\u672c\u5340\u70ba\u89c0\u5bdf\u5019\u9078\uff0c\u767c\u5e03\u9580\u6abb\u672a\u901a\u904e"
+    official_status = official_status_label(official_status_code)
+    pending_summary = (
+        f"\u4f9d\u64da\u671f {pending_prediction.get('based_on_period', '\u7121')} / "
+        f"\u76ee\u6a19\u671f {pending_prediction.get('target_period', '\u7121')} / "
+        f"\u5efa\u7acb {pending_prediction.get('created_at', '\u7121')}"
+    )
 
     rolling_rows = ""
     for window in ["60", "120", "360"]:
@@ -743,6 +824,19 @@ def build_html_report(markdown_text):
             "<tr>"
             f"<td>{window}</td><td>{values.get('rounds')}</td><td>{values.get('top10_avg_hits')}</td>"
             f"<td>{edge_value}</td><td>{result}</td>"
+            "</tr>"
+        )
+
+    advanced = industrial.get("advanced_models", {})
+    advanced_bt = industrial.get("advanced_model_backtest", {})
+    advanced_rows = ""
+    for model in advanced.get("models", []):
+        bt_row = advanced_bt.get("models", {}).get(model.get("model"), {})
+        advanced_rows += (
+            "<tr>"
+            f"<td>{model.get('name')}</td><td>{fmt_numbers(model.get('top10', []))}</td>"
+            f"<td>{bt_row.get('top10_avg_hits')}</td><td>{bt_row.get('top10_edge_vs_random')}</td>"
+            f"<td>{model.get('method')}</td>"
             "</tr>"
         )
 
@@ -809,6 +903,8 @@ def build_html_report(markdown_text):
       <p><span class="status {'fresh' if freshness.get('status') == 'fresh' else 'blocked'}">{freshness_label}</span>
       <span class="status {'fresh' if release_status == 'official' else 'blocked'}">{release_label}</span></p>
       <p>\u5f15\u64ce\uff1a{industrial.get('engine_version', '')} / \u6700\u65b0\u8cc7\u6599\uff1a{freshness.get('latest_date', latest.get('draw_date'))} / \u61c9\u6709\u8cc7\u6599\uff1a{freshness.get('expected_latest_date', '')}</p>
+      <p>\u6b63\u5f0f\u9810\u6e2c\u72c0\u614b\uff1a{official_status}</p>
+      <p>\u76ee\u524d\u5f85\u7d50\u7b97\u6b63\u5f0f\u9810\u6e2c\uff1a{pending_summary}</p>
       <p>\u767c\u5e03\u5224\u5b9a\uff1aTop10 \u7a69\u5b9a\u5171\u8b58 {stability.get('top10_retention')} / \u6574\u9ad4\u56de\u6e2c\u5dee\u503c {release_gate.get('actual_backtest_edge')} / \u8fd1\u671f\u56de\u6e2c\u662f\u5426\u901a\u904e {release_gate.get('recent_performance_passed')}</p>
       <p>\u6628\u65e5\u9810\u6e2c\u91cd\u8907\u5b88\u9580\uff1aTop10 \u91cd\u758a {previous_guard.get('current_top10_overlap')} / Top15 \u91cd\u758a {previous_guard.get('current_top15_overlap')} / \u901a\u904e\u6975\u5f37\u91cd\u5165 {previous_guard.get('reentry_passed')}</p>
     </section>
@@ -823,6 +919,12 @@ def build_html_report(markdown_text):
     <section class="band">
       <h2>\u8fd1\u671f\u7a69\u5b9a\u5ea6\u56de\u6e2c</h2>
       <table><thead><tr><th>\u671f\u6578</th><th>\u6a23\u672c</th><th>Top10 \u5e73\u5747\u547d\u4e2d</th><th>\u5c0d\u96a8\u6a5f\u5dee\u503c</th><th>\u9580\u6abb</th></tr></thead><tbody>{rolling_rows}</tbody></table>
+    </section>
+    <section class="band">
+      <h2>\u9032\u968e\u9810\u6e2c\u6a21\u578b</h2>
+      <p>{advanced.get('warning', '')}</p>
+      <p>\u9032\u968e\u6a21\u578b\u5171\u8b58 Top12\uff1a{fmt_numbers(advanced.get('consensus_top12', []))}</p>
+      <table><thead><tr><th>\u6a21\u578b</th><th>Top10</th><th>Top10 \u56de\u6e2c</th><th>\u5c0d\u96a8\u6a5f\u5dee\u503c</th><th>\u65b9\u6cd5</th></tr></thead><tbody>{advanced_rows}</tbody></table>
     </section>
     <section class="band">
       <h2>\u7db2\u8def\u4eba\u6c23\u5171\u8b58\uff08\u672a\u901a\u904e\u56de\u6e2c\u524d\u4e0d\u5f71\u97ff\u4e3b\u6a21\u578b\uff09</h2>
