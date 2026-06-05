@@ -1,22 +1,22 @@
 {
-  "generated_at": "2026-06-04T15:01:49",
-  "target_period": 115000136,
+  "generated_at": "2026-06-05T01:58:49",
+  "target_period": 115000137,
   "source_count": 1,
   "observations": [
     {
-      "source_id": "pilio_web_verified_20260604",
-      "source_name": "公開彩迷熱門分享",
-      "source_type": "manual_authorized_social",
+      "source_id": "pilio_public_share",
+      "source_name": "彩迷熱門號碼分享",
+      "source_type": "public_crowd_share",
       "source_url": "https://www.pilio.idv.tw/lto539/ltoshare539_Do.asp",
       "numbers": [
-        12,
-        18,
+        8,
         1,
-        3,
-        11
+        11,
+        36,
+        2
       ],
       "engagement": null,
-      "collected_at": "2026-06-04T15:01:05"
+      "collected_at": "2026-06-05T08:18:13"
     }
   ],
   "consensus_ranking": [
@@ -25,7 +25,11 @@
       "source_votes": 1
     },
     {
-      "number": 3,
+      "number": 2,
+      "source_votes": 1
+    },
+    {
+      "number": 8,
       "source_votes": 1
     },
     {
@@ -33,11 +37,7 @@
       "source_votes": 1
     },
     {
-      "number": 12,
-      "source_votes": 1
-    },
-    {
-      "number": 18,
+      "number": 36,
       "source_votes": 1
     }
   ],
@@ -47,10 +47,10 @@
       "source_name": "彩迷熱門號碼分享",
       "source_type": "public_crowd_share",
       "source_url": "https://www.pilio.idv.tw/lto539/ltoshare539_Do.asp",
-      "settled_rounds": 0,
-      "avg_hits": 0,
-      "recent30_avg_hits": 0,
-      "edge_vs_random": -0.641,
+      "settled_rounds": 1,
+      "avg_hits": 2.0,
+      "recent30_avg_hits": 2.0,
+      "edge_vs_random": 1.359,
       "eligible_for_model": false,
       "model_weight_cap": 0.0
     },
@@ -59,9 +59,9 @@
       "source_name": "公開彩迷熱門分享",
       "source_type": "manual_authorized_social",
       "source_url": "https://www.pilio.idv.tw/lto539/ltoshare539_Do.asp",
-      "settled_rounds": 0,
-      "avg_hits": 0,
-      "recent30_avg_hits": 0,
+      "settled_rounds": 1,
+      "avg_hits": 0.0,
+      "recent30_avg_hits": 0.0,
       "edge_vs_random": -0.641,
       "eligible_for_model": false,
       "model_weight_cap": 0.0
@@ -72,10 +72,8 @@
   "random_top5_expected_hits": 0.641,
   "collection": {
     "collected": 0,
-    "warnings": [
-      "pilio_public_share: <urlopen error [WinError 10013] 嘗試存取通訊端被拒絕，因為存取權限不足。>"
-    ],
-    "target_period": 115000136,
+    "warnings": [],
+    "target_period": 115000137,
     "settled": 0
   },
   "warning": "網路人氣不等於開出機率，未通過100期與近期回測的來源權重為0"
