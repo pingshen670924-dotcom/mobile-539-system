@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-05T09:58:47",
+  "generated_at": "2026-06-05T15:34:19",
   "latest_draw": {
     "period": 115000136,
     "draw_date": "2026-06-04",
@@ -4153,7 +4153,7 @@
     }
   },
   "crowd_consensus": {
-    "generated_at": "2026-06-05T01:58:49",
+    "generated_at": "2026-06-05T15:34:19",
     "target_period": 115000137,
     "source_count": 1,
     "observations": [
@@ -4226,7 +4226,9 @@
     "random_top5_expected_hits": 0.641,
     "collection": {
       "collected": 0,
-      "warnings": [],
+      "warnings": [
+        "pilio_public_share: <urlopen error [WinError 10013] 嘗試存取通訊端被拒絕，因為存取權限不足。>"
+      ],
       "target_period": 115000137,
       "settled": 0
     },
@@ -4237,7 +4239,7 @@
     "latest_date": "2026-06-04",
     "expected_latest_date": "2026-06-04",
     "lag_days": 0,
-    "checked_at": "2026-06-05T09:58:08"
+    "checked_at": "2026-06-05T15:33:36"
   },
   "official_prediction_status": "recalculated_same_as_official"
 }

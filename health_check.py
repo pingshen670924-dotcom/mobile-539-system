@@ -174,8 +174,13 @@ def build_health():
         )
 
     if health["last_run"]["status"] != "success":
-        health["status"] = "warning"
-        health["warnings"].append("last update run was not successful")
+        message = health["last_run"].get("message") or ""
+        if health.get("data_freshness", {}).get("status") == "fresh" and "WinError 10013" in message:
+            health["external_risk"] = "network_permission_blocked_but_local_data_is_fresh"
+            health["warnings"].append("external network was blocked, but local data is fresh")
+        else:
+            health["status"] = "warning"
+            health["warnings"].append("last update run was not successful")
     if health.get("data_freshness", {}).get("status") != "fresh":
         health["status"] = "warning"
         health["warnings"].append("database is behind the expected latest draw date")
@@ -204,6 +209,7 @@ def save_health(health):
         f"- \u7522\u751f\u6642\u9593：{health['generated_at']}",
         f"- \u72c0\u614b：{health['status']}",
         f"- \u8b66\u544a：{', '.join(health['warnings']) if health['warnings'] else '\u7121'}",
+        f"- \u5916\u90e8\u98a8\u96aa：{health.get('external_risk', '\u7121')}",
         f"- \u8cc7\u6599\u7b46\u6578：{health.get('draw_count', 0)}",
         f"- \u6700\u65b0\u671f\u5225：{latest.get('period')} ({latest.get('draw_date')})",
         "- \u6700\u65b0\u865f\u78bc：" + " ".join(f"{n:02d}" for n in latest.get("numbers", [])),
