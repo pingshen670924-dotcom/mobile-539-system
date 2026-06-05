@@ -723,6 +723,101 @@ def stability_consensus(draws, base_candidates, review=None):
     }
 
 
+def unlikely_number_analysis(draws, candidates, stability, review=None, limit=12):
+    features = build_feature_matrix(draws, review, include_dependency=False)
+    score_map = {item["number"]: item["score"] for item in candidates}
+    rank_map = {item["number"]: index + 1 for index, item in enumerate(candidates)}
+    stability_counts = {int(number): count for number, count in stability.get("consensus_counts", {}).items()}
+    latest_set = set(draws[-1]["numbers"])
+    previous_blocked = {
+        item["number"] for item in candidates
+        if item.get("previous_prediction_guard") and not item["previous_prediction_guard"].get("passed")
+    }
+    failed = failed_number_set(review)
+    repeat_policy = repeat_guard(draws)
+    rows = []
+    for number in range(NUMBER_MIN, NUMBER_MAX + 1):
+        values = features[number]
+        weak_signal_count = sum(
+            1 for key in ["freq_20", "freq_50", "freq_100", "ewma_slow", "pair", "tail_zone", "validated_dependency"]
+            if values.get(key, 0) < 0.35
+        )
+        penalty = 0.0
+        reasons = []
+        if number in previous_blocked:
+            penalty += 0.32
+            reasons.append("\u6628\u65e5\u9810\u6e2c\u865f\u672a\u9054\u6975\u5f37\u91cd\u5165\u9580\u6abb")
+        if number in failed:
+            penalty += 0.25
+            reasons.append("\u4e0a\u671f\u5931\u6557\u865f\u78bc\u9694\u96e2")
+        if number in latest_set:
+            penalty += 0.28
+            if repeat_policy.get(number, {}).get("historical_support"):
+                reasons.append("\u9023\u838a\u50c5\u89c0\u5bdf")
+            else:
+                reasons.append("\u9023\u838a\u5b88\u9580\u672a\u901a\u904e")
+        if stability_counts.get(number, 0) == 0:
+            penalty += 0.16
+            reasons.append("\u64fe\u52d5\u6a21\u578b\u7121\u7a69\u5b9a\u5171\u8b58")
+        if weak_signal_count >= 5:
+            penalty += 0.20
+            reasons.append("\u77ed\u4e2d\u9577\u671f\u8207\u95dc\u806f\u6307\u6a19\u504f\u5f31")
+        if rank_map.get(number, 99) > 24:
+            penalty += 0.15
+            reasons.append("Top24\u5916")
+        appearance_risk = max(0.0, min(1.0, score_map.get(number, 0.0)))
+        avoid_score = max(0.0, min(1.0, (1 - appearance_risk) * 0.48 + penalty))
+        if not reasons:
+            reasons.append("\u7d9c\u5408\u8a55\u5206\u504f\u5f31")
+        rows.append(
+            {
+                "number": number,
+                "avoid_score": round(avoid_score, 4),
+                "appearance_score": round(appearance_risk, 4),
+                "candidate_rank": rank_map.get(number),
+                "stability_count": stability_counts.get(number, 0),
+                "weak_signal_count": weak_signal_count,
+                "reasons": reasons[:4],
+                "warning": "\u4f4e\u6a5f\u7387\u4e0d\u4ee3\u8868\u4e0d\u6703\u958b\u51fa",
+            }
+        )
+    rows.sort(key=lambda item: (item["avoid_score"], item["number"]), reverse=True)
+    return {
+        "method": "inverse_signal_risk_filter",
+        "warning": "\u6b64\u5340\u70ba\u98a8\u63a7\u907f\u958b\u89c0\u5bdf\uff0c\u4e0d\u662f\u7d55\u5c0d\u4e0d\u958b\u4fdd\u8b49",
+        "numbers": rows[:limit],
+    }
+
+
+def unlikely_backtest(draws, rounds=120, avoid_size=10):
+    if len(draws) < 140:
+        return {"rounds": 0}
+    start = max(120, len(draws) - rounds - 1)
+    total = 0
+    accidental_hits = 0
+    zero_hit_rounds = 0
+    for idx in range(start, len(draws) - 1):
+        train = draws[: idx + 1]
+        base_candidates, _ = score_numbers(train, None, include_dependency=False)
+        stable = {"consensus_counts": {}}
+        avoid = unlikely_number_analysis(train, base_candidates, stable, None, limit=avoid_size)["numbers"]
+        avoid_numbers = {item["number"] for item in avoid}
+        actual = set(draws[idx + 1]["numbers"])
+        hits = len(avoid_numbers & actual)
+        accidental_hits += hits
+        zero_hit_rounds += 1 if hits == 0 else 0
+        total += 1
+    random_expectation = DRAW_SIZE * avoid_size / NUMBER_MAX
+    return {
+        "rounds": total,
+        "avoid_size": avoid_size,
+        "avg_accidental_hits": round(accidental_hits / total, 3) if total else 0,
+        "random_expectation": round(random_expectation, 3),
+        "edge_vs_random": round(accidental_hits / total - random_expectation, 4) if total else 0,
+        "zero_hit_rate": round(zero_hit_rounds / total, 3) if total else 0,
+    }
+
+
 def compute_industrial_analysis(draws, review=None):
     base_candidates, weights = score_numbers(draws, review)
     candidates, stability = stability_consensus(draws, base_candidates, review)
@@ -742,8 +837,9 @@ def compute_industrial_analysis(draws, review=None):
         item["number"] for item in candidates
         if item.get("previous_prediction_guard") and item["previous_prediction_guard"].get("passed")
     )
+    unlikely = unlikely_number_analysis(draws, candidates, stability, review)
     return {
-        "engine_version": "industrial_v4_previous_prediction_guard",
+        "engine_version": "industrial_v5_unlikely_number_risk_filter",
         "leakage_guard": True,
         "repeat_guard": repeat_guard(draws),
         "previous_prediction_guard": {
@@ -774,6 +870,8 @@ def compute_industrial_analysis(draws, review=None):
         },
         "weights": {key: round(value, 4) for key, value in weights.items()},
         "backtest": audit,
+        "unlikely_number_analysis": unlikely,
+        "unlikely_backtest": unlikely_backtest(draws),
         "model_audit": model_audit(audit, review),
         "regime_analysis": regime_analysis(draws),
         "candidates": candidates,

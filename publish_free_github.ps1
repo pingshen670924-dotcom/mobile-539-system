@@ -43,9 +43,21 @@ function Test-GhRepository {
   return $exists
 }
 
+function Copy-TreeWithoutGit {
+  param([string]$From, [string]$To)
+  New-Item -ItemType Directory -Path $To -Force | Out-Null
+  Get-ChildItem -LiteralPath $To -Force | Where-Object { $_.Name -ne ".git" } | ForEach-Object {
+    Remove-Item -LiteralPath $_.FullName -Recurse -Force
+  }
+  Get-ChildItem -LiteralPath $From -Force | Where-Object { $_.Name -ne ".git" } | ForEach-Object {
+    Copy-Item -LiteralPath $_.FullName -Destination $To -Recurse -Force
+  }
+}
+
 Write-Host "Preparing the free independent mobile 539 system..."
 Ensure-Command "git" "Git.Git"
 Ensure-Command "gh" "GitHub.cli"
+git config --global --add safe.directory $ScriptDir
 
 if (-not (Test-GhAuthentication)) {
   Write-Host "A GitHub official login page will open. Approve the login once."
@@ -65,11 +77,20 @@ if (-not (Test-GhRepository "$Owner/$RepoName")) {
   git commit -m "Create free independent mobile 539 system"
   gh repo create $RepoName --public --source . --remote origin --push
 } else {
+  $PayloadCopy = Join-Path $env:TEMP ("mobile-539-payload-" + [guid]::NewGuid().ToString("N"))
+  Copy-TreeWithoutGit $ScriptDir $PayloadCopy
   if (-not (Test-Path ".git")) {
     git init
-    git checkout -b main
     git remote add origin "https://github.com/$Owner/$RepoName.git"
+    git fetch origin main
+    git checkout -b main
+    git reset origin/main
+  } else {
+    git fetch origin main
+    git reset origin/main
   }
+  Copy-TreeWithoutGit $PayloadCopy $ScriptDir
+  Remove-Item -LiteralPath $PayloadCopy -Recurse -Force
   git config user.name "$Owner"
   git config user.email "$Owner@users.noreply.github.com"
   git add .
@@ -86,13 +107,27 @@ try {
   Write-Host "GitHub Pages already exists or will be enabled by the workflow."
 }
 
-gh workflow run daily-update.yml --repo "$Owner/$RepoName"
 $PageUrl = "https://$Owner.github.io/$RepoName/"
 $UrlName = ([char]0x624B) + ([char]0x6A5F) + ([char]0x7368) + ([char]0x7ACB) + ([char]0x7248) + ([char]0x7DB2) + ([char]0x5740) + ".txt"
 Set-Content -Path (Join-Path $ScriptDir $UrlName) -Value $PageUrl -Encoding UTF8
 
 Write-Host ""
-Write-Host "Upload and first cloud calculation started."
-Write-Host "Wait about 5-10 minutes, then open:"
+Write-Host "Starting the first cloud calculation and website deployment..."
+gh workflow run daily-update.yml --repo "$Owner/$RepoName"
+Start-Sleep -Seconds 5
+$RunId = gh run list --repo "$Owner/$RepoName" --workflow daily-update.yml --limit 1 --json databaseId --jq ".[0].databaseId"
+if ($RunId) {
+  gh run watch $RunId --repo "$Owner/$RepoName" --exit-status
+  if ($LASTEXITCODE -ne 0) {
+    Write-Host ""
+    Write-Host "The first deployment did not finish successfully."
+    Write-Host "Opening the GitHub Actions page so the error can be inspected."
+    Start-Process "https://github.com/$Owner/$RepoName/actions"
+    throw "GitHub Pages deployment failed."
+  }
+}
+
+Write-Host ""
+Write-Host "The free independent mobile website is online:"
 Write-Host $PageUrl
 Start-Process $PageUrl

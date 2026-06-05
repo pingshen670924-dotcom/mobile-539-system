@@ -2,6 +2,7 @@
 import sqlite3
 from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -15,6 +16,11 @@ BATTLE_MD = REPORT_DIR / "latest_battle_report.md"
 BATTLE_TXT = REPORT_DIR / "latest_battle_report.txt"
 BATTLE_HTML = REPORT_DIR / "latest_battle_report.html"
 ENHANCED_BATTLE_HTML = REPORT_DIR / "539\u6700\u65b0\u5f37\u5316\u6230\u5831.html"
+TAIPEI_TZ = ZoneInfo("Asia/Taipei")
+
+
+def taipei_now():
+    return datetime.now(TAIPEI_TZ).replace(tzinfo=None)
 
 
 def fmt_numbers(numbers):
@@ -237,6 +243,8 @@ def build_report():
     stability = industrial.get("stability_consensus", {})
     industrial_backtest = industrial.get("backtest", {})
     rolling_windows = industrial_backtest.get("rolling_windows", {})
+    unlikely = industrial.get("unlikely_number_analysis", {})
+    unlikely_backtest = industrial.get("unlikely_backtest", {})
     freshness = analysis.get("data_freshness", {})
     release_label = "\u6b63\u5f0f\u4e3b\u63a8" if release_gate.get("status") == "official" else "\u50c5\u4f9b\u89c0\u5bdf\uff0c\u4e0d\u5217\u6b63\u5f0f\u4e3b\u63a8"
     settled_prediction = latest_settled_prediction()
@@ -248,7 +256,7 @@ def build_report():
     lines = [
         "# 539 \u958b\u734e\u9810\u6e2c\u6230\u5831",
         "",
-        f"- \u7522\u751f\u6642\u9593\uff1a{datetime.now().isoformat(timespec='seconds')}",
+        f"- \u7522\u751f\u6642\u9593\uff1a{taipei_now().isoformat(timespec='seconds')}",
         f"- \u7cfb\u7d71\u72c0\u614b\uff1a{health_status}",
         f"- \u8cc7\u6599\u65b0\u9bae\u5ea6\uff1a{freshness.get('status', '')} / \u61c9\u6709\u6700\u65b0\u65e5\u671f {freshness.get('expected_latest_date', '')}",
         f"- \u6700\u65b0\u671f\u5225\uff1a{latest['period']} ({latest['draw_date']})",
@@ -529,6 +537,23 @@ def build_report():
                     f"| {number:02d} | {item.get('sample')} | {item.get('repeat_hits')} | "
                     f"{item.get('repeat_rate')} | {item.get('baseline')} | {decision} |"
                 )
+        unlikely = industrial.get("unlikely_number_analysis", {})
+        unlikely_bt = industrial.get("unlikely_backtest", {})
+        if unlikely:
+            lines.extend([
+                "",
+                "### \u4f4e\u6a5f\u7387\u66ab\u907f\u865f\u78bc",
+                f"- \u8aaa\u660e\uff1a{unlikely.get('warning')}",
+                f"- \u56de\u6e2c\uff1a\u8fd1 {unlikely_bt.get('rounds')} \u671f\uff0c\u66ab\u907f {unlikely_bt.get('avoid_size')} \u78bc\u5e73\u5747\u8aa4\u4e2d {unlikely_bt.get('avg_accidental_hits')}\uff0c\u96a8\u6a5f\u57fa\u6e96 {unlikely_bt.get('random_expectation')}\uff0c\u5dee\u503c {unlikely_bt.get('edge_vs_random')}\uff0c\u5b8c\u5168\u907f\u958b\u7387 {unlikely_bt.get('zero_hit_rate')}",
+                "| # | \u865f\u78bc | \u66ab\u907f\u6307\u6578 | \u51fa\u73fe\u8a55\u5206 | \u539f\u56e0 |",
+                "| ---: | ---: | ---: | ---: | --- |",
+            ])
+            for idx, item in enumerate(unlikely.get("numbers", [])[:12], 1):
+                reason = "\u3001".join(item.get("reasons", []))
+                lines.append(
+                    f"| {idx} | {item.get('number'):02d} | {item.get('avoid_score')} | "
+                    f"{item.get('appearance_score')} | {reason} |"
+                )
 
     performance = health.get("prediction_performance", {})
     lines.extend([
@@ -557,6 +582,8 @@ def build_html_report(markdown_text):
     stability = industrial.get("stability_consensus", {})
     industrial_backtest = industrial.get("backtest", {})
     rolling_windows = industrial_backtest.get("rolling_windows", {})
+    unlikely = industrial.get("unlikely_number_analysis", {})
+    unlikely_backtest = industrial.get("unlikely_backtest", {})
     freshness = analysis.get("data_freshness", {})
     previous_guard = industrial.get("previous_prediction_guard", {})
     crowd = analysis.get("crowd_consensus", load_json(REPORT_DIR / "crowd_consensus.json"))
@@ -603,6 +630,18 @@ def build_html_report(markdown_text):
             "<tr>"
             f"<td>{idx}</td><td>{item['number']:02d}</td><td>{item['confidence_index']}</td>"
             f"<td>{item['omission']}</td><td>{reason}</td>"
+            "</tr>"
+        )
+
+    unlikely_rows = ""
+    for idx, item in enumerate(unlikely.get("numbers", []), 1):
+        reason = "\u3001".join(item.get("reasons", []))
+        rank = item.get("candidate_rank") or "-"
+        unlikely_rows += (
+            "<tr>"
+            f"<td>{idx}</td><td>{item.get('number'):02d}</td><td>{item.get('avoid_score')}</td>"
+            f"<td>{item.get('appearance_score')}</td><td>{rank}</td>"
+            f"<td>{item.get('stability_count')}</td><td>{reason}</td>"
             "</tr>"
         )
 
@@ -806,6 +845,12 @@ def build_html_report(markdown_text):
       <p>\u958b\u734e\u578b\u614b\uff1a{regime_messages}</p>
     </section>
     <section class="band">
+      <h2>\u4f4e\u6a5f\u7387\u66ab\u907f\u865f\u78bc\uff08\u98a8\u63a7\u89c0\u5bdf\uff09</h2>
+      <p>{unlikely.get('warning', '')}</p>
+      <p>\u56de\u6e2c\uff1a\u8fd1 {unlikely_backtest.get('rounds')} \u671f\uff0c\u66ab\u907f {unlikely_backtest.get('avoid_size')} \u78bc\u5e73\u5747\u8aa4\u4e2d {unlikely_backtest.get('avg_accidental_hits')}\uff0c\u96a8\u6a5f\u57fa\u6e96 {unlikely_backtest.get('random_expectation')}\uff0c\u5dee\u503c {unlikely_backtest.get('edge_vs_random')}\uff0c\u5b8c\u5168\u907f\u958b\u7387 {unlikely_backtest.get('zero_hit_rate')}</p>
+      <table><thead><tr><th>#</th><th>\u865f\u78bc</th><th>\u66ab\u907f\u6307\u6578</th><th>\u51fa\u73fe\u8a55\u5206</th><th>\u5019\u9078\u6392\u540d</th><th>\u7a69\u5b9a\u6b21\u6578</th><th>\u66ab\u907f\u539f\u56e0</th></tr></thead><tbody>{unlikely_rows}</tbody></table>
+    </section>
+    <section class="band">
       <h2>\u4e0a\u671f\u6b63\u5f0f\u9810\u6e2c\u547d\u4e2d\u89e3\u6790</h2>
       <p>\u9810\u6e2c\u4f9d\u64da\u671f {settled_prediction.get('based_on_period', '')} / \u5be6\u969b\u958b\u734e\u671f {settled_prediction.get('actual_period', '')}</p>
       <p>{settled_actual_html}</p>
@@ -839,6 +884,12 @@ def build_html_report(markdown_text):
     <section class="band">
       <h2>\u5019\u9078 Top 15</h2>
       <table><thead><tr><th>#</th><th>\u865f\u78bc</th><th>\u6307\u6578</th><th>\u907a\u6f0f</th><th>\u7406\u7531</th></tr></thead><tbody>{candidate_rows}</tbody></table>
+    </section>
+    <section class="band">
+      <h2>\u4f4e\u6a5f\u7387\u66ab\u907f\u865f\u78bc\uff08\u98a8\u63a7\u89c0\u5bdf\uff09</h2>
+      <p>{unlikely.get('warning', '')}</p>
+      <p>\u56de\u6e2c\uff1a\u8fd1 {unlikely_backtest.get('rounds')} \u671f\uff0c\u66ab\u907f {unlikely_backtest.get('avoid_size')} \u78bc\u5e73\u5747\u8aa4\u4e2d {unlikely_backtest.get('avg_accidental_hits')}\uff0c\u96a8\u6a5f\u57fa\u6e96 {unlikely_backtest.get('random_expectation')}\uff0c\u5dee\u503c {unlikely_backtest.get('edge_vs_random')}\uff0c\u5b8c\u5168\u907f\u958b\u7387 {unlikely_backtest.get('zero_hit_rate')}</p>
+      <table><thead><tr><th>#</th><th>\u865f\u78bc</th><th>\u66ab\u907f\u6307\u6578</th><th>\u51fa\u73fe\u8a55\u5206</th><th>\u5019\u9078\u6392\u540d</th><th>\u7a69\u5b9a\u6b21\u6578</th><th>\u66ab\u907f\u539f\u56e0</th></tr></thead><tbody>{unlikely_rows}</tbody></table>
     </section>
     <section class="band">
       <h2>\u539f\u59cb\u6230\u5831</h2>

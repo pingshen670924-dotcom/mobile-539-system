@@ -6,6 +6,7 @@ from collections import Counter, defaultdict
 from datetime import datetime, timedelta
 from itertools import combinations
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from industrial_engine import compute_industrial_analysis
 
@@ -17,6 +18,11 @@ DB_PATH = DATA_DIR / "539.sqlite"
 LATEST_JSON = REPORT_DIR / "latest_analysis.json"
 LATEST_MD = REPORT_DIR / "latest_analysis.md"
 WINDOWS = [5, 10, 20, 50, 100]
+TAIPEI_TZ = ZoneInfo("Asia/Taipei")
+
+
+def taipei_now():
+    return datetime.now(TAIPEI_TZ).replace(tzinfo=None)
 
 DEFAULT_MODEL_WEIGHTS = {
     "heat_short": 0.24,
@@ -818,7 +824,7 @@ def analyze(db_path=DB_PATH):
     weights = apply_failure_adjustment(calibrated_weights(bt), review)
     industrial = compute_industrial_analysis(draws, review)
     analysis = {
-        "generated_at": datetime.now().isoformat(timespec="seconds"),
+        "generated_at": taipei_now().isoformat(timespec="seconds"),
         "latest_draw": draws[-1],
         "windows": [window_summary(draws, size) for size in WINDOWS],
         "relationships": relationship_analysis(draws),

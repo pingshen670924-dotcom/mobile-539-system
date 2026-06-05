@@ -14,6 +14,7 @@ import zipfile
 from collections import defaultdict
 from datetime import datetime, time as clock_time, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from analyze_539 import analyze, save_analysis
 from battle_report import ENHANCED_BATTLE_HTML, build_report, save_battle_reports
@@ -36,6 +37,11 @@ LATEST_API = f"{API_BASE}/Lottery/LatestResult"
 HISTORY_API = f"{API_BASE}/Lottery/Daily539Result"
 
 START_ROC_YEAR = 96
+TAIPEI_TZ = ZoneInfo("Asia/Taipei")
+
+
+def taipei_now():
+    return datetime.now(TAIPEI_TZ).replace(tzinfo=None)
 GAME_NAME = "\u4eca\u5f69539"
 
 
@@ -53,11 +59,11 @@ def setup_logging():
 
 
 def roc_year_now():
-    return datetime.now().year - 1911
+    return taipei_now().year - 1911
 
 
 def expected_latest_draw_date(now=None):
-    now = now or datetime.now()
+    now = now or taipei_now()
     candidate = now.date()
     if now.time() < clock_time(21, 0):
         candidate -= timedelta(days=1)
@@ -67,7 +73,7 @@ def expected_latest_draw_date(now=None):
 
 
 def data_freshness(latest_date, now=None):
-    now = now or datetime.now()
+    now = now or taipei_now()
     expected = expected_latest_draw_date(now)
     latest = datetime.strptime(latest_date, "%Y-%m-%d").date()
     expected_date = datetime.strptime(expected, "%Y-%m-%d").date()
@@ -414,7 +420,7 @@ def update_latest(conn):
 
 
 def month_strings(count=2):
-    today = datetime.now()
+    today = taipei_now()
     year = today.year
     month = today.month
     months = []
