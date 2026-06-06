@@ -1,4 +1,4 @@
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
@@ -7,7 +7,14 @@ Set-Location $ScriptDir
 
 $LogDir = Join-Path $ScriptDir "logs"
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
-$RunLog = Join-Path $LogDir "one_click.log"
+$RunLog = Join-Path $LogDir "main_one_click.log"
+
+function Write-Step {
+  param([string]$Message)
+  $line = "$(Get-Date -Format s) $Message"
+  Write-Host $line
+  $line | Out-File -FilePath $RunLog -Encoding utf8 -Append
+}
 
 function Find-Python {
   $bundled = Join-Path $env:USERPROFILE ".cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"
@@ -27,10 +34,13 @@ function Run-Step {
     [string[]]$Arguments,
     [bool]$Required = $true
   )
-  "$(Get-Date -Format s) $Label" | Out-File -FilePath $RunLog -Encoding utf8 -Append
+  Write-Step $Label
   & $Python @Arguments 2>&1 | Tee-Object -FilePath $RunLog -Append
   if ($LASTEXITCODE -ne 0 -and $Required) {
     throw "$Label failed."
+  }
+  if ($LASTEXITCODE -ne 0) {
+    Write-Step "$Label finished with warnings."
   }
 }
 
@@ -39,47 +49,37 @@ function Remove-GeneratedCaches {
     try {
       Remove-Item -LiteralPath $_.FullName -Recurse -Force
     } catch {
-      "Generated cache cleanup skipped." | Out-File -FilePath $RunLog -Encoding utf8 -Append
+      Write-Step "Generated cache cleanup skipped."
     }
   }
 }
 
 try {
-  "==== 539 run started $(Get-Date -Format s) ====" | Out-File -FilePath $RunLog -Encoding utf8 -Append
+  "==== main one click started $(Get-Date -Format s) ====" | Out-File -FilePath $RunLog -Encoding utf8 -Append
   $Python = Find-Python
   Run-Step "Compile check" @("-m", "py_compile", ".\update_539.py", ".\analyze_539.py", ".\battle_report.py", ".\health_check.py", ".\dashboard.py", ".\pages_build.py", ".\industrial_engine.py", ".\aerospace_engine.py")
-  $Updated = $false
-  for ($Attempt = 1; $Attempt -le 4; $Attempt++) {
-    "Update attempt $Attempt/4" | Out-File -FilePath $RunLog -Encoding utf8 -Append
-    & $Python ".\update_539.py" --latest --require-fresh 2>&1 | Tee-Object -FilePath $RunLog -Append
-    if ($LASTEXITCODE -eq 0) {
-      $Updated = $true
-      break
-    }
-    if ($Attempt -lt 4) {
-      Start-Sleep -Seconds 600
-    }
-  }
-  if (-not $Updated) {
-    throw "Latest draw update remained stale after four attempts."
-  }
+  Run-Step "Update latest draw" @(".\update_539.py", "--latest") $false
   Run-Step "Rebuild battle report" @(".\battle_report.py")
   Run-Step "Rebuild dashboard" @(".\dashboard.py") $false
   Run-Step "Health check" @(".\health_check.py") $false
   Run-Step "Build phone site files" @(".\pages_build.py") $false
   Run-Step "File encoding check" @(".\system_file_check.py") $false
   Remove-GeneratedCaches
-  $EnhancedName = "539" + [char]0x6700 + [char]0x65B0 + [char]0x5F37 + [char]0x5316 + [char]0x6230 + [char]0x5831 + ".html"
-  $Report = Join-Path (Join-Path $ScriptDir "reports") $EnhancedName
-  try {
-    Start-Process $Report
-  } catch {
-    "Report was created, but automatic open was blocked." | Out-File -FilePath $RunLog -Encoding utf8 -Append
-    $Report | Out-File -FilePath $RunLog -Encoding utf8 -Append
+
+  $reportName = "539" + [char]0x6700 + [char]0x65B0 + [char]0x5F37 + [char]0x5316 + [char]0x6230 + [char]0x5831 + ".html"
+  $reportPath = Join-Path (Join-Path $ScriptDir "reports") $reportName
+  if (Test-Path $reportPath) {
+    try {
+      Start-Process $reportPath
+    } catch {
+      Write-Step "Report was created, but automatic open was blocked."
+      Write-Step $reportPath
+    }
   }
-  "==== 539 run finished $(Get-Date -Format s) ====" | Out-File -FilePath $RunLog -Encoding utf8 -Append
+  Write-Step "Main one click finished."
+  "==== main one click finished $(Get-Date -Format s) ====" | Out-File -FilePath $RunLog -Encoding utf8 -Append
 } catch {
   $_ | Out-File -FilePath $RunLog -Encoding utf8 -Append
-  Write-Host "539 one-click run failed. Please check logs\one_click.log."
+  Write-Host "Main one click failed. Check logs\main_one_click.log."
   exit 1
 }

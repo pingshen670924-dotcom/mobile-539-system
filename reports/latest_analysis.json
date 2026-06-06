@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-06T02:06:36",
+  "generated_at": "2026-06-06T14:14:35",
   "latest_draw": {
     "period": 115000137,
     "draw_date": "2026-06-05",
@@ -3054,6 +3054,202 @@
       }
     }
   },
+  "aerospace_assurance": {
+    "engine_version": "aerospace_assurance_v1",
+    "principle": "fail_closed_redundant_verified_deterministic",
+    "input_fingerprint_sha256": "1c4f7b1924b58240daa57969cb48c4a4bb7e726f0a53c73c407094657aa581a6",
+    "output_fingerprint_sha256": "f0ec890d7643065722d0ae1b48fbe2757f1a2092a91a5530f32e919c1e08ca44",
+    "input_invariants": {
+      "passed": true,
+      "checked_draws": 5881,
+      "failure_count": 0,
+      "failures": []
+    },
+    "redundant_channel_audit": {
+      "channels": {
+        "primary_industrial": [
+          8,
+          2,
+          20,
+          18,
+          9,
+          28,
+          5,
+          23,
+          22,
+          32
+        ],
+        "markov_chain": [
+          4,
+          18,
+          23,
+          17,
+          29,
+          13,
+          36,
+          5,
+          24,
+          8
+        ],
+        "time_series": [
+          2,
+          26,
+          20,
+          19,
+          7,
+          39,
+          21,
+          14,
+          6,
+          24
+        ],
+        "neural_network": [
+          20,
+          2,
+          37,
+          8,
+          4,
+          9,
+          11,
+          18,
+          6,
+          19
+        ]
+      },
+      "primary_top10": [
+        8,
+        2,
+        20,
+        18,
+        9,
+        28,
+        5,
+        23,
+        22,
+        32
+      ],
+      "secondary_consensus_top10": [
+        2,
+        8,
+        18,
+        20,
+        4,
+        5,
+        6,
+        9,
+        19,
+        23
+      ],
+      "overlap": [
+        2,
+        5,
+        8,
+        9,
+        18,
+        20,
+        23
+      ],
+      "overlap_count": 7,
+      "jaccard": 0.5385,
+      "status": "agree"
+    },
+    "uncertainty_audit": {
+      "method": "deterministic_score_perturbation_monte_carlo",
+      "simulations": 1200,
+      "seed": 2039984504142398016,
+      "top10_retention": 0.9,
+      "status": "stable",
+      "numbers": [
+        {
+          "number": 8,
+          "base_rank": 1,
+          "top10_rate": 1.0
+        },
+        {
+          "number": 20,
+          "base_rank": 3,
+          "top10_rate": 0.9967
+        },
+        {
+          "number": 28,
+          "base_rank": 6,
+          "top10_rate": 0.9817
+        },
+        {
+          "number": 9,
+          "base_rank": 5,
+          "top10_rate": 0.975
+        },
+        {
+          "number": 18,
+          "base_rank": 4,
+          "top10_rate": 0.9733
+        },
+        {
+          "number": 2,
+          "base_rank": 2,
+          "top10_rate": 0.9583
+        },
+        {
+          "number": 5,
+          "base_rank": 7,
+          "top10_rate": 0.9467
+        },
+        {
+          "number": 23,
+          "base_rank": 8,
+          "top10_rate": 0.9283
+        },
+        {
+          "number": 22,
+          "base_rank": 9,
+          "top10_rate": 0.7625
+        },
+        {
+          "number": 32,
+          "base_rank": 10,
+          "top10_rate": 0.49
+        },
+        {
+          "number": 35,
+          "base_rank": 11,
+          "top10_rate": 0.3342
+        },
+        {
+          "number": 16,
+          "base_rank": 12,
+          "top10_rate": 0.2175
+        },
+        {
+          "number": 3,
+          "base_rank": 13,
+          "top10_rate": 0.1983
+        },
+        {
+          "number": 24,
+          "base_rank": 15,
+          "top10_rate": 0.1158
+        },
+        {
+          "number": 19,
+          "base_rank": 14,
+          "top10_rate": 0.0633
+        }
+      ]
+    },
+    "drift_audit": {
+      "method": "total_variation_recent50_vs_prior250",
+      "total_variation": 0.1496,
+      "status": "stable",
+      "warning": "Distribution drift is a model-risk signal, not proof of a predictable pattern."
+    },
+    "release_assurance": {
+      "status": "verified",
+      "assurance_score": 100,
+      "critical_failures": [],
+      "meaning": "Reliability assurance only; it does not guarantee lottery prediction accuracy."
+    }
+  },
   "backtest": {
     "rounds": 360,
     "random_expectation": {
@@ -4161,37 +4357,113 @@
     }
   },
   "crowd_consensus": {
-    "generated_at": "2026-06-05T18:06:38",
+    "generated_at": "2026-06-06T14:14:36",
     "target_period": 115000138,
-    "source_count": 1,
+    "source_count": 5,
     "observations": [
       {
-        "source_id": "pilio_public_share",
-        "source_name": "彩迷熱門號碼分享",
-        "source_type": "public_crowd_share",
-        "source_url": "https://www.pilio.idv.tw/lto539/ltoshare539_Do.asp",
+        "source_id": "five_three_nine_pattern_public",
+        "source_name": "539.tw版路拖牌公開頁",
+        "source_type": "public_web",
+        "source_url": "https://539.tw/539-strategy/pattern-techniques",
         "numbers": [
-          8,
-          2,
-          11,
+          4,
+          6,
           1,
+          9,
+          19
+        ],
+        "engagement": null,
+        "collected_at": "2026-06-06T13:56:17"
+      },
+      {
+        "source_id": "go539_live_public",
+        "source_name": "Go539公開直播與AI推薦",
+        "source_type": "public_web",
+        "source_url": "https://go539.com/539live/",
+        "numbers": [
+          39,
+          1,
+          5,
+          10,
+          6
+        ],
+        "engagement": null,
+        "collected_at": "2026-06-06T13:56:16"
+      },
+      {
+        "source_id": "hawo_tool_public",
+        "source_name": "HAWO樂透分析工具",
+        "source_type": "public_web",
+        "source_url": "https://lotto.hawo.tw/539",
+        "numbers": [
+          1,
+          39,
+          5,
+          6,
           7
         ],
         "engagement": null,
-        "collected_at": "2026-06-05T15:42:17"
+        "collected_at": "2026-06-06T13:56:16"
+      },
+      {
+        "source_id": "pilio_live_public",
+        "source_name": "Pilio今彩539公開直播與熱門號",
+        "source_type": "public_web",
+        "source_url": "https://www.pilio.idv.tw/server3/main_lto539.asp",
+        "numbers": [
+          34,
+          18,
+          6,
+          5,
+          7
+        ],
+        "engagement": null,
+        "collected_at": "2026-06-06T13:56:15"
+      },
+      {
+        "source_id": "pilio_public_share",
+        "source_name": "彩迷熱門號碼分享",
+        "source_type": "public_web",
+        "source_url": "https://www.pilio.idv.tw/lto539/ltoshare539_Do.asp",
+        "numbers": [
+          8,
+          11,
+          36,
+          1,
+          2
+        ],
+        "engagement": null,
+        "collected_at": "2026-06-06T13:56:15"
       }
     ],
     "consensus_ranking": [
       {
         "number": 1,
-        "source_votes": 1
+        "source_votes": 4
+      },
+      {
+        "number": 6,
+        "source_votes": 4
+      },
+      {
+        "number": 5,
+        "source_votes": 3
+      },
+      {
+        "number": 7,
+        "source_votes": 2
+      },
+      {
+        "number": 39,
+        "source_votes": 2
       },
       {
         "number": 2,
         "source_votes": 1
       },
       {
-        "number": 7,
+        "number": 4,
         "source_votes": 1
       },
       {
@@ -4199,7 +4471,31 @@
         "source_votes": 1
       },
       {
+        "number": 9,
+        "source_votes": 1
+      },
+      {
+        "number": 10,
+        "source_votes": 1
+      },
+      {
         "number": 11,
+        "source_votes": 1
+      },
+      {
+        "number": 18,
+        "source_votes": 1
+      },
+      {
+        "number": 19,
+        "source_votes": 1
+      },
+      {
+        "number": 34,
+        "source_votes": 1
+      },
+      {
+        "number": 36,
         "source_votes": 1
       }
     ],
@@ -4207,7 +4503,7 @@
       {
         "source_id": "pilio_public_share",
         "source_name": "彩迷熱門號碼分享",
-        "source_type": "public_crowd_share",
+        "source_type": "public_web",
         "source_url": "https://www.pilio.idv.tw/lto539/ltoshare539_Do.asp",
         "settled_rounds": 2,
         "avg_hits": 1.0,
@@ -4227,6 +4523,102 @@
         "edge_vs_random": -0.641,
         "eligible_for_model": false,
         "model_weight_cap": 0.0
+      },
+      {
+        "source_id": "pilio_live_public",
+        "source_name": "Pilio今彩539公開直播與熱門號",
+        "source_type": "public_web",
+        "source_url": "https://www.pilio.idv.tw/server3/main_lto539.asp",
+        "settled_rounds": 0,
+        "avg_hits": 0,
+        "recent30_avg_hits": 0,
+        "edge_vs_random": -0.641,
+        "eligible_for_model": false,
+        "model_weight_cap": 0.0
+      },
+      {
+        "source_id": "go539_live_public",
+        "source_name": "Go539公開直播與AI推薦",
+        "source_type": "public_web",
+        "source_url": "https://go539.com/539live/",
+        "settled_rounds": 0,
+        "avg_hits": 0,
+        "recent30_avg_hits": 0,
+        "edge_vs_random": -0.641,
+        "eligible_for_model": false,
+        "model_weight_cap": 0.0
+      },
+      {
+        "source_id": "hawo_tool_public",
+        "source_name": "HAWO樂透分析工具",
+        "source_type": "public_web",
+        "source_url": "https://lotto.hawo.tw/539",
+        "settled_rounds": 0,
+        "avg_hits": 0,
+        "recent30_avg_hits": 0,
+        "edge_vs_random": -0.641,
+        "eligible_for_model": false,
+        "model_weight_cap": 0.0
+      },
+      {
+        "source_id": "five_three_nine_pattern_public",
+        "source_name": "539.tw版路拖牌公開頁",
+        "source_type": "public_web",
+        "source_url": "https://539.tw/539-strategy/pattern-techniques",
+        "settled_rounds": 0,
+        "avg_hits": 0,
+        "recent30_avg_hits": 0,
+        "edge_vs_random": -0.641,
+        "eligible_for_model": false,
+        "model_weight_cap": 0.0
+      },
+      {
+        "source_id": "fb_manual_001",
+        "source_name": "FB社團人工授權匯入",
+        "source_type": "facebook",
+        "source_url": "",
+        "settled_rounds": 0,
+        "avg_hits": 0,
+        "recent30_avg_hits": 0,
+        "edge_vs_random": -0.641,
+        "eligible_for_model": false,
+        "model_weight_cap": 0.0
+      },
+      {
+        "source_id": "youtube_live_001",
+        "source_name": "YouTube直播主公開頁或人工匯入",
+        "source_type": "youtube_public",
+        "source_url": "",
+        "settled_rounds": 0,
+        "avg_hits": 0,
+        "recent30_avg_hits": 0,
+        "edge_vs_random": -0.641,
+        "eligible_for_model": false,
+        "model_weight_cap": 0.0
+      },
+      {
+        "source_id": "fb_public_page_001",
+        "source_name": "FB公開粉專或公開貼文",
+        "source_type": "facebook_public",
+        "source_url": "",
+        "settled_rounds": 0,
+        "avg_hits": 0,
+        "recent30_avg_hits": 0,
+        "edge_vs_random": -0.641,
+        "eligible_for_model": false,
+        "model_weight_cap": 0.0
+      },
+      {
+        "source_id": "fb_private_group_watch",
+        "source_name": "FB私密社團觀察註記",
+        "source_type": "facebook_private",
+        "source_url": "",
+        "settled_rounds": 0,
+        "avg_hits": 0,
+        "recent30_avg_hits": 0,
+        "edge_vs_random": -0.641,
+        "eligible_for_model": false,
+        "model_weight_cap": 0.0
       }
     ],
     "eligible_source_count": 0,
@@ -4234,8 +4626,17 @@
     "random_top5_expected_hits": 0.641,
     "collection": {
       "collected": 0,
-      "warnings": [],
+      "warnings": [
+        "pilio_public_share: <urlopen error [WinError 10013] 嘗試存取通訊端被拒絕，因為存取權限不足。>",
+        "pilio_live_public: <urlopen error [WinError 10013] 嘗試存取通訊端被拒絕，因為存取權限不足。>",
+        "go539_live_public: <urlopen error [WinError 10013] 嘗試存取通訊端被拒絕，因為存取權限不足。>",
+        "hawo_tool_public: <urlopen error [WinError 10013] 嘗試存取通訊端被拒絕，因為存取權限不足。>",
+        "five_three_nine_pattern_public: <urlopen error [WinError 10013] 嘗試存取通訊端被拒絕，因為存取權限不足。>",
+        "fb_manual_001: private facebook source has no public URL; skipped automatic login",
+        "fb_private_group_watch: private facebook source has no public URL; skipped automatic login"
+      ],
       "target_period": 115000138,
+      "source_list_count": 9,
       "settled": 0
     },
     "warning": "網路人氣不等於開出機率，未通過100期與近期回測的來源權重為0"
@@ -4245,7 +4646,7 @@
     "latest_date": "2026-06-05",
     "expected_latest_date": "2026-06-05",
     "lag_days": 0,
-    "checked_at": "2026-06-06T02:05:57"
+    "checked_at": "2026-06-06T14:13:53"
   },
   "official_prediction_status": "recalculated_same_as_official"
 }

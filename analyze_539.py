@@ -8,6 +8,7 @@ from itertools import combinations
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+from aerospace_engine import compute_aerospace_assurance
 from industrial_engine import compute_industrial_analysis
 
 
@@ -823,6 +824,11 @@ def analyze(db_path=DB_PATH):
     review = failure_review(db_path)
     weights = apply_failure_adjustment(calibrated_weights(bt), review)
     industrial = compute_industrial_analysis(draws, review)
+    aerospace = compute_aerospace_assurance(draws, industrial)
+    if aerospace["release_assurance"]["status"] == "blocked":
+        industrial.setdefault("release_gate", {})["status"] = "aerospace_blocked"
+    elif aerospace["release_assurance"]["status"] == "watch_only":
+        industrial.setdefault("release_gate", {})["aerospace_status"] = "watch_only"
     analysis = {
         "generated_at": taipei_now().isoformat(timespec="seconds"),
         "latest_draw": draws[-1],
@@ -830,6 +836,7 @@ def analyze(db_path=DB_PATH):
         "relationships": relationship_analysis(draws),
         "failure_review": review,
         "industrial_engine": industrial,
+        "aerospace_assurance": aerospace,
         "backtest": bt,
         "model_weights": weights,
         "candidates": industrial["candidates"],

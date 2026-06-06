@@ -868,7 +868,13 @@ def main():
     with sqlite3.connect(DB_PATH) as conn:
         init_db(conn)
         prediction_status = "stale_data_blocked"
-        if freshness and freshness["status"] != "fresh":
+        aerospace_status = analysis.get("aerospace_assurance", {}).get("release_assurance", {}).get("status")
+        if aerospace_status == "blocked":
+            prediction_status = "aerospace_assurance_blocked"
+            store_prediction_snapshot(conn, analysis, "aerospace_assurance_blocked_official_prediction")
+            conn.commit()
+            logging.warning("Official prediction blocked by aerospace assurance.")
+        elif freshness and freshness["status"] != "fresh":
             store_prediction_snapshot(conn, analysis, "stale_data_analysis_snapshot_no_official_prediction")
             conn.commit()
             logging.warning(

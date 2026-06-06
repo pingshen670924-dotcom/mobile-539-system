@@ -1,2 +1,2 @@
-target_period,source_id,source_name,source_url,numbers,engagement,collected_at
-115000136,pilio_web_verified_20260604,公開彩迷熱門分享,https://www.pilio.idv.tw/lto539/ltoshare539_Do.asp,"12 18 01 03 11",,2026-06-04T14:30:00
+target_period,source_id,source_name,source_type,platform,source_url,numbers,engagement,collected_at,note
+115000136,pilio_web_verified_20260604,Pilio公開熱門分享,public_web,public_web,https://www.pilio.idv.tw/lto539/ltoshare539_Do.asp,"12 18 01 03 11",0,2026-06-04T14:30:00,舊資料修正來源名稱

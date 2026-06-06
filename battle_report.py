@@ -16,6 +16,9 @@ BATTLE_MD = REPORT_DIR / "latest_battle_report.md"
 BATTLE_TXT = REPORT_DIR / "latest_battle_report.txt"
 BATTLE_HTML = REPORT_DIR / "latest_battle_report.html"
 ENHANCED_BATTLE_HTML = REPORT_DIR / "539\u6700\u65b0\u5f37\u5316\u6230\u5831.html"
+HISTORY_JSON = REPORT_DIR / "prediction_history.json"
+HISTORY_HTML = REPORT_DIR / "539\u6bcf\u671f\u9810\u6e2c\u5c0d\u6bd4.html"
+HISTORY_DIR = REPORT_DIR / "history"
 TAIPEI_TZ = ZoneInfo("Asia/Taipei")
 
 
@@ -34,6 +37,7 @@ def official_status_label(status):
         "corrected_pending": "\u5df2\u91cd\u65b0\u904b\u7b97\u4e26\u5957\u7528\u91cd\u8907\u865f\u5b88\u9580\u4fee\u6b63",
         "recalculated_same_as_official": "\u5df2\u91cd\u65b0\u904b\u7b97\uff0c\u7d50\u679c\u8207\u76ee\u524d\u6b63\u5f0f\u9810\u6e2c\u76f8\u540c",
         "stale_data_blocked": "\u8cc7\u6599\u672a\u9054\u61c9\u6709\u958b\u734e\u65e5\uff0c\u7981\u6b62\u7522\u751f\u65b0\u6b63\u5f0f\u9810\u6e2c",
+        "aerospace_assurance_blocked": "\u822a\u592a\u7d1a\u5b8c\u6574\u6027\u5be9\u6838\u672a\u901a\u904e\uff0c\u7981\u6b62\u7522\u751f\u6b63\u5f0f\u9810\u6e2c",
         "preserved_settled": "\u8a72\u671f\u6b63\u5f0f\u9810\u6e2c\u5df2\u7d50\u7b97\uff0c\u672c\u6b21\u53ea\u4fdd\u7559\u5feb\u7167",
     }
     return labels.get(status or "", status or "\u672c\u6b21\u91cd\u65b0\u904b\u7b97")
@@ -119,6 +123,79 @@ def latest_pending_prediction():
         "backtest": json.loads(row[8] or "{}"),
         "created_at": row[9],
     }
+
+
+def prediction_history():
+    if not DB_PATH.exists():
+        return []
+    with sqlite3.connect(DB_PATH) as conn:
+        rows = conn.execute(
+            """
+            SELECT based_on_period, based_on_date, target_period, candidates_json,
+                   strong_packs_json, actual_period, actual_date, actual_numbers_json,
+                   top5_hits, top10_hits, top15_hits, strong_pack_hits_json,
+                   status, created_at, settled_at,
+                   (
+                     SELECT COUNT(*)
+                     FROM prediction_snapshots_539 s
+                     WHERE s.based_on_period=p.based_on_period
+                   ) AS snapshot_count
+            FROM predictions_539 p
+            ORDER BY target_period DESC, id DESC
+            """
+        ).fetchall()
+    history = []
+    for row in rows:
+        candidates = json.loads(row[3] or "[]")
+        actual_numbers = json.loads(row[7] or "[]")
+        actual_set = set(actual_numbers)
+        top5 = [item.get("number") for item in candidates[:5]]
+        top10 = [item.get("number") for item in candidates[:10]]
+        top15 = [item.get("number") for item in candidates[:15]]
+        strong_hits = json.loads(row[11] or "{}")
+        history.append(
+            {
+                "based_on_period": row[0],
+                "based_on_date": row[1],
+                "target_period": row[2],
+                "top5": top5,
+                "top10": top10,
+                "top15": top15,
+                "actual_period": row[5],
+                "actual_date": row[6],
+                "actual_numbers": actual_numbers,
+                "top5_hits": row[8],
+                "top10_hits": row[9],
+                "top15_hits": row[10],
+                "top10_hit_numbers": sorted(actual_set & set(top10)),
+                "strong_pack_hits": strong_hits,
+                "status": row[12],
+                "created_at": row[13],
+                "settled_at": row[14],
+                "snapshot_count": row[15],
+            }
+        )
+    return history
+
+
+def save_prediction_history(history):
+    REPORT_DIR.mkdir(parents=True, exist_ok=True)
+    HISTORY_DIR.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "generated_at": taipei_now().isoformat(timespec="seconds"),
+        "total_periods": len(history),
+        "settled_periods": sum(1 for item in history if item.get("status") == "settled"),
+        "pending_periods": sum(1 for item in history if item.get("status") == "pending"),
+        "periods": history,
+    }
+    HISTORY_JSON.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    for item in history:
+        target = item.get("target_period")
+        if target is None:
+            continue
+        path = HISTORY_DIR / f"period_{target}.json"
+        path.write_text(json.dumps(item, ensure_ascii=False, indent=2), encoding="utf-8")
+    return payload
 
 
 def resolved_official_status(analysis, pending_prediction):
@@ -644,6 +721,8 @@ def build_report():
 
 def build_html_report(markdown_text):
     analysis = load_json(ANALYSIS_JSON)
+    history = prediction_history()
+    aerospace = analysis.get("aerospace_assurance", {})
     packs = analysis.get("strong_prediction_packs", {})
     candidates = analysis.get("candidates", [])
     latest = analysis.get("latest_draw", {})
@@ -858,6 +937,37 @@ def build_html_report(markdown_text):
             f"<td>{item.get('edge_vs_random')}</td><td>{item.get('model_weight_cap')}</td>"
             "</tr>"
         )
+    crowd_warning_rows = ""
+    for warning in crowd.get("collection", {}).get("warnings", [])[:12]:
+        crowd_warning_rows += f"<tr><td>{warning}</td></tr>"
+
+    uncertainty_rows = ""
+    for item in aerospace.get("uncertainty_audit", {}).get("numbers", [])[:15]:
+        uncertainty_rows += (
+            "<tr>"
+            f"<td>{item.get('number'):02d}</td><td>{item.get('base_rank')}</td>"
+            f"<td>{item.get('top10_rate')}</td>"
+            "</tr>"
+        )
+
+    history_rows = ""
+    for item in history:
+        status = "\u5df2\u7d50\u7b97" if item.get("status") == "settled" else "\u5f85\u7d50\u7b97"
+        history_rows += (
+            "<tr>"
+            f"<td>{item.get('target_period')}</td>"
+            f"<td>{status}</td>"
+            f"<td>{item.get('based_on_period')}<br>{item.get('based_on_date', '')}</td>"
+            f"<td>{fmt_numbers(item.get('top10', []))}</td>"
+            f"<td>{fmt_numbers(item.get('actual_numbers', [])) or '-'}</td>"
+            f"<td>{fmt_numbers(item.get('top10_hit_numbers', [])) or '-'}</td>"
+            f"<td>{item.get('top5_hits') if item.get('top5_hits') is not None else '-'}</td>"
+            f"<td>{item.get('top10_hits') if item.get('top10_hits') is not None else '-'}</td>"
+            f"<td>{item.get('top15_hits') if item.get('top15_hits') is not None else '-'}</td>"
+            f"<td>{item.get('snapshot_count', 0)}</td>"
+            f"<td>{item.get('created_at', '')}<br>{item.get('settled_at') or '-'}</td>"
+            "</tr>"
+        )
 
     return f"""<!doctype html>
 <html lang="zh-Hant">
@@ -921,6 +1031,22 @@ def build_html_report(markdown_text):
       <table><thead><tr><th>\u671f\u6578</th><th>\u6a23\u672c</th><th>Top10 \u5e73\u5747\u547d\u4e2d</th><th>\u5c0d\u96a8\u6a5f\u5dee\u503c</th><th>\u9580\u6abb</th></tr></thead><tbody>{rolling_rows}</tbody></table>
     </section>
     <section class="band">
+      <h2>\u5168\u90e8\u6b63\u5f0f\u9810\u6e2c\u6b77\u53f2\u5c0d\u6bd4</h2>
+      <p>\u6bcf\u671f\u6b63\u5f0f\u9810\u6e2c\u3001\u5be6\u969b\u958b\u734e\u3001\u547d\u4e2d\u865f\u78bc\u8207\u91cd\u8dd1\u5feb\u7167\u6578\u90fd\u6c38\u4e45\u4fdd\u7559\u3002</p>
+      <table><thead><tr><th>\u76ee\u6a19\u671f</th><th>\u72c0\u614b</th><th>\u4f9d\u64da\u671f</th><th>\u7576\u671f\u6b63\u5f0f Top10</th><th>\u5be6\u969b\u958b\u734e</th><th>Top10 \u547d\u4e2d\u865f</th><th>Top5</th><th>Top10</th><th>Top15</th><th>\u5feb\u7167\u6578</th><th>\u5efa\u7acb / \u7d50\u7b97</th></tr></thead><tbody>{history_rows}</tbody></table>
+    </section>
+    <section class="band">
+      <h2>\u822a\u592a\u7d1a\u904b\u7b97\u4fdd\u8b49\u5be9\u6838</h2>
+      <p>\u5be9\u6838\u72c0\u614b\uff1a{aerospace.get('release_assurance', {}).get('status')} / \u4fdd\u8b49\u5206\u6578 {aerospace.get('release_assurance', {}).get('assurance_score')}</p>
+      <p>\u8cc7\u6599\u6307\u7d0b SHA-256\uff1a{aerospace.get('input_fingerprint_sha256', '')}</p>
+      <p>\u8f38\u51fa\u6307\u7d0b SHA-256\uff1a{aerospace.get('output_fingerprint_sha256', '')}</p>
+      <p>\u8cc7\u6599\u4e0d\u8b8a\u689d\u4ef6\uff1a{aerospace.get('input_invariants', {}).get('passed')} / \u5931\u6557 {aerospace.get('input_invariants', {}).get('failure_count')}</p>
+      <p>\u96d9\u901a\u9053\u4ea4\u53c9\u9a57\u8b49\uff1a{aerospace.get('redundant_channel_audit', {}).get('status')} / Top10 \u91cd\u758a {aerospace.get('redundant_channel_audit', {}).get('overlap_count')} / Jaccard {aerospace.get('redundant_channel_audit', {}).get('jaccard')}</p>
+      <p>\u6a21\u578b\u6f02\u79fb\uff1a{aerospace.get('drift_audit', {}).get('status')} / TV {aerospace.get('drift_audit', {}).get('total_variation')}</p>
+      <p>\u8499\u5730\u5361\u7f85\u64fe\u52d5\u6e2c\u8a66\uff1a{aerospace.get('uncertainty_audit', {}).get('simulations')} \u6b21 / Top10 \u4fdd\u7559\u7387 {aerospace.get('uncertainty_audit', {}).get('top10_retention')} / {aerospace.get('uncertainty_audit', {}).get('status')}</p>
+      <table><thead><tr><th>\u865f\u78bc</th><th>\u539f\u6392\u540d</th><th>\u64fe\u52d5\u5f8c Top10 \u7559\u5b58\u7387</th></tr></thead><tbody>{uncertainty_rows}</tbody></table>
+    </section>
+    <section class="band">
       <h2>\u9032\u968e\u9810\u6e2c\u6a21\u578b</h2>
       <p>{advanced.get('warning', '')}</p>
       <p>\u9032\u968e\u6a21\u578b\u5171\u8b58 Top12\uff1a{fmt_numbers(advanced.get('consensus_top12', []))}</p>
@@ -932,6 +1058,9 @@ def build_html_report(markdown_text):
       <table><thead><tr><th>\u865f\u78bc</th><th>\u4f86\u6e90\u7968\u6578</th><th>\u8207\u7cfb\u7d71\u95dc\u4fc2</th></tr></thead><tbody>{crowd_rows}</tbody></table>
       <h3>\u4f86\u6e90\u771f\u5be6\u7e3e\u6548</h3>
       <table><thead><tr><th>\u4f86\u6e90</th><th>\u5df2\u7d50\u7b97</th><th>\u5e73\u5747\u547d\u4e2d</th><th>\u8fd130\u671f</th><th>\u5c0d\u96a8\u6a5f\u5dee\u503c</th><th>\u6a21\u578b\u6b0a\u91cd\u4e0a\u9650</th></tr></thead><tbody>{crowd_source_rows}</tbody></table>
+      <h3>\u672c\u6b21\u81ea\u52d5\u6293\u53d6\u72c0\u614b</h3>
+      <p>\u6536\u96c6\u7b46\u6578\uff1a{crowd.get('collection', {}).get('collected', 0)} / \u4f86\u6e90\u6e05\u55ae\uff1a{crowd.get('collection', {}).get('source_list_count', 0)}</p>
+      <table><thead><tr><th>\u8b66\u544a\u6216\u9650\u5236</th></tr></thead><tbody>{crowd_warning_rows}</tbody></table>
     </section>
     <section class="band">
       <h2>{'\u4eca\u65e5\u6b63\u5f0f\u4e3b\u63a8' if release_status == 'official' else '\u4eca\u65e5\u89c0\u5bdf\u5019\u9078\uff08\u4e0d\u5217\u6b63\u5f0f\u4e3b\u63a8\uff09'}</h2>
@@ -1002,14 +1131,70 @@ def build_html_report(markdown_text):
 </html>"""
 
 
+def build_history_html(history):
+    rows = ""
+    for item in history:
+        status = "\u5df2\u7d50\u7b97" if item.get("status") == "settled" else "\u5f85\u7d50\u7b97"
+        rows += (
+            "<tr>"
+            f"<td>{item.get('target_period')}</td><td>{status}</td>"
+            f"<td>{item.get('based_on_period')} / {item.get('based_on_date', '')}</td>"
+            f"<td>{fmt_numbers(item.get('top10', []))}</td>"
+            f"<td>{fmt_numbers(item.get('actual_numbers', [])) or '-'}</td>"
+            f"<td>{fmt_numbers(item.get('top10_hit_numbers', [])) or '-'}</td>"
+            f"<td>{item.get('top5_hits') if item.get('top5_hits') is not None else '-'}</td>"
+            f"<td>{item.get('top10_hits') if item.get('top10_hits') is not None else '-'}</td>"
+            f"<td>{item.get('top15_hits') if item.get('top15_hits') is not None else '-'}</td>"
+            f"<td>{item.get('snapshot_count', 0)}</td>"
+            "</tr>"
+        )
+    settled = [item for item in history if item.get("status") == "settled"]
+    average_top10 = (
+        round(sum(item.get("top10_hits") or 0 for item in settled) / len(settled), 3)
+        if settled else 0
+    )
+    return f"""<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>539 \u6bcf\u671f\u9810\u6e2c\u5c0d\u6bd4</title>
+  <style>
+    body {{ margin:0; font-family:"Microsoft JhengHei", Arial, sans-serif; background:#f6f7fb; color:#20242a; }}
+    header {{ background:#0f172a; color:white; padding:22px 28px; }}
+    main {{ max-width:1400px; margin:0 auto; padding:22px; }}
+    .band {{ background:white; border:1px solid #e5e7eb; border-radius:8px; padding:18px; overflow:auto; }}
+    table {{ width:100%; border-collapse:collapse; min-width:1100px; }}
+    th, td {{ border-bottom:1px solid #e5e7eb; padding:9px; text-align:left; }}
+    th {{ background:#f1f5f9; }}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>539 \u6bcf\u671f\u9810\u6e2c\u5c0d\u6bd4</h1>
+    <p>\u6b63\u5f0f\u9810\u6e2c\u671f\u6578 {len(history)} / \u5df2\u7d50\u7b97 {len(settled)} / Top10 \u5e73\u5747\u547d\u4e2d {average_top10}</p>
+  </header>
+  <main>
+    <section class="band">
+      <table><thead><tr><th>\u76ee\u6a19\u671f</th><th>\u72c0\u614b</th><th>\u4f9d\u64da\u671f</th><th>\u6b63\u5f0f Top10</th><th>\u5be6\u969b\u958b\u734e</th><th>Top10 \u547d\u4e2d\u865f</th><th>Top5</th><th>Top10</th><th>Top15</th><th>\u5feb\u7167\u6578</th></tr></thead><tbody>{rows}</tbody></table>
+    </section>
+  </main>
+</body>
+</html>"""
+
+
 def save_battle_reports(report=None):
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     report = report or build_report()
     html = build_html_report(report)
+    history = prediction_history()
+    save_prediction_history(history)
+    history_html = build_history_html(history)
     BATTLE_MD.write_text(report, encoding="utf-8")
     BATTLE_TXT.write_text(report, encoding="utf-8")
     BATTLE_HTML.write_text(html, encoding="utf-8")
     ENHANCED_BATTLE_HTML.write_text(html, encoding="utf-8")
+    HISTORY_HTML.write_text(history_html, encoding="utf-8")
     return ENHANCED_BATTLE_HTML
 
 
