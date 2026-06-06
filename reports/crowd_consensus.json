@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-06T14:14:36",
+  "generated_at": "2026-06-06T06:31:39",
   "target_period": 115000138,
   "source_count": 5,
   "observations": [
@@ -269,11 +269,6 @@
   "collection": {
     "collected": 0,
     "warnings": [
-      "pilio_public_share: <urlopen error [WinError 10013] 嘗試存取通訊端被拒絕，因為存取權限不足。>",
-      "pilio_live_public: <urlopen error [WinError 10013] 嘗試存取通訊端被拒絕，因為存取權限不足。>",
-      "go539_live_public: <urlopen error [WinError 10013] 嘗試存取通訊端被拒絕，因為存取權限不足。>",
-      "hawo_tool_public: <urlopen error [WinError 10013] 嘗試存取通訊端被拒絕，因為存取權限不足。>",
-      "five_three_nine_pattern_public: <urlopen error [WinError 10013] 嘗試存取通訊端被拒絕，因為存取權限不足。>",
       "fb_manual_001: private facebook source has no public URL; skipped automatic login",
       "fb_private_group_watch: private facebook source has no public URL; skipped automatic login"
     ],
