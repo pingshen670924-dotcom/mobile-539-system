@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-06T23:59:01",
+  "generated_at": "2026-06-07T01:24:15",
   "latest_draw": {
     "period": 115000138,
     "draw_date": "2026-06-06",
@@ -4379,7 +4379,7 @@
     }
   },
   "crowd_consensus": {
-    "generated_at": "2026-06-06T15:59:06",
+    "generated_at": "2026-06-06T17:24:21",
     "target_period": 115000139,
     "source_count": 5,
     "observations": [
@@ -4664,7 +4664,7 @@
     "latest_date": "2026-06-06",
     "expected_latest_date": "2026-06-06",
     "lag_days": 0,
-    "checked_at": "2026-06-06T23:58:22"
+    "checked_at": "2026-06-07T01:23:36"
   },
   "official_prediction_status": "recalculated_same_as_official"
 }
