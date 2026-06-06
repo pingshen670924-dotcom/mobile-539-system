@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-06T14:14:48",
+  "generated_at": "2026-06-06T14:29:03",
   "status": "ok",
   "checked_files": 77,
   "failed_count": 0,
@@ -39,7 +39,7 @@
       "path": "battle_report.py",
       "status": "ok",
       "warnings": [],
-      "size": 66793
+      "size": 69472
     },
     {
       "path": "cloud_entry.py",
@@ -297,7 +297,7 @@
       "path": "reports\\539最新強化戰報.html",
       "status": "ok",
       "warnings": [],
-      "size": 52336
+      "size": 54045
     },
     {
       "path": "reports\\539每期預測對比.html",
@@ -357,7 +357,7 @@
       "path": "reports\\latest_battle_report.html",
       "status": "ok",
       "warnings": [],
-      "size": 52336
+      "size": 54045
     },
     {
       "path": "reports\\latest_battle_report.md",
@@ -405,7 +405,7 @@
       "path": "site\\index.html",
       "status": "ok",
       "warnings": [],
-      "size": 53740
+      "size": 55449
     },
     {
       "path": "site\\latest_analysis.json",

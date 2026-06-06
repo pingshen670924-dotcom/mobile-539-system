@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-06T14:21:16",
+  "generated_at": "2026-06-06T14:14:35",
   "latest_draw": {
     "period": 115000137,
     "draw_date": "2026-06-05",
@@ -4357,7 +4357,7 @@
     }
   },
   "crowd_consensus": {
-    "generated_at": "2026-06-06T06:21:22",
+    "generated_at": "2026-06-06T14:14:36",
     "target_period": 115000138,
     "source_count": 5,
     "observations": [
@@ -4627,7 +4627,11 @@
     "collection": {
       "collected": 0,
       "warnings": [
-        "go539_live_public: public source did not expose five usable 539 numbers",
+        "pilio_public_share: <urlopen error [WinError 10013] 嘗試存取通訊端被拒絕，因為存取權限不足。>",
+        "pilio_live_public: <urlopen error [WinError 10013] 嘗試存取通訊端被拒絕，因為存取權限不足。>",
+        "go539_live_public: <urlopen error [WinError 10013] 嘗試存取通訊端被拒絕，因為存取權限不足。>",
+        "hawo_tool_public: <urlopen error [WinError 10013] 嘗試存取通訊端被拒絕，因為存取權限不足。>",
+        "five_three_nine_pattern_public: <urlopen error [WinError 10013] 嘗試存取通訊端被拒絕，因為存取權限不足。>",
         "fb_manual_001: private facebook source has no public URL; skipped automatic login",
         "fb_private_group_watch: private facebook source has no public URL; skipped automatic login"
       ],
@@ -4642,7 +4646,7 @@
     "latest_date": "2026-06-05",
     "expected_latest_date": "2026-06-05",
     "lag_days": 0,
-    "checked_at": "2026-06-06T14:20:39"
+    "checked_at": "2026-06-06T14:13:53"
   },
   "official_prediction_status": "recalculated_same_as_official"
 }

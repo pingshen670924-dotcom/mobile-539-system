@@ -950,6 +950,45 @@ def build_html_report(markdown_text):
             "</tr>"
         )
 
+    consensus_counts = {
+        int(number): int(count)
+        for number, count in stability.get("consensus_counts", {}).items()
+    }
+    snapshots = max(int(stability.get("snapshots", 0) or 0), 1)
+    uncertainty_map = {
+        int(item.get("number")): float(item.get("top10_rate", 0))
+        for item in aerospace.get("uncertainty_audit", {}).get("numbers", [])
+    }
+    primary_top10 = [item.get("number") for item in candidates[:10]]
+    redundant_overlap = set(aerospace.get("redundant_channel_audit", {}).get("overlap", []))
+    stable_consensus_rows = ""
+    stable_core = []
+    for rank, number in enumerate(primary_top10, 1):
+        snapshot_rate = consensus_counts.get(number, 0) / snapshots
+        monte_carlo_rate = uncertainty_map.get(number, 0)
+        cross_channel = number in redundant_overlap
+        combined = snapshot_rate * 0.45 + monte_carlo_rate * 0.45 + (0.10 if cross_channel else 0)
+        if combined >= 0.85:
+            level = "\u6838\u5fc3\u7a69\u5b9a"
+            stable_core.append(number)
+        elif combined >= 0.68:
+            level = "\u7a69\u5b9a"
+        elif combined >= 0.50:
+            level = "\u89c0\u5bdf"
+        else:
+            level = "\u6613\u6ce2\u52d5"
+        cross_label = "\u901a\u904e" if cross_channel else "\u672a\u901a\u904e"
+        stable_consensus_rows += (
+            "<tr>"
+            f"<td>{rank}</td><td>{number:02d}</td>"
+            f"<td>{consensus_counts.get(number, 0)}/{snapshots}</td>"
+            f"<td>{snapshot_rate:.3f}</td><td>{monte_carlo_rate:.4f}</td>"
+            f"<td>{cross_label}</td>"
+            f"<td>{combined:.4f}</td><td>{level}</td>"
+            "</tr>"
+        )
+    stable_core_text = fmt_numbers(stable_core) or "\u7121"
+
     history_rows = ""
     for item in history:
         status = "\u5df2\u7d50\u7b97" if item.get("status") == "settled" else "\u5f85\u7d50\u7b97"
@@ -1029,6 +1068,12 @@ def build_html_report(markdown_text):
     <section class="band">
       <h2>\u8fd1\u671f\u7a69\u5b9a\u5ea6\u56de\u6e2c</h2>
       <table><thead><tr><th>\u671f\u6578</th><th>\u6a23\u672c</th><th>Top10 \u5e73\u5747\u547d\u4e2d</th><th>\u5c0d\u96a8\u6a5f\u5dee\u503c</th><th>\u9580\u6abb</th></tr></thead><tbody>{rolling_rows}</tbody></table>
+    </section>
+    <section class="band">
+      <h2>\u7a69\u5b9a\u5171\u8b58\u7368\u7acb\u6846\u67b6</h2>
+      <p>\u5de5\u696d\u5feb\u7167\u5171\u8b58\u7387\uff1a{stability.get('top10_retention')} / \u64fe\u52d5\u5feb\u7167\uff1a{stability.get('snapshots')} / \u822a\u592a\u8499\u5730\u5361\u7f85 Top10 \u4fdd\u7559\u7387\uff1a{aerospace.get('uncertainty_audit', {}).get('top10_retention')}</p>
+      <p>\u4e3b\u5f15\u64ce\u8207\u9032\u968e\u96d9\u901a\u9053\u91cd\u758a\uff1a{aerospace.get('redundant_channel_audit', {}).get('overlap_count')} / \u7a69\u5b9a\u6838\u5fc3\u865f\uff1a{stable_core_text}</p>
+      <table><thead><tr><th>\u6392\u540d</th><th>\u865f\u78bc</th><th>\u5feb\u7167\u5171\u8b58</th><th>\u5feb\u7167\u7387</th><th>\u8499\u5730\u5361\u7f85\u7559\u5b58\u7387</th><th>\u96d9\u901a\u9053</th><th>\u7d9c\u5408\u7a69\u5b9a\u5206</th><th>\u7a69\u5b9a\u7b49\u7d1a</th></tr></thead><tbody>{stable_consensus_rows}</tbody></table>
     </section>
     <section class="band">
       <h2>\u5168\u90e8\u6b63\u5f0f\u9810\u6e2c\u6b77\u53f2\u5c0d\u6bd4</h2>
