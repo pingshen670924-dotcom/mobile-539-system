@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-06T14:21:38",
+  "generated_at": "2026-06-06T14:42:35",
   "target_period": 115000139,
   "source_count": 5,
   "observations": [
@@ -267,14 +267,15 @@
   "model_influence_status": "observation_only_weight_zero",
   "random_top5_expected_hits": 0.641,
   "collection": {
-    "collected": 5,
+    "collected": 0,
     "warnings": [
+      "go539_live_public: public source did not expose five usable 539 numbers",
       "fb_manual_001: private facebook source has no public URL; skipped automatic login",
       "fb_private_group_watch: private facebook source has no public URL; skipped automatic login"
     ],
     "target_period": 115000139,
     "source_list_count": 9,
-    "settled": 5
+    "settled": 0
   },
   "warning": "網路人氣不等於開出機率，未通過100期與近期回測的來源權重為0"
 }
