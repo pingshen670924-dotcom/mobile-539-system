@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-06-06T06:31:39",
-  "target_period": 115000138,
+  "generated_at": "2026-06-06T14:21:38",
+  "target_period": 115000139,
   "source_count": 5,
   "observations": [
     {
@@ -16,7 +16,7 @@
         19
       ],
       "engagement": null,
-      "collected_at": "2026-06-06T13:56:17"
+      "collected_at": "2026-06-06T14:21:38"
     },
     {
       "source_id": "go539_live_public",
@@ -31,7 +31,7 @@
         6
       ],
       "engagement": null,
-      "collected_at": "2026-06-06T13:56:16"
+      "collected_at": "2026-06-06T14:21:37"
     },
     {
       "source_id": "hawo_tool_public",
@@ -46,7 +46,7 @@
         7
       ],
       "engagement": null,
-      "collected_at": "2026-06-06T13:56:16"
+      "collected_at": "2026-06-06T14:21:37"
     },
     {
       "source_id": "pilio_live_public",
@@ -57,11 +57,11 @@
         34,
         18,
         6,
-        5,
-        7
+        13,
+        27
       ],
       "engagement": null,
-      "collected_at": "2026-06-06T13:56:15"
+      "collected_at": "2026-06-06T14:21:36"
     },
     {
       "source_id": "pilio_public_share",
@@ -70,13 +70,13 @@
       "source_url": "https://www.pilio.idv.tw/lto539/ltoshare539_Do.asp",
       "numbers": [
         8,
-        11,
-        36,
         1,
-        2
+        2,
+        7,
+        9
       ],
       "engagement": null,
-      "collected_at": "2026-06-06T13:56:15"
+      "collected_at": "2026-06-06T14:21:35"
     }
   ],
   "consensus_ranking": [
@@ -90,10 +90,14 @@
     },
     {
       "number": 5,
-      "source_votes": 3
+      "source_votes": 2
     },
     {
       "number": 7,
+      "source_votes": 2
+    },
+    {
+      "number": 9,
       "source_votes": 2
     },
     {
@@ -113,15 +117,11 @@
       "source_votes": 1
     },
     {
-      "number": 9,
-      "source_votes": 1
-    },
-    {
       "number": 10,
       "source_votes": 1
     },
     {
-      "number": 11,
+      "number": 13,
       "source_votes": 1
     },
     {
@@ -133,11 +133,11 @@
       "source_votes": 1
     },
     {
-      "number": 34,
+      "number": 27,
       "source_votes": 1
     },
     {
-      "number": 36,
+      "number": 34,
       "source_votes": 1
     }
   ],
@@ -147,10 +147,10 @@
       "source_name": "彩迷熱門號碼分享",
       "source_type": "public_web",
       "source_url": "https://www.pilio.idv.tw/lto539/ltoshare539_Do.asp",
-      "settled_rounds": 2,
-      "avg_hits": 1.0,
-      "recent30_avg_hits": 1.0,
-      "edge_vs_random": 0.359,
+      "settled_rounds": 3,
+      "avg_hits": 0.667,
+      "recent30_avg_hits": 0.667,
+      "edge_vs_random": 0.026,
       "eligible_for_model": false,
       "model_weight_cap": 0.0
     },
@@ -171,9 +171,9 @@
       "source_name": "Pilio今彩539公開直播與熱門號",
       "source_type": "public_web",
       "source_url": "https://www.pilio.idv.tw/server3/main_lto539.asp",
-      "settled_rounds": 0,
-      "avg_hits": 0,
-      "recent30_avg_hits": 0,
+      "settled_rounds": 1,
+      "avg_hits": 0.0,
+      "recent30_avg_hits": 0.0,
       "edge_vs_random": -0.641,
       "eligible_for_model": false,
       "model_weight_cap": 0.0
@@ -183,9 +183,9 @@
       "source_name": "Go539公開直播與AI推薦",
       "source_type": "public_web",
       "source_url": "https://go539.com/539live/",
-      "settled_rounds": 0,
-      "avg_hits": 0,
-      "recent30_avg_hits": 0,
+      "settled_rounds": 1,
+      "avg_hits": 0.0,
+      "recent30_avg_hits": 0.0,
       "edge_vs_random": -0.641,
       "eligible_for_model": false,
       "model_weight_cap": 0.0
@@ -195,9 +195,9 @@
       "source_name": "HAWO樂透分析工具",
       "source_type": "public_web",
       "source_url": "https://lotto.hawo.tw/539",
-      "settled_rounds": 0,
-      "avg_hits": 0,
-      "recent30_avg_hits": 0,
+      "settled_rounds": 1,
+      "avg_hits": 0.0,
+      "recent30_avg_hits": 0.0,
       "edge_vs_random": -0.641,
       "eligible_for_model": false,
       "model_weight_cap": 0.0
@@ -207,9 +207,9 @@
       "source_name": "539.tw版路拖牌公開頁",
       "source_type": "public_web",
       "source_url": "https://539.tw/539-strategy/pattern-techniques",
-      "settled_rounds": 0,
-      "avg_hits": 0,
-      "recent30_avg_hits": 0,
+      "settled_rounds": 1,
+      "avg_hits": 0.0,
+      "recent30_avg_hits": 0.0,
       "edge_vs_random": -0.641,
       "eligible_for_model": false,
       "model_weight_cap": 0.0
@@ -267,14 +267,14 @@
   "model_influence_status": "observation_only_weight_zero",
   "random_top5_expected_hits": 0.641,
   "collection": {
-    "collected": 0,
+    "collected": 5,
     "warnings": [
       "fb_manual_001: private facebook source has no public URL; skipped automatic login",
       "fb_private_group_watch: private facebook source has no public URL; skipped automatic login"
     ],
-    "target_period": 115000138,
+    "target_period": 115000139,
     "source_list_count": 9,
-    "settled": 0
+    "settled": 5
   },
   "warning": "網路人氣不等於開出機率，未通過100期與近期回測的來源權重為0"
 }
