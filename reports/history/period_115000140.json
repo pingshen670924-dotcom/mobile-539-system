@@ -1,0 +1,53 @@
+{
+  "based_on_period": 115000139,
+  "based_on_date": "2026-06-08",
+  "target_period": 115000140,
+  "top5": [
+    2,
+    20,
+    9,
+    22,
+    5
+  ],
+  "top10": [
+    2,
+    20,
+    9,
+    22,
+    5,
+    16,
+    35,
+    32,
+    37,
+    23
+  ],
+  "top15": [
+    2,
+    20,
+    9,
+    22,
+    5,
+    16,
+    35,
+    32,
+    37,
+    23,
+    3,
+    27,
+    24,
+    38,
+    19
+  ],
+  "actual_period": null,
+  "actual_date": null,
+  "actual_numbers": [],
+  "top5_hits": null,
+  "top10_hits": null,
+  "top15_hits": null,
+  "top10_hit_numbers": [],
+  "strong_pack_hits": {},
+  "status": "pending",
+  "created_at": "2026-06-08T16:41:07",
+  "settled_at": null,
+  "snapshot_count": 1
+}
