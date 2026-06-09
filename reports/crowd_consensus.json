@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-06-09T01:32:07",
-  "target_period": 115000140,
+  "generated_at": "2026-06-09T16:12:36",
+  "target_period": 115000141,
   "source_count": 1,
   "observations": [
     {
@@ -10,13 +10,13 @@
       "source_url": "https://www.pilio.idv.tw/lto539/ltoshare539_Do.asp",
       "numbers": [
         8,
-        11,
         1,
-        10,
-        9
+        11,
+        2,
+        6
       ],
       "engagement": null,
-      "collected_at": "2026-06-09T01:32:07"
+      "collected_at": "2026-06-09T16:12:36"
     }
   ],
   "consensus_ranking": [
@@ -25,15 +25,15 @@
       "source_votes": 1
     },
     {
+      "number": 2,
+      "source_votes": 1
+    },
+    {
+      "number": 6,
+      "source_votes": 1
+    },
+    {
       "number": 8,
-      "source_votes": 1
-    },
-    {
-      "number": 9,
-      "source_votes": 1
-    },
-    {
-      "number": 10,
       "source_votes": 1
     },
     {
@@ -47,10 +47,10 @@
       "source_name": "彩迷熱門號碼分享",
       "source_type": "public_crowd_share",
       "source_url": "https://www.pilio.idv.tw/lto539/ltoshare539_Do.asp",
-      "settled_rounds": 0,
-      "avg_hits": 0,
-      "recent30_avg_hits": 0,
-      "edge_vs_random": -0.641,
+      "settled_rounds": 1,
+      "avg_hits": 1.0,
+      "recent30_avg_hits": 1.0,
+      "edge_vs_random": 0.359,
       "eligible_for_model": false,
       "model_weight_cap": 0.0
     },
@@ -73,7 +73,7 @@
   "collection": {
     "collected": 1,
     "warnings": [],
-    "target_period": 115000140,
+    "target_period": 115000141,
     "settled": 1
   },
   "warning": "網路人氣不等於開出機率，未通過100期與近期回測的來源權重為0"
