@@ -43,21 +43,9 @@ function Test-GhRepository {
   return $exists
 }
 
-function Copy-TreeWithoutGit {
-  param([string]$From, [string]$To)
-  New-Item -ItemType Directory -Path $To -Force | Out-Null
-  Get-ChildItem -LiteralPath $To -Force | Where-Object { $_.Name -ne ".git" } | ForEach-Object {
-    Remove-Item -LiteralPath $_.FullName -Recurse -Force
-  }
-  Get-ChildItem -LiteralPath $From -Force | Where-Object { $_.Name -ne ".git" } | ForEach-Object {
-    Copy-Item -LiteralPath $_.FullName -Destination $To -Recurse -Force
-  }
-}
-
 Write-Host "Preparing the free independent mobile 539 system..."
 Ensure-Command "git" "Git.Git"
 Ensure-Command "gh" "GitHub.cli"
-git config --global --add safe.directory $ScriptDir
 
 if (-not (Test-GhAuthentication)) {
   Write-Host "A GitHub official login page will open. Approve the login once."
@@ -77,8 +65,6 @@ if (-not (Test-GhRepository "$Owner/$RepoName")) {
   git commit -m "Create free independent mobile 539 system"
   gh repo create $RepoName --public --source . --remote origin --push
 } else {
-  $PayloadCopy = Join-Path $env:TEMP ("mobile-539-payload-" + [guid]::NewGuid().ToString("N"))
-  Copy-TreeWithoutGit $ScriptDir $PayloadCopy
   if (-not (Test-Path ".git")) {
     git init
     git remote add origin "https://github.com/$Owner/$RepoName.git"
@@ -89,8 +75,6 @@ if (-not (Test-GhRepository "$Owner/$RepoName")) {
     git fetch origin main
     git reset origin/main
   }
-  Copy-TreeWithoutGit $PayloadCopy $ScriptDir
-  Remove-Item -LiteralPath $PayloadCopy -Recurse -Force
   git config user.name "$Owner"
   git config user.email "$Owner@users.noreply.github.com"
   git add .

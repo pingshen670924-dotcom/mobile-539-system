@@ -120,73 +120,6 @@ def transition_scores(draws):
     return normalize({n: transition.get(n, 0) for n in range(NUMBER_MIN, NUMBER_MAX + 1)}), source_map
 
 
-def markov_chain_scores(draws, window=1800):
-    subset = draws[-window:] if len(draws) > window else draws
-    latest = set(draws[-1]["numbers"])
-    scores = {number: 0.0 for number in range(NUMBER_MIN, NUMBER_MAX + 1)}
-    if len(subset) < 3:
-        return scores
-    target_total = Counter()
-    source_total = Counter()
-    transition_total = defaultdict(Counter)
-    for idx in range(len(subset) - 1):
-        current = set(subset[idx]["numbers"])
-        following = set(subset[idx + 1]["numbers"])
-        target_total.update(following)
-        for source in current:
-            source_total[source] += 1
-            transition_total[source].update(following)
-    transitions = max(len(subset) - 1, 1)
-    for source in latest:
-        support = source_total.get(source, 0)
-        if support < 12:
-            continue
-        for target in range(NUMBER_MIN, NUMBER_MAX + 1):
-            conditional = transition_total[source].get(target, 0) / support
-            baseline = target_total.get(target, 0) / transitions
-            lift = conditional - baseline
-            if lift > 0:
-                scores[target] += lift
-    return normalize(scores)
-
-
-def time_series_scores(draws, window=240):
-    subset = draws[-window:] if len(draws) > window else draws
-    scores = {}
-    for number in range(NUMBER_MIN, NUMBER_MAX + 1):
-        fast = 0.0
-        slow = 0.0
-        for age, draw in enumerate(reversed(subset)):
-            hit = 1.0 if number in draw["numbers"] else 0.0
-            fast += hit * (0.5 ** (age / 18))
-            slow += hit * (0.5 ** (age / 72))
-        trend = fast - slow * 0.42
-        scores[number] = trend
-    return normalize(scores)
-
-
-def neural_network_scores(draws):
-    freq20 = normalize({n: frequency(draws[-20:]).get(n, 0) for n in range(NUMBER_MIN, NUMBER_MAX + 1)})
-    freq100 = normalize({n: frequency(draws[-100:]).get(n, 0) for n in range(NUMBER_MIN, NUMBER_MAX + 1)})
-    gaps = omission(draws)
-    gap_score = normalize({n: math.log1p(gaps[n]) for n in gaps})
-    markov = markov_chain_scores(draws, window=900)
-    series = time_series_scores(draws, window=180)
-    latest = set(draws[-1]["numbers"])
-    values = {}
-    for number in range(NUMBER_MIN, NUMBER_MAX + 1):
-        x = (
-            freq20[number] * 0.58
-            + freq100[number] * 0.72
-            + gap_score[number] * 0.64
-            + markov[number] * 0.82
-            + series[number] * 0.74
-            - (0.85 if number in latest else 0.0)
-        )
-        values[number] = 1.0 / (1.0 + math.exp(-(x - 1.15)))
-    return normalize(values)
-
-
 def validated_dependency_scores(draws, window=1800):
     subset = draws[-window:] if len(draws) > window else draws
     latest_numbers = sorted(set(draws[-1]["numbers"]))
@@ -394,9 +327,6 @@ def build_feature_matrix(draws, review=None, include_dependency=True):
     omission_score = normalize({n: math.log1p(omissions[n]) / math.log1p(EXPECTED_GAP * 4) for n in omissions})
     transition_score, _ = transition_scores(draws)
     dependency_score = validated_dependency_scores(draws)[0] if include_dependency else {n: 0.0 for n in range(NUMBER_MIN, NUMBER_MAX + 1)}
-    markov_score = markov_chain_scores(draws)
-    time_series_score = time_series_scores(draws)
-    neural_score = neural_network_scores(draws)
     pair_score = pair_scores(draws)
     tail_zone = tail_zone_scores(draws)
     next_date = next_draw_date(draws[-1]["draw_date"])
@@ -410,9 +340,6 @@ def build_feature_matrix(draws, review=None, include_dependency=True):
         feature_scores[number]["omission"] = omission_score[number]
         feature_scores[number]["transition"] = transition_score[number]
         feature_scores[number]["validated_dependency"] = dependency_score[number]
-        feature_scores[number]["markov_chain"] = markov_score[number]
-        feature_scores[number]["time_series"] = time_series_score[number]
-        feature_scores[number]["neural_network"] = neural_score[number]
         feature_scores[number]["pair"] = pair_score[number]
         feature_scores[number]["tail_zone"] = tail_zone[number]
         feature_scores[number]["date"] = date_score[number]
@@ -435,9 +362,6 @@ def industrial_weights(review=None):
         "omission": 0.13,
         "transition": 0.07,
         "validated_dependency": 0.065,
-        "markov_chain": 0.055,
-        "time_series": 0.05,
-        "neural_network": 0.06,
         "pair": 0.09,
         "tail_zone": 0.09,
         "date": 0.025,
@@ -451,9 +375,6 @@ def industrial_weights(review=None):
                 "freq_10": 0.02,
                 "freq_20": 0.06,
                 "transition": 0.045,
-                "markov_chain": 0.04,
-                "time_series": 0.04,
-                "neural_network": 0.045,
                 "repeat": 0.005,
                 "neighbor": 0.01,
                 "freq_50": 0.15,
@@ -493,12 +414,6 @@ def score_numbers(draws, review=None, include_dependency=True):
             reasons[number].append("\u5171\u73fe\u95dc\u806f")
         if values["validated_dependency"] >= 0.7:
             reasons[number].append("\u6a23\u672c\u5916\u9023\u52d5")
-        if values["markov_chain"] >= 0.7:
-            reasons[number].append("\u99ac\u53ef\u592b\u8f49\u79fb")
-        if values["time_series"] >= 0.7:
-            reasons[number].append("\u6642\u9593\u5e8f\u5217\u52d5\u80fd")
-        if values["neural_network"] >= 0.7:
-            reasons[number].append("\u795e\u7d93\u7db2\u8def\u7d9c\u5408")
         if values["tail_zone"] >= 0.7:
             reasons[number].append("\u5c3e\u6578\u5340\u9593")
         if values["freq_50"] >= 0.7 or values["freq_100"] >= 0.7:
@@ -757,75 +672,6 @@ def industrial_backtest(draws, rounds=360):
     }
 
 
-def advanced_model_summary(draws):
-    models = {
-        "markov_chain": markov_chain_scores(draws),
-        "time_series": time_series_scores(draws),
-        "neural_network": neural_network_scores(draws),
-    }
-    labels = {
-        "markov_chain": "\u99ac\u53ef\u592b\u93c8",
-        "time_series": "\u6642\u9593\u5e8f\u5217",
-        "neural_network": "\u795e\u7d93\u7db2\u8def",
-    }
-    rows = []
-    vote = Counter()
-    for key, scores in models.items():
-        ranked = rank_values(scores)[:10]
-        vote.update(ranked[:8])
-        rows.append({
-            "model": key,
-            "name": labels[key],
-            "top10": ranked,
-            "method": {
-                "markov_chain": "\u4f9d\u4e0a\u671f\u865f\u78bc\u5efa\u7acb\u72c0\u614b\u8f49\u79fb\u77e9\u9663",
-                "time_series": "\u4ee5\u5feb\u6162 EWMA \u8ffd\u8e64\u865f\u78bc\u52d5\u80fd",
-                "neural_network": "\u4ee5\u983b\u7387\u3001\u907a\u6f0f\u3001\u8f49\u79fb\u8207\u52d5\u80fd\u505a\u975e\u7dda\u6027\u7d9c\u5408",
-            }[key],
-        })
-    consensus = [number for number, _ in vote.most_common(12)]
-    return {
-        "models": rows,
-        "consensus_top12": consensus,
-        "warning": "\u9032\u968e\u6a21\u578b\u53ea\u80fd\u63d0\u4f9b\u8f14\u52a9\u8a55\u5206\uff0c\u5fc5\u9808\u901a\u904e\u56de\u6e2c\u8207\u767c\u5e03\u9580\u6abb\u624d\u80fd\u9032\u5165\u4e3b\u63a8",
-    }
-
-
-def advanced_model_backtest(draws, rounds=180):
-    if len(draws) < 140:
-        return {"rounds": 0}
-    model_names = ["markov_chain", "time_series", "neural_network"]
-    totals = {name: {"top10_hits": 0, "rounds": 0} for name in model_names}
-    start = max(120, len(draws) - rounds - 1)
-    for idx in range(start, len(draws) - 1):
-        train = draws[: idx + 1]
-        actual = set(draws[idx + 1]["numbers"])
-        scores_by_model = {
-            "markov_chain": markov_chain_scores(train),
-            "time_series": time_series_scores(train),
-            "neural_network": neural_network_scores(train),
-        }
-        for name, scores in scores_by_model.items():
-            top10 = set(rank_values(scores)[:10])
-            totals[name]["top10_hits"] += len(top10 & actual)
-            totals[name]["rounds"] += 1
-    random_top10 = DRAW_SIZE * 10 / NUMBER_MAX
-    result = {}
-    for name, data in totals.items():
-        rounds_done = data["rounds"]
-        avg_hits = data["top10_hits"] / rounds_done if rounds_done else 0
-        result[name] = {
-            "rounds": rounds_done,
-            "top10_avg_hits": round(avg_hits, 3),
-            "top10_edge_vs_random": round(avg_hits - random_top10, 4),
-        }
-    return {
-        "rounds": max(item["rounds"] for item in result.values()) if result else 0,
-        "random_top10_expectation": round(random_top10, 3),
-        "models": result,
-    }
-
-
 def stability_consensus(draws, base_candidates, review=None):
     snapshots = []
     for cut in [0, 1, 2, 3, 5]:
@@ -877,108 +723,11 @@ def stability_consensus(draws, base_candidates, review=None):
     }
 
 
-def unlikely_number_analysis(draws, candidates, stability, review=None, limit=12):
-    features = build_feature_matrix(draws, review, include_dependency=False)
-    score_map = {item["number"]: item["score"] for item in candidates}
-    rank_map = {item["number"]: index + 1 for index, item in enumerate(candidates)}
-    stability_counts = {int(number): count for number, count in stability.get("consensus_counts", {}).items()}
-    latest_set = set(draws[-1]["numbers"])
-    previous_blocked = {
-        item["number"] for item in candidates
-        if item.get("previous_prediction_guard") and not item["previous_prediction_guard"].get("passed")
-    }
-    failed = failed_number_set(review)
-    repeat_policy = repeat_guard(draws)
-    rows = []
-    for number in range(NUMBER_MIN, NUMBER_MAX + 1):
-        values = features[number]
-        weak_signal_count = sum(
-            1 for key in ["freq_20", "freq_50", "freq_100", "ewma_slow", "pair", "tail_zone", "validated_dependency"]
-            if values.get(key, 0) < 0.35
-        )
-        penalty = 0.0
-        reasons = []
-        if number in previous_blocked:
-            penalty += 0.32
-            reasons.append("\u6628\u65e5\u9810\u6e2c\u865f\u672a\u9054\u6975\u5f37\u91cd\u5165\u9580\u6abb")
-        if number in failed:
-            penalty += 0.25
-            reasons.append("\u4e0a\u671f\u5931\u6557\u865f\u78bc\u9694\u96e2")
-        if number in latest_set:
-            penalty += 0.28
-            if repeat_policy.get(number, {}).get("historical_support"):
-                reasons.append("\u9023\u838a\u50c5\u89c0\u5bdf")
-            else:
-                reasons.append("\u9023\u838a\u5b88\u9580\u672a\u901a\u904e")
-        if stability_counts.get(number, 0) == 0:
-            penalty += 0.16
-            reasons.append("\u64fe\u52d5\u6a21\u578b\u7121\u7a69\u5b9a\u5171\u8b58")
-        if weak_signal_count >= 5:
-            penalty += 0.20
-            reasons.append("\u77ed\u4e2d\u9577\u671f\u8207\u95dc\u806f\u6307\u6a19\u504f\u5f31")
-        if rank_map.get(number, 99) > 24:
-            penalty += 0.15
-            reasons.append("Top24\u5916")
-        appearance_risk = max(0.0, min(1.0, score_map.get(number, 0.0)))
-        avoid_score = max(0.0, min(1.0, (1 - appearance_risk) * 0.48 + penalty))
-        if not reasons:
-            reasons.append("\u7d9c\u5408\u8a55\u5206\u504f\u5f31")
-        rows.append(
-            {
-                "number": number,
-                "avoid_score": round(avoid_score, 4),
-                "appearance_score": round(appearance_risk, 4),
-                "candidate_rank": rank_map.get(number),
-                "stability_count": stability_counts.get(number, 0),
-                "weak_signal_count": weak_signal_count,
-                "reasons": reasons[:4],
-                "warning": "\u4f4e\u6a5f\u7387\u4e0d\u4ee3\u8868\u4e0d\u6703\u958b\u51fa",
-            }
-        )
-    rows.sort(key=lambda item: (item["avoid_score"], item["number"]), reverse=True)
-    return {
-        "method": "inverse_signal_risk_filter",
-        "warning": "\u6b64\u5340\u70ba\u98a8\u63a7\u907f\u958b\u89c0\u5bdf\uff0c\u4e0d\u662f\u7d55\u5c0d\u4e0d\u958b\u4fdd\u8b49",
-        "numbers": rows[:limit],
-    }
-
-
-def unlikely_backtest(draws, rounds=120, avoid_size=10):
-    if len(draws) < 140:
-        return {"rounds": 0}
-    start = max(120, len(draws) - rounds - 1)
-    total = 0
-    accidental_hits = 0
-    zero_hit_rounds = 0
-    for idx in range(start, len(draws) - 1):
-        train = draws[: idx + 1]
-        base_candidates, _ = score_numbers(train, None, include_dependency=False)
-        stable = {"consensus_counts": {}}
-        avoid = unlikely_number_analysis(train, base_candidates, stable, None, limit=avoid_size)["numbers"]
-        avoid_numbers = {item["number"] for item in avoid}
-        actual = set(draws[idx + 1]["numbers"])
-        hits = len(avoid_numbers & actual)
-        accidental_hits += hits
-        zero_hit_rounds += 1 if hits == 0 else 0
-        total += 1
-    random_expectation = DRAW_SIZE * avoid_size / NUMBER_MAX
-    return {
-        "rounds": total,
-        "avoid_size": avoid_size,
-        "avg_accidental_hits": round(accidental_hits / total, 3) if total else 0,
-        "random_expectation": round(random_expectation, 3),
-        "edge_vs_random": round(accidental_hits / total - random_expectation, 4) if total else 0,
-        "zero_hit_rate": round(zero_hit_rounds / total, 3) if total else 0,
-    }
-
-
 def compute_industrial_analysis(draws, review=None):
     base_candidates, weights = score_numbers(draws, review)
     candidates, stability = stability_consensus(draws, base_candidates, review)
     packs = strong_packs(candidates, review)
     audit = industrial_backtest(draws)
-    advanced_models = advanced_model_summary(draws)
-    advanced_backtest = advanced_model_backtest(draws)
     _, validated_links = validated_dependency_scores(draws)
     lag_profile = lag_dependency_profile(draws)
     edge = audit.get("top10_avg_hits", 0) - audit.get("random_top10_expectation", DRAW_SIZE * 10 / NUMBER_MAX)
@@ -993,9 +742,8 @@ def compute_industrial_analysis(draws, review=None):
         item["number"] for item in candidates
         if item.get("previous_prediction_guard") and item["previous_prediction_guard"].get("passed")
     )
-    unlikely = unlikely_number_analysis(draws, candidates, stability, review)
     return {
-        "engine_version": "industrial_v5_unlikely_number_risk_filter",
+        "engine_version": "industrial_v4_previous_prediction_guard",
         "leakage_guard": True,
         "repeat_guard": repeat_guard(draws),
         "previous_prediction_guard": {
@@ -1026,10 +774,6 @@ def compute_industrial_analysis(draws, review=None):
         },
         "weights": {key: round(value, 4) for key, value in weights.items()},
         "backtest": audit,
-        "advanced_models": advanced_models,
-        "advanced_model_backtest": advanced_backtest,
-        "unlikely_number_analysis": unlikely,
-        "unlikely_backtest": unlikely_backtest(draws),
         "model_audit": model_audit(audit, review),
         "regime_analysis": regime_analysis(draws),
         "candidates": candidates,

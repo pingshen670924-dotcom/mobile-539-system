@@ -2,7 +2,6 @@
 import sqlite3
 from datetime import datetime
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -16,31 +15,10 @@ BATTLE_MD = REPORT_DIR / "latest_battle_report.md"
 BATTLE_TXT = REPORT_DIR / "latest_battle_report.txt"
 BATTLE_HTML = REPORT_DIR / "latest_battle_report.html"
 ENHANCED_BATTLE_HTML = REPORT_DIR / "539\u6700\u65b0\u5f37\u5316\u6230\u5831.html"
-HISTORY_JSON = REPORT_DIR / "prediction_history.json"
-HISTORY_HTML = REPORT_DIR / "539\u6bcf\u671f\u9810\u6e2c\u5c0d\u6bd4.html"
-HISTORY_DIR = REPORT_DIR / "history"
-TAIPEI_TZ = ZoneInfo("Asia/Taipei")
-
-
-def taipei_now():
-    return datetime.now(TAIPEI_TZ).replace(tzinfo=None)
 
 
 def fmt_numbers(numbers):
     return " ".join(f"{int(n):02d}" for n in numbers)
-
-
-def official_status_label(status):
-    labels = {
-        "inserted": "\u5df2\u4f9d\u6700\u65b0\u958b\u734e\u91cd\u65b0\u5efa\u7acb\u6b63\u5f0f\u9810\u6e2c",
-        "updated_pending": "\u5df2\u91cd\u65b0\u904b\u7b97\u4e26\u66f4\u65b0\u6b63\u5f0f\u9810\u6e2c",
-        "corrected_pending": "\u5df2\u91cd\u65b0\u904b\u7b97\u4e26\u5957\u7528\u91cd\u8907\u865f\u5b88\u9580\u4fee\u6b63",
-        "recalculated_same_as_official": "\u5df2\u91cd\u65b0\u904b\u7b97\uff0c\u7d50\u679c\u8207\u76ee\u524d\u6b63\u5f0f\u9810\u6e2c\u76f8\u540c",
-        "stale_data_blocked": "\u8cc7\u6599\u672a\u9054\u61c9\u6709\u958b\u734e\u65e5\uff0c\u7981\u6b62\u7522\u751f\u65b0\u6b63\u5f0f\u9810\u6e2c",
-        "aerospace_assurance_blocked": "\u822a\u592a\u7d1a\u5b8c\u6574\u6027\u5be9\u6838\u672a\u901a\u904e\uff0c\u7981\u6b62\u7522\u751f\u6b63\u5f0f\u9810\u6e2c",
-        "preserved_settled": "\u8a72\u671f\u6b63\u5f0f\u9810\u6e2c\u5df2\u7d50\u7b97\uff0c\u672c\u6b21\u53ea\u4fdd\u7559\u5feb\u7167",
-    }
-    return labels.get(status or "", status or "\u672c\u6b21\u91cd\u65b0\u904b\u7b97")
 
 
 def load_json(path):
@@ -92,120 +70,6 @@ def latest_settled_prediction():
         "settled_at": row[14],
         "model_weights": json.loads(row[15] or "{}"),
     }
-
-
-def latest_pending_prediction():
-    if not DB_PATH.exists():
-        return {}
-    with sqlite3.connect(DB_PATH) as conn:
-        row = conn.execute(
-            """
-            SELECT id, based_on_period, based_on_date, target_period,
-                   candidates_json, suggested_sets_json, strong_packs_json,
-                   model_weights_json, backtest_json, created_at
-            FROM predictions_539
-            WHERE status='pending'
-            ORDER BY based_on_period DESC, id DESC
-            LIMIT 1
-            """
-        ).fetchone()
-    if not row:
-        return {}
-    return {
-        "id": row[0],
-        "based_on_period": row[1],
-        "based_on_date": row[2],
-        "target_period": row[3],
-        "candidates": json.loads(row[4] or "[]"),
-        "suggested_sets": json.loads(row[5] or "[]"),
-        "strong_packs": json.loads(row[6] or "{}"),
-        "model_weights": json.loads(row[7] or "{}"),
-        "backtest": json.loads(row[8] or "{}"),
-        "created_at": row[9],
-    }
-
-
-def prediction_history():
-    if not DB_PATH.exists():
-        return []
-    with sqlite3.connect(DB_PATH) as conn:
-        rows = conn.execute(
-            """
-            SELECT based_on_period, based_on_date, target_period, candidates_json,
-                   strong_packs_json, actual_period, actual_date, actual_numbers_json,
-                   top5_hits, top10_hits, top15_hits, strong_pack_hits_json,
-                   status, created_at, settled_at,
-                   (
-                     SELECT COUNT(*)
-                     FROM prediction_snapshots_539 s
-                     WHERE s.based_on_period=p.based_on_period
-                   ) AS snapshot_count
-            FROM predictions_539 p
-            ORDER BY target_period DESC, id DESC
-            """
-        ).fetchall()
-    history = []
-    for row in rows:
-        candidates = json.loads(row[3] or "[]")
-        actual_numbers = json.loads(row[7] or "[]")
-        actual_set = set(actual_numbers)
-        top5 = [item.get("number") for item in candidates[:5]]
-        top10 = [item.get("number") for item in candidates[:10]]
-        top15 = [item.get("number") for item in candidates[:15]]
-        strong_hits = json.loads(row[11] or "{}")
-        history.append(
-            {
-                "based_on_period": row[0],
-                "based_on_date": row[1],
-                "target_period": row[2],
-                "top5": top5,
-                "top10": top10,
-                "top15": top15,
-                "actual_period": row[5],
-                "actual_date": row[6],
-                "actual_numbers": actual_numbers,
-                "top5_hits": row[8],
-                "top10_hits": row[9],
-                "top15_hits": row[10],
-                "top10_hit_numbers": sorted(actual_set & set(top10)),
-                "strong_pack_hits": strong_hits,
-                "status": row[12],
-                "created_at": row[13],
-                "settled_at": row[14],
-                "snapshot_count": row[15],
-            }
-        )
-    return history
-
-
-def save_prediction_history(history):
-    REPORT_DIR.mkdir(parents=True, exist_ok=True)
-    HISTORY_DIR.mkdir(parents=True, exist_ok=True)
-    payload = {
-        "generated_at": taipei_now().isoformat(timespec="seconds"),
-        "total_periods": len(history),
-        "settled_periods": sum(1 for item in history if item.get("status") == "settled"),
-        "pending_periods": sum(1 for item in history if item.get("status") == "pending"),
-        "periods": history,
-    }
-    HISTORY_JSON.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    for item in history:
-        target = item.get("target_period")
-        if target is None:
-            continue
-        path = HISTORY_DIR / f"period_{target}.json"
-        path.write_text(json.dumps(item, ensure_ascii=False, indent=2), encoding="utf-8")
-    return payload
-
-
-def resolved_official_status(analysis, pending_prediction):
-    status = analysis.get("official_prediction_status")
-    if status:
-        return status
-    latest = analysis.get("latest_draw", {})
-    if pending_prediction and pending_prediction.get("based_on_period") == latest.get("period"):
-        return "recalculated_same_as_official"
-    return "recalculated_same_as_official"
 
 
 def pack_label(key):
@@ -373,13 +237,9 @@ def build_report():
     stability = industrial.get("stability_consensus", {})
     industrial_backtest = industrial.get("backtest", {})
     rolling_windows = industrial_backtest.get("rolling_windows", {})
-    unlikely = industrial.get("unlikely_number_analysis", {})
-    unlikely_backtest = industrial.get("unlikely_backtest", {})
     freshness = analysis.get("data_freshness", {})
     release_label = "\u6b63\u5f0f\u4e3b\u63a8" if release_gate.get("status") == "official" else "\u50c5\u4f9b\u89c0\u5bdf\uff0c\u4e0d\u5217\u6b63\u5f0f\u4e3b\u63a8"
     settled_prediction = latest_settled_prediction()
-    pending_prediction = latest_pending_prediction()
-    official_status_code = resolved_official_status(analysis, pending_prediction)
     settled_rows = settled_hit_rows(settled_prediction)
     candidate_review_rows = settled_candidate_review_rows(settled_prediction)
     audit_detail = prediction_audit(settled_prediction)
@@ -388,14 +248,12 @@ def build_report():
     lines = [
         "# 539 \u958b\u734e\u9810\u6e2c\u6230\u5831",
         "",
-        f"- \u7522\u751f\u6642\u9593\uff1a{taipei_now().isoformat(timespec='seconds')}",
+        f"- \u7522\u751f\u6642\u9593\uff1a{datetime.now().isoformat(timespec='seconds')}",
         f"- \u7cfb\u7d71\u72c0\u614b\uff1a{health_status}",
         f"- \u8cc7\u6599\u65b0\u9bae\u5ea6\uff1a{freshness.get('status', '')} / \u61c9\u6709\u6700\u65b0\u65e5\u671f {freshness.get('expected_latest_date', '')}",
         f"- \u6700\u65b0\u671f\u5225\uff1a{latest['period']} ({latest['draw_date']})",
         "- \u6700\u65b0\u865f\u78bc\uff1a" + fmt_numbers(latest["numbers"]),
         f"- \u9810\u6e2c\u76ee\u6a19\u671f\uff1a{latest['period'] + 1}",
-        f"- \u6b63\u5f0f\u9810\u6e2c\u72c0\u614b\uff1a{official_status_label(official_status_code)}",
-        f"- \u76ee\u524d\u5f85\u7d50\u7b97\u6b63\u5f0f\u9810\u6e2c\uff1a\u4f9d\u64da\u671f {pending_prediction.get('based_on_period', '\u7121')} / \u76ee\u6a19\u671f {pending_prediction.get('target_period', '\u7121')} / \u5efa\u7acb {pending_prediction.get('created_at', '\u7121')}",
         "- \u91cd\u865f\u5b88\u9580\uff1a\u6700\u65b0\u958b\u734e\u865f\u672a\u901a\u904e\u9023\u838a\u7387\u6aa2\u5b9a\u4e0d\u5217\u5165\u4e3b\u63a8",
         f"- \u5de5\u696d\u5f15\u64ce\uff1a{industrial.get('engine_version', '')}",
         f"- \u9810\u6e2c\u767c\u5e03\u7b49\u7d1a\uff1a{release_label}",
@@ -657,22 +515,6 @@ def build_report():
                 f"- \u8fd1 {window} \u671f Top10\uff1a{values.get('top10_avg_hits')} / "
                 f"\u5c0d\u96a8\u6a5f\u5dee\u503c {values.get('top10_edge_vs_random')}"
             )
-        advanced = industrial.get("advanced_models", {})
-        advanced_bt = industrial.get("advanced_model_backtest", {})
-        if advanced:
-            lines.extend([
-                "",
-                "### \u9032\u968e\u9810\u6e2c\u6a21\u578b",
-                f"- \u8aaa\u660e\uff1a{advanced.get('warning')}",
-                f"- \u9032\u968e\u6a21\u578b\u5171\u8b58 Top12\uff1a{fmt_numbers(advanced.get('consensus_top12', []))}",
-            ])
-            for model in advanced.get("models", []):
-                bt_row = advanced_bt.get("models", {}).get(model.get("model"), {})
-                lines.append(
-                    f"- {model.get('name')}\uff1a{fmt_numbers(model.get('top10', []))} / "
-                    f"Top10 \u56de\u6e2c {bt_row.get('top10_avg_hits')} / "
-                    f"\u5c0d\u96a8\u6a5f\u5dee\u503c {bt_row.get('top10_edge_vs_random')}"
-                )
         if repeat_guard:
             lines.extend([
                 "",
@@ -686,23 +528,6 @@ def build_report():
                 lines.append(
                     f"| {number:02d} | {item.get('sample')} | {item.get('repeat_hits')} | "
                     f"{item.get('repeat_rate')} | {item.get('baseline')} | {decision} |"
-                )
-        unlikely = industrial.get("unlikely_number_analysis", {})
-        unlikely_bt = industrial.get("unlikely_backtest", {})
-        if unlikely:
-            lines.extend([
-                "",
-                "### \u4f4e\u6a5f\u7387\u66ab\u907f\u865f\u78bc",
-                f"- \u8aaa\u660e\uff1a{unlikely.get('warning')}",
-                f"- \u56de\u6e2c\uff1a\u8fd1 {unlikely_bt.get('rounds')} \u671f\uff0c\u66ab\u907f {unlikely_bt.get('avoid_size')} \u78bc\u5e73\u5747\u8aa4\u4e2d {unlikely_bt.get('avg_accidental_hits')}\uff0c\u96a8\u6a5f\u57fa\u6e96 {unlikely_bt.get('random_expectation')}\uff0c\u5dee\u503c {unlikely_bt.get('edge_vs_random')}\uff0c\u5b8c\u5168\u907f\u958b\u7387 {unlikely_bt.get('zero_hit_rate')}",
-                "| # | \u865f\u78bc | \u66ab\u907f\u6307\u6578 | \u51fa\u73fe\u8a55\u5206 | \u539f\u56e0 |",
-                "| ---: | ---: | ---: | ---: | --- |",
-            ])
-            for idx, item in enumerate(unlikely.get("numbers", [])[:12], 1):
-                reason = "\u3001".join(item.get("reasons", []))
-                lines.append(
-                    f"| {idx} | {item.get('number'):02d} | {item.get('avoid_score')} | "
-                    f"{item.get('appearance_score')} | {reason} |"
                 )
 
     performance = health.get("prediction_performance", {})
@@ -721,8 +546,6 @@ def build_report():
 
 def build_html_report(markdown_text):
     analysis = load_json(ANALYSIS_JSON)
-    history = prediction_history()
-    aerospace = analysis.get("aerospace_assurance", {})
     packs = analysis.get("strong_prediction_packs", {})
     candidates = analysis.get("candidates", [])
     latest = analysis.get("latest_draw", {})
@@ -734,14 +557,10 @@ def build_html_report(markdown_text):
     stability = industrial.get("stability_consensus", {})
     industrial_backtest = industrial.get("backtest", {})
     rolling_windows = industrial_backtest.get("rolling_windows", {})
-    unlikely = industrial.get("unlikely_number_analysis", {})
-    unlikely_backtest = industrial.get("unlikely_backtest", {})
     freshness = analysis.get("data_freshness", {})
     previous_guard = industrial.get("previous_prediction_guard", {})
     crowd = analysis.get("crowd_consensus", load_json(REPORT_DIR / "crowd_consensus.json"))
     settled_prediction = latest_settled_prediction()
-    pending_prediction = latest_pending_prediction()
-    official_status_code = resolved_official_status(analysis, pending_prediction)
     settled_rows = settled_hit_rows(settled_prediction)
     candidate_review_rows = settled_candidate_review_rows(settled_prediction)
     audit_detail = prediction_audit(settled_prediction)
@@ -784,18 +603,6 @@ def build_html_report(markdown_text):
             "<tr>"
             f"<td>{idx}</td><td>{item['number']:02d}</td><td>{item['confidence_index']}</td>"
             f"<td>{item['omission']}</td><td>{reason}</td>"
-            "</tr>"
-        )
-
-    unlikely_rows = ""
-    for idx, item in enumerate(unlikely.get("numbers", []), 1):
-        reason = "\u3001".join(item.get("reasons", []))
-        rank = item.get("candidate_rank") or "-"
-        unlikely_rows += (
-            "<tr>"
-            f"<td>{idx}</td><td>{item.get('number'):02d}</td><td>{item.get('avoid_score')}</td>"
-            f"<td>{item.get('appearance_score')}</td><td>{rank}</td>"
-            f"<td>{item.get('stability_count')}</td><td>{reason}</td>"
             "</tr>"
         )
 
@@ -887,12 +694,6 @@ def build_html_report(markdown_text):
     release_label = "\u6b63\u5f0f\u4e3b\u63a8" if release_status == "official" else "\u50c5\u4f9b\u89c0\u5bdf\uff0c\u7981\u6b62\u6b63\u5f0f\u4e3b\u63a8"
     freshness_label = "\u8cc7\u6599\u5df2\u66f4\u65b0" if freshness.get("status") == "fresh" else "\u8cc7\u6599\u904e\u671f\uff0c\u7981\u6b62\u9810\u6e2c"
     observation_note = "" if release_status == "official" else "\u672c\u5340\u70ba\u89c0\u5bdf\u5019\u9078\uff0c\u767c\u5e03\u9580\u6abb\u672a\u901a\u904e"
-    official_status = official_status_label(official_status_code)
-    pending_summary = (
-        f"\u4f9d\u64da\u671f {pending_prediction.get('based_on_period', '\u7121')} / "
-        f"\u76ee\u6a19\u671f {pending_prediction.get('target_period', '\u7121')} / "
-        f"\u5efa\u7acb {pending_prediction.get('created_at', '\u7121')}"
-    )
 
     rolling_rows = ""
     for window in ["60", "120", "360"]:
@@ -903,19 +704,6 @@ def build_html_report(markdown_text):
             "<tr>"
             f"<td>{window}</td><td>{values.get('rounds')}</td><td>{values.get('top10_avg_hits')}</td>"
             f"<td>{edge_value}</td><td>{result}</td>"
-            "</tr>"
-        )
-
-    advanced = industrial.get("advanced_models", {})
-    advanced_bt = industrial.get("advanced_model_backtest", {})
-    advanced_rows = ""
-    for model in advanced.get("models", []):
-        bt_row = advanced_bt.get("models", {}).get(model.get("model"), {})
-        advanced_rows += (
-            "<tr>"
-            f"<td>{model.get('name')}</td><td>{fmt_numbers(model.get('top10', []))}</td>"
-            f"<td>{bt_row.get('top10_avg_hits')}</td><td>{bt_row.get('top10_edge_vs_random')}</td>"
-            f"<td>{model.get('method')}</td>"
             "</tr>"
         )
 
@@ -935,76 +723,6 @@ def build_html_report(markdown_text):
             f"<td>{item.get('source_name')}</td><td>{item.get('settled_rounds')}</td>"
             f"<td>{item.get('avg_hits')}</td><td>{item.get('recent30_avg_hits')}</td>"
             f"<td>{item.get('edge_vs_random')}</td><td>{item.get('model_weight_cap')}</td>"
-            "</tr>"
-        )
-    crowd_warning_rows = ""
-    for warning in crowd.get("collection", {}).get("warnings", [])[:12]:
-        crowd_warning_rows += f"<tr><td>{warning}</td></tr>"
-
-    uncertainty_rows = ""
-    for item in aerospace.get("uncertainty_audit", {}).get("numbers", [])[:15]:
-        uncertainty_rows += (
-            "<tr>"
-            f"<td>{item.get('number'):02d}</td><td>{item.get('base_rank')}</td>"
-            f"<td>{item.get('top10_rate')}</td>"
-            "</tr>"
-        )
-
-    consensus_counts = {
-        int(number): int(count)
-        for number, count in stability.get("consensus_counts", {}).items()
-    }
-    snapshots = max(int(stability.get("snapshots", 0) or 0), 1)
-    uncertainty_map = {
-        int(item.get("number")): float(item.get("top10_rate", 0))
-        for item in aerospace.get("uncertainty_audit", {}).get("numbers", [])
-    }
-    primary_top10 = [item.get("number") for item in candidates[:10]]
-    redundant_overlap = set(aerospace.get("redundant_channel_audit", {}).get("overlap", []))
-    stable_consensus_rows = ""
-    stable_core = []
-    for rank, number in enumerate(primary_top10, 1):
-        snapshot_rate = consensus_counts.get(number, 0) / snapshots
-        monte_carlo_rate = uncertainty_map.get(number, 0)
-        cross_channel = number in redundant_overlap
-        combined = snapshot_rate * 0.45 + monte_carlo_rate * 0.45 + (0.10 if cross_channel else 0)
-        if combined >= 0.85:
-            level = "\u6838\u5fc3\u7a69\u5b9a"
-            stable_core.append(number)
-        elif combined >= 0.68:
-            level = "\u7a69\u5b9a"
-        elif combined >= 0.50:
-            level = "\u89c0\u5bdf"
-        else:
-            level = "\u6613\u6ce2\u52d5"
-        cross_label = "\u901a\u904e" if cross_channel else "\u672a\u901a\u904e"
-        stable_consensus_rows += (
-            "<tr>"
-            f"<td>{rank}</td><td>{number:02d}</td>"
-            f"<td>{consensus_counts.get(number, 0)}/{snapshots}</td>"
-            f"<td>{snapshot_rate:.3f}</td><td>{monte_carlo_rate:.4f}</td>"
-            f"<td>{cross_label}</td>"
-            f"<td>{combined:.4f}</td><td>{level}</td>"
-            "</tr>"
-        )
-    stable_core_text = fmt_numbers(stable_core) or "\u7121"
-
-    history_rows = ""
-    for item in history:
-        status = "\u5df2\u7d50\u7b97" if item.get("status") == "settled" else "\u5f85\u7d50\u7b97"
-        history_rows += (
-            "<tr>"
-            f"<td>{item.get('target_period')}</td>"
-            f"<td>{status}</td>"
-            f"<td>{item.get('based_on_period')}<br>{item.get('based_on_date', '')}</td>"
-            f"<td>{fmt_numbers(item.get('top10', []))}</td>"
-            f"<td>{fmt_numbers(item.get('actual_numbers', [])) or '-'}</td>"
-            f"<td>{fmt_numbers(item.get('top10_hit_numbers', [])) or '-'}</td>"
-            f"<td>{item.get('top5_hits') if item.get('top5_hits') is not None else '-'}</td>"
-            f"<td>{item.get('top10_hits') if item.get('top10_hits') is not None else '-'}</td>"
-            f"<td>{item.get('top15_hits') if item.get('top15_hits') is not None else '-'}</td>"
-            f"<td>{item.get('snapshot_count', 0)}</td>"
-            f"<td>{item.get('created_at', '')}<br>{item.get('settled_at') or '-'}</td>"
             "</tr>"
         )
 
@@ -1052,8 +770,6 @@ def build_html_report(markdown_text):
       <p><span class="status {'fresh' if freshness.get('status') == 'fresh' else 'blocked'}">{freshness_label}</span>
       <span class="status {'fresh' if release_status == 'official' else 'blocked'}">{release_label}</span></p>
       <p>\u5f15\u64ce\uff1a{industrial.get('engine_version', '')} / \u6700\u65b0\u8cc7\u6599\uff1a{freshness.get('latest_date', latest.get('draw_date'))} / \u61c9\u6709\u8cc7\u6599\uff1a{freshness.get('expected_latest_date', '')}</p>
-      <p>\u6b63\u5f0f\u9810\u6e2c\u72c0\u614b\uff1a{official_status}</p>
-      <p>\u76ee\u524d\u5f85\u7d50\u7b97\u6b63\u5f0f\u9810\u6e2c\uff1a{pending_summary}</p>
       <p>\u767c\u5e03\u5224\u5b9a\uff1aTop10 \u7a69\u5b9a\u5171\u8b58 {stability.get('top10_retention')} / \u6574\u9ad4\u56de\u6e2c\u5dee\u503c {release_gate.get('actual_backtest_edge')} / \u8fd1\u671f\u56de\u6e2c\u662f\u5426\u901a\u904e {release_gate.get('recent_performance_passed')}</p>
       <p>\u6628\u65e5\u9810\u6e2c\u91cd\u8907\u5b88\u9580\uff1aTop10 \u91cd\u758a {previous_guard.get('current_top10_overlap')} / Top15 \u91cd\u758a {previous_guard.get('current_top15_overlap')} / \u901a\u904e\u6975\u5f37\u91cd\u5165 {previous_guard.get('reentry_passed')}</p>
     </section>
@@ -1070,42 +786,11 @@ def build_html_report(markdown_text):
       <table><thead><tr><th>\u671f\u6578</th><th>\u6a23\u672c</th><th>Top10 \u5e73\u5747\u547d\u4e2d</th><th>\u5c0d\u96a8\u6a5f\u5dee\u503c</th><th>\u9580\u6abb</th></tr></thead><tbody>{rolling_rows}</tbody></table>
     </section>
     <section class="band">
-      <h2>\u7a69\u5b9a\u5171\u8b58\u7368\u7acb\u6846\u67b6</h2>
-      <p>\u5de5\u696d\u5feb\u7167\u5171\u8b58\u7387\uff1a{stability.get('top10_retention')} / \u64fe\u52d5\u5feb\u7167\uff1a{stability.get('snapshots')} / \u822a\u592a\u8499\u5730\u5361\u7f85 Top10 \u4fdd\u7559\u7387\uff1a{aerospace.get('uncertainty_audit', {}).get('top10_retention')}</p>
-      <p>\u4e3b\u5f15\u64ce\u8207\u9032\u968e\u96d9\u901a\u9053\u91cd\u758a\uff1a{aerospace.get('redundant_channel_audit', {}).get('overlap_count')} / \u7a69\u5b9a\u6838\u5fc3\u865f\uff1a{stable_core_text}</p>
-      <table><thead><tr><th>\u6392\u540d</th><th>\u865f\u78bc</th><th>\u5feb\u7167\u5171\u8b58</th><th>\u5feb\u7167\u7387</th><th>\u8499\u5730\u5361\u7f85\u7559\u5b58\u7387</th><th>\u96d9\u901a\u9053</th><th>\u7d9c\u5408\u7a69\u5b9a\u5206</th><th>\u7a69\u5b9a\u7b49\u7d1a</th></tr></thead><tbody>{stable_consensus_rows}</tbody></table>
-    </section>
-    <section class="band">
-      <h2>\u5168\u90e8\u6b63\u5f0f\u9810\u6e2c\u6b77\u53f2\u5c0d\u6bd4</h2>
-      <p>\u6bcf\u671f\u6b63\u5f0f\u9810\u6e2c\u3001\u5be6\u969b\u958b\u734e\u3001\u547d\u4e2d\u865f\u78bc\u8207\u91cd\u8dd1\u5feb\u7167\u6578\u90fd\u6c38\u4e45\u4fdd\u7559\u3002</p>
-      <table><thead><tr><th>\u76ee\u6a19\u671f</th><th>\u72c0\u614b</th><th>\u4f9d\u64da\u671f</th><th>\u7576\u671f\u6b63\u5f0f Top10</th><th>\u5be6\u969b\u958b\u734e</th><th>Top10 \u547d\u4e2d\u865f</th><th>Top5</th><th>Top10</th><th>Top15</th><th>\u5feb\u7167\u6578</th><th>\u5efa\u7acb / \u7d50\u7b97</th></tr></thead><tbody>{history_rows}</tbody></table>
-    </section>
-    <section class="band">
-      <h2>\u822a\u592a\u7d1a\u904b\u7b97\u4fdd\u8b49\u5be9\u6838</h2>
-      <p>\u5be9\u6838\u72c0\u614b\uff1a{aerospace.get('release_assurance', {}).get('status')} / \u4fdd\u8b49\u5206\u6578 {aerospace.get('release_assurance', {}).get('assurance_score')}</p>
-      <p>\u8cc7\u6599\u6307\u7d0b SHA-256\uff1a{aerospace.get('input_fingerprint_sha256', '')}</p>
-      <p>\u8f38\u51fa\u6307\u7d0b SHA-256\uff1a{aerospace.get('output_fingerprint_sha256', '')}</p>
-      <p>\u8cc7\u6599\u4e0d\u8b8a\u689d\u4ef6\uff1a{aerospace.get('input_invariants', {}).get('passed')} / \u5931\u6557 {aerospace.get('input_invariants', {}).get('failure_count')}</p>
-      <p>\u96d9\u901a\u9053\u4ea4\u53c9\u9a57\u8b49\uff1a{aerospace.get('redundant_channel_audit', {}).get('status')} / Top10 \u91cd\u758a {aerospace.get('redundant_channel_audit', {}).get('overlap_count')} / Jaccard {aerospace.get('redundant_channel_audit', {}).get('jaccard')}</p>
-      <p>\u6a21\u578b\u6f02\u79fb\uff1a{aerospace.get('drift_audit', {}).get('status')} / TV {aerospace.get('drift_audit', {}).get('total_variation')}</p>
-      <p>\u8499\u5730\u5361\u7f85\u64fe\u52d5\u6e2c\u8a66\uff1a{aerospace.get('uncertainty_audit', {}).get('simulations')} \u6b21 / Top10 \u4fdd\u7559\u7387 {aerospace.get('uncertainty_audit', {}).get('top10_retention')} / {aerospace.get('uncertainty_audit', {}).get('status')}</p>
-      <table><thead><tr><th>\u865f\u78bc</th><th>\u539f\u6392\u540d</th><th>\u64fe\u52d5\u5f8c Top10 \u7559\u5b58\u7387</th></tr></thead><tbody>{uncertainty_rows}</tbody></table>
-    </section>
-    <section class="band">
-      <h2>\u9032\u968e\u9810\u6e2c\u6a21\u578b</h2>
-      <p>{advanced.get('warning', '')}</p>
-      <p>\u9032\u968e\u6a21\u578b\u5171\u8b58 Top12\uff1a{fmt_numbers(advanced.get('consensus_top12', []))}</p>
-      <table><thead><tr><th>\u6a21\u578b</th><th>Top10</th><th>Top10 \u56de\u6e2c</th><th>\u5c0d\u96a8\u6a5f\u5dee\u503c</th><th>\u65b9\u6cd5</th></tr></thead><tbody>{advanced_rows}</tbody></table>
-    </section>
-    <section class="band">
       <h2>\u7db2\u8def\u4eba\u6c23\u5171\u8b58\uff08\u672a\u901a\u904e\u56de\u6e2c\u524d\u4e0d\u5f71\u97ff\u4e3b\u6a21\u578b\uff09</h2>
       <p>{crowd.get('warning', '')}</p>
       <table><thead><tr><th>\u865f\u78bc</th><th>\u4f86\u6e90\u7968\u6578</th><th>\u8207\u7cfb\u7d71\u95dc\u4fc2</th></tr></thead><tbody>{crowd_rows}</tbody></table>
       <h3>\u4f86\u6e90\u771f\u5be6\u7e3e\u6548</h3>
       <table><thead><tr><th>\u4f86\u6e90</th><th>\u5df2\u7d50\u7b97</th><th>\u5e73\u5747\u547d\u4e2d</th><th>\u8fd130\u671f</th><th>\u5c0d\u96a8\u6a5f\u5dee\u503c</th><th>\u6a21\u578b\u6b0a\u91cd\u4e0a\u9650</th></tr></thead><tbody>{crowd_source_rows}</tbody></table>
-      <h3>\u672c\u6b21\u81ea\u52d5\u6293\u53d6\u72c0\u614b</h3>
-      <p>\u6536\u96c6\u7b46\u6578\uff1a{crowd.get('collection', {}).get('collected', 0)} / \u4f86\u6e90\u6e05\u55ae\uff1a{crowd.get('collection', {}).get('source_list_count', 0)}</p>
-      <table><thead><tr><th>\u8b66\u544a\u6216\u9650\u5236</th></tr></thead><tbody>{crowd_warning_rows}</tbody></table>
     </section>
     <section class="band">
       <h2>{'\u4eca\u65e5\u6b63\u5f0f\u4e3b\u63a8' if release_status == 'official' else '\u4eca\u65e5\u89c0\u5bdf\u5019\u9078\uff08\u4e0d\u5217\u6b63\u5f0f\u4e3b\u63a8\uff09'}</h2>
@@ -1119,12 +804,6 @@ def build_html_report(markdown_text):
       <p><span class="risk">\u98a8\u96aa\u7b49\u7d1a\uff1a{risk}</span></p>
       <p>{verdict}</p>
       <p>\u958b\u734e\u578b\u614b\uff1a{regime_messages}</p>
-    </section>
-    <section class="band">
-      <h2>\u4f4e\u6a5f\u7387\u66ab\u907f\u865f\u78bc\uff08\u98a8\u63a7\u89c0\u5bdf\uff09</h2>
-      <p>{unlikely.get('warning', '')}</p>
-      <p>\u56de\u6e2c\uff1a\u8fd1 {unlikely_backtest.get('rounds')} \u671f\uff0c\u66ab\u907f {unlikely_backtest.get('avoid_size')} \u78bc\u5e73\u5747\u8aa4\u4e2d {unlikely_backtest.get('avg_accidental_hits')}\uff0c\u96a8\u6a5f\u57fa\u6e96 {unlikely_backtest.get('random_expectation')}\uff0c\u5dee\u503c {unlikely_backtest.get('edge_vs_random')}\uff0c\u5b8c\u5168\u907f\u958b\u7387 {unlikely_backtest.get('zero_hit_rate')}</p>
-      <table><thead><tr><th>#</th><th>\u865f\u78bc</th><th>\u66ab\u907f\u6307\u6578</th><th>\u51fa\u73fe\u8a55\u5206</th><th>\u5019\u9078\u6392\u540d</th><th>\u7a69\u5b9a\u6b21\u6578</th><th>\u66ab\u907f\u539f\u56e0</th></tr></thead><tbody>{unlikely_rows}</tbody></table>
     </section>
     <section class="band">
       <h2>\u4e0a\u671f\u6b63\u5f0f\u9810\u6e2c\u547d\u4e2d\u89e3\u6790</h2>
@@ -1162,66 +841,8 @@ def build_html_report(markdown_text):
       <table><thead><tr><th>#</th><th>\u865f\u78bc</th><th>\u6307\u6578</th><th>\u907a\u6f0f</th><th>\u7406\u7531</th></tr></thead><tbody>{candidate_rows}</tbody></table>
     </section>
     <section class="band">
-      <h2>\u4f4e\u6a5f\u7387\u66ab\u907f\u865f\u78bc\uff08\u98a8\u63a7\u89c0\u5bdf\uff09</h2>
-      <p>{unlikely.get('warning', '')}</p>
-      <p>\u56de\u6e2c\uff1a\u8fd1 {unlikely_backtest.get('rounds')} \u671f\uff0c\u66ab\u907f {unlikely_backtest.get('avoid_size')} \u78bc\u5e73\u5747\u8aa4\u4e2d {unlikely_backtest.get('avg_accidental_hits')}\uff0c\u96a8\u6a5f\u57fa\u6e96 {unlikely_backtest.get('random_expectation')}\uff0c\u5dee\u503c {unlikely_backtest.get('edge_vs_random')}\uff0c\u5b8c\u5168\u907f\u958b\u7387 {unlikely_backtest.get('zero_hit_rate')}</p>
-      <table><thead><tr><th>#</th><th>\u865f\u78bc</th><th>\u66ab\u907f\u6307\u6578</th><th>\u51fa\u73fe\u8a55\u5206</th><th>\u5019\u9078\u6392\u540d</th><th>\u7a69\u5b9a\u6b21\u6578</th><th>\u66ab\u907f\u539f\u56e0</th></tr></thead><tbody>{unlikely_rows}</tbody></table>
-    </section>
-    <section class="band">
       <h2>\u539f\u59cb\u6230\u5831</h2>
       <pre>{plain_html}</pre>
-    </section>
-  </main>
-</body>
-</html>"""
-
-
-def build_history_html(history):
-    rows = ""
-    for item in history:
-        status = "\u5df2\u7d50\u7b97" if item.get("status") == "settled" else "\u5f85\u7d50\u7b97"
-        rows += (
-            "<tr>"
-            f"<td>{item.get('target_period')}</td><td>{status}</td>"
-            f"<td>{item.get('based_on_period')} / {item.get('based_on_date', '')}</td>"
-            f"<td>{fmt_numbers(item.get('top10', []))}</td>"
-            f"<td>{fmt_numbers(item.get('actual_numbers', [])) or '-'}</td>"
-            f"<td>{fmt_numbers(item.get('top10_hit_numbers', [])) or '-'}</td>"
-            f"<td>{item.get('top5_hits') if item.get('top5_hits') is not None else '-'}</td>"
-            f"<td>{item.get('top10_hits') if item.get('top10_hits') is not None else '-'}</td>"
-            f"<td>{item.get('top15_hits') if item.get('top15_hits') is not None else '-'}</td>"
-            f"<td>{item.get('snapshot_count', 0)}</td>"
-            "</tr>"
-        )
-    settled = [item for item in history if item.get("status") == "settled"]
-    average_top10 = (
-        round(sum(item.get("top10_hits") or 0 for item in settled) / len(settled), 3)
-        if settled else 0
-    )
-    return f"""<!doctype html>
-<html lang="zh-Hant">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>539 \u6bcf\u671f\u9810\u6e2c\u5c0d\u6bd4</title>
-  <style>
-    body {{ margin:0; font-family:"Microsoft JhengHei", Arial, sans-serif; background:#f6f7fb; color:#20242a; }}
-    header {{ background:#0f172a; color:white; padding:22px 28px; }}
-    main {{ max-width:1400px; margin:0 auto; padding:22px; }}
-    .band {{ background:white; border:1px solid #e5e7eb; border-radius:8px; padding:18px; overflow:auto; }}
-    table {{ width:100%; border-collapse:collapse; min-width:1100px; }}
-    th, td {{ border-bottom:1px solid #e5e7eb; padding:9px; text-align:left; }}
-    th {{ background:#f1f5f9; }}
-  </style>
-</head>
-<body>
-  <header>
-    <h1>539 \u6bcf\u671f\u9810\u6e2c\u5c0d\u6bd4</h1>
-    <p>\u6b63\u5f0f\u9810\u6e2c\u671f\u6578 {len(history)} / \u5df2\u7d50\u7b97 {len(settled)} / Top10 \u5e73\u5747\u547d\u4e2d {average_top10}</p>
-  </header>
-  <main>
-    <section class="band">
-      <table><thead><tr><th>\u76ee\u6a19\u671f</th><th>\u72c0\u614b</th><th>\u4f9d\u64da\u671f</th><th>\u6b63\u5f0f Top10</th><th>\u5be6\u969b\u958b\u734e</th><th>Top10 \u547d\u4e2d\u865f</th><th>Top5</th><th>Top10</th><th>Top15</th><th>\u5feb\u7167\u6578</th></tr></thead><tbody>{rows}</tbody></table>
     </section>
   </main>
 </body>
@@ -1232,14 +853,10 @@ def save_battle_reports(report=None):
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     report = report or build_report()
     html = build_html_report(report)
-    history = prediction_history()
-    save_prediction_history(history)
-    history_html = build_history_html(history)
     BATTLE_MD.write_text(report, encoding="utf-8")
     BATTLE_TXT.write_text(report, encoding="utf-8")
     BATTLE_HTML.write_text(html, encoding="utf-8")
     ENHANCED_BATTLE_HTML.write_text(html, encoding="utf-8")
-    HISTORY_HTML.write_text(history_html, encoding="utf-8")
     return ENHANCED_BATTLE_HTML
 
 

@@ -14,7 +14,6 @@ DATA_DIR = BASE_DIR / "data"
 REPORT_DIR = BASE_DIR / "reports"
 DB_PATH = DATA_DIR / "539.sqlite"
 MANUAL_CSV = DATA_DIR / "\u7db2\u8def\u4eba\u6c23\u4eba\u5de5\u532f\u5165.csv"
-SOURCE_LIST_CSV = DATA_DIR / "\u7db2\u8def\u5927\u795e\u4f86\u6e90\u6e05\u55ae.csv"
 REPORT_JSON = REPORT_DIR / "crowd_consensus.json"
 PUBLIC_SOURCES = [
     {
@@ -22,20 +21,9 @@ PUBLIC_SOURCES = [
         "name": "\u5f69\u8ff7\u71b1\u9580\u865f\u78bc\u5206\u4eab",
         "url": "https://www.pilio.idv.tw/lto539/ltoshare539_Do.asp",
         "type": "public_crowd_share",
-        "parser": "pilio_share",
     },
 ]
 RANDOM_TOP5_EXPECTATION = 25 / 39
-DEFAULT_SOURCE_ROWS = [
-    ["pilio_public_share", "\u5f69\u8ff7\u71b1\u9580\u865f\u78bc\u5206\u4eab", "public_web", "https://www.pilio.idv.tw/lto539/ltoshare539_Do.asp", "1", "\u516c\u958b\u7db2\u9801\u4f86\u6e90"],
-    ["pilio_live_public", "Pilio\u4eca\u5f69539\u516c\u958b\u76f4\u64ad\u8207\u71b1\u9580\u865f", "public_web", "https://www.pilio.idv.tw/server3/main_lto539.asp", "1", "\u516c\u958b\u9801\u9762\u81ea\u52d5\u89e3\u6790"],
-    ["go539_live_public", "Go539\u516c\u958b\u76f4\u64ad\u8207AI\u63a8\u85a6", "public_web", "https://go539.com/539live/", "1", "\u516c\u958b\u9801\u9762\u81ea\u52d5\u89e3\u6790"],
-    ["hawo_tool_public", "HAWO\u6a02\u900f\u5206\u6790\u5de5\u5177", "public_web", "https://lotto.hawo.tw/539", "1", "\u516c\u958b\u5206\u6790\u9801\u89c0\u5bdf\u4f86\u6e90"],
-    ["five_three_nine_pattern_public", "539.tw\u7248\u8def\u62d6\u724c\u516c\u958b\u9801", "public_web", "https://539.tw/539-strategy/pattern-techniques", "1", "\u7248\u8def\u516c\u958b\u9801\u89c0\u5bdf\u4f86\u6e90"],
-    ["fb_public_page_001", "FB\u516c\u958b\u7c89\u5c08\u6216\u516c\u958b\u8cbc\u6587", "facebook_public", "", "1", "\u653e\u5165\u4e0d\u9700\u767b\u5165\u5373\u53ef\u700f\u89bd\u7684FB\u516c\u958b\u7db2\u5740"],
-    ["fb_private_group_watch", "FB\u79c1\u5bc6\u793e\u5718\u89c0\u5bdf\u8a3b\u8a18", "facebook_private", "", "1", "\u79c1\u5bc6\u793e\u5718\u4e0d\u81ea\u52d5\u767b\u5165\u722c\u53d6"],
-    ["youtube_live_001", "YouTube\u76f4\u64ad\u4e3b\u516c\u958b\u9801\u6216\u4eba\u5de5\u532f\u5165", "youtube_public", "", "1", "\u6709\u516c\u958b\u76f4\u64ad\u7db2\u5740\u6642\u53ef\u81ea\u52d5\u89e3\u6790"],
-]
 
 
 def ensure_tables(conn):
@@ -121,201 +109,13 @@ def fetch_public_share(source):
     return numbers, segment[:500]
 
 
-def html_to_text(html):
-    text = re.sub(r"(?is)<script.*?</script>", " ", html)
-    text = re.sub(r"(?is)<style.*?</style>", " ", text)
-    text = re.sub(r"(?s)<[^>]+>", " ", text)
-    text = re.sub(r"&nbsp;|&#160;", " ", text)
-    text = re.sub(r"&amp;", "&", text)
-    text = re.sub(r"\s+", " ", text)
-    return text
-
-
-def extract_prediction_segment(text):
-    keywords = [
-        "\u9810\u6e2c",
-        "\u63a8\u85a6",
-        "\u71b1\u9580",
-        "\u5206\u4eab",
-        "\u4e0b\u671f",
-        "\u6a5f\u7387",
-        "\u865f\u78bc",
-        "AI",
-        "Top",
-    ]
-    best = ""
-    best_score = -1
-    for keyword in keywords:
-        start = text.find(keyword)
-        while start >= 0:
-            segment = text[max(0, start - 120):start + 520]
-            numbers = parse_numbers(segment)
-            score = len(numbers) * 10 - len(re.findall(r"20\d{2}|11[0-9]\d{6}", segment))
-            if score > best_score:
-                best = segment
-                best_score = score
-            start = text.find(keyword, start + len(keyword))
-    return best or text[:800]
-
-
-def fetch_public_generic(source):
-    request = urllib.request.Request(
-        source["url"],
-        headers={"User-Agent": "Mozilla/5.0 539-public-crowd-crawler/1.0"},
-    )
-    context = ssl._create_unverified_context()
-    with urllib.request.urlopen(request, timeout=30, context=context) as response:
-        raw = response.read()
-        charset = response.headers.get_content_charset() or "utf-8"
-        html = raw.decode(charset, errors="ignore")
-    text = html_to_text(html)
-    segment = extract_prediction_segment(text)
-    numbers = parse_numbers(segment)
-    if len(numbers) < 5:
-        numbers = parse_numbers(text)
-    clean = []
-    for number in numbers:
-        if number not in clean:
-            clean.append(number)
-        if len(clean) == 5:
-            break
-    if len(clean) != 5:
-        raise RuntimeError("public source did not expose five usable 539 numbers")
-    return clean, segment[:500]
-
-
-def fetch_public_source(source):
-    if source.get("parser") == "pilio_share":
-        return fetch_public_share(source)
-    return fetch_public_generic(source)
-
-
 def ensure_manual_template():
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    if not MANUAL_CSV.exists():
-        with MANUAL_CSV.open("w", newline="", encoding="utf-8-sig") as handle:
-            writer = csv.writer(handle)
-            writer.writerow([
-                "target_period",
-                "source_id",
-                "source_name",
-                "source_type",
-                "platform",
-                "source_url",
-                "numbers",
-                "engagement",
-                "collected_at",
-                "note",
-            ])
-            writer.writerow([
-                "",
-                "example_fb_group",
-                "\u7bc4\u4f8bFB\u793e\u5718",
-                "manual_authorized_social",
-                "facebook",
-                "https://facebook.com/example",
-                "01 05 12 18 33",
-                "0",
-                "",
-                "\u8acb\u5c07\u516c\u958b\u6216\u4f60\u6709\u6b0a\u9650\u53d6\u5f97\u7684\u63a8\u85a6\u865f\u78bc\u8cbc\u5728\u9019\u88e1",
-            ])
-    if SOURCE_LIST_CSV.exists():
-        ensure_default_source_rows()
+    if MANUAL_CSV.exists():
         return
-    with SOURCE_LIST_CSV.open("w", newline="", encoding="utf-8-sig") as handle:
+    with MANUAL_CSV.open("w", newline="", encoding="utf-8-sig") as handle:
         writer = csv.writer(handle)
-        writer.writerow(["source_id", "source_name", "platform", "source_url", "enabled", "note"])
-        writer.writerows(DEFAULT_SOURCE_ROWS)
-
-
-def ensure_default_source_rows():
-    if not SOURCE_LIST_CSV.exists():
-        return
-    with SOURCE_LIST_CSV.open("r", newline="", encoding="utf-8-sig") as handle:
-        rows = list(csv.DictReader(handle))
-    existing = {row.get("source_id") for row in rows}
-    missing = [row for row in DEFAULT_SOURCE_ROWS if row[0] not in existing]
-    if not missing:
-        return
-    with SOURCE_LIST_CSV.open("a", newline="", encoding="utf-8-sig") as handle:
-        writer = csv.writer(handle)
-        writer.writerows(missing)
-
-
-def import_source_list(conn):
-    ensure_manual_template()
-    imported = 0
-    if not SOURCE_LIST_CSV.exists():
-        return imported
-    with SOURCE_LIST_CSV.open("r", newline="", encoding="utf-8-sig") as handle:
-        for row in csv.DictReader(handle):
-            enabled = str(row.get("enabled", "1")).strip()
-            if enabled not in {"1", "true", "TRUE", "yes", "YES"}:
-                continue
-            source_id = (row.get("source_id") or "").strip()
-            if not source_id:
-                continue
-            platform = (row.get("platform") or "manual_social_watchlist").strip()
-            upsert_source(
-                conn,
-                source_id,
-                (row.get("source_name") or source_id).strip(),
-                platform,
-                (row.get("source_url") or "").strip(),
-            )
-            imported += 1
-    conn.commit()
-    return imported
-
-
-def load_enabled_source_rows():
-    ensure_manual_template()
-    rows = []
-    if not SOURCE_LIST_CSV.exists():
-        return rows
-    with SOURCE_LIST_CSV.open("r", newline="", encoding="utf-8-sig") as handle:
-        for row in csv.DictReader(handle):
-            enabled = str(row.get("enabled", "1")).strip()
-            if enabled not in {"1", "true", "TRUE", "yes", "YES"}:
-                continue
-            rows.append(row)
-    return rows
-
-
-def collect_configured_public_sources(conn, target_period, based_on_period):
-    collected = 0
-    warnings = []
-    built_in_ids = {source["source_id"] for source in PUBLIC_SOURCES}
-    for row in load_enabled_source_rows():
-        source_id = (row.get("source_id") or "").strip()
-        source_url = (row.get("source_url") or "").strip()
-        platform = (row.get("platform") or "").strip().lower()
-        if not source_id or source_id in built_in_ids:
-            continue
-        if not source_url:
-            if platform in {"facebook_private", "facebook"}:
-                warnings.append(f"{source_id}: private facebook source has no public URL; skipped automatic login")
-            continue
-        is_facebook = "facebook.com" in source_url or "fb.com" in source_url
-        if is_facebook and platform not in {"facebook_public", "public_web", "website"}:
-            warnings.append(f"{source_id}: facebook source is not marked facebook_public; skipped automatic login")
-            continue
-        if platform not in {"public_web", "website", "youtube", "youtube_public", "public_live", "facebook_public"}:
-            warnings.append(f"{source_id}: unsupported automatic platform {platform}; skipped")
-            continue
-        source = {
-            "source_id": source_id,
-            "name": (row.get("source_name") or source_id).strip(),
-            "url": source_url,
-            "type": platform or "public_web",
-            "parser": (row.get("parser") or "generic").strip(),
-        }
-        try:
-            numbers, raw_text = fetch_public_source(source)
-            collected += int(store_prediction(conn, source_id, target_period, based_on_period, numbers, raw_text=raw_text))
-        except Exception as exc:
-            warnings.append(f"{source_id}: {exc}")
-    return collected, warnings
+        writer.writerow(["target_period", "source_id", "source_name", "source_url", "numbers", "engagement", "collected_at"])
 
 
 def upsert_source(conn, source_id, source_name, source_type, source_url):
@@ -373,7 +173,7 @@ def import_manual(conn, target_period, based_on_period):
                 conn,
                 source_id,
                 (row.get("source_name") or source_id).strip(),
-                (row.get("source_type") or row.get("platform") or "manual_authorized_social").strip(),
+                "manual_authorized_social",
                 (row.get("source_url") or "").strip(),
             )
             engagement = float(row["engagement"]) if row.get("engagement") else None
@@ -391,13 +191,10 @@ def collect_current(conn):
     warnings = []
     for source in PUBLIC_SOURCES:
         try:
-            numbers, raw_text = fetch_public_source(source)
+            numbers, raw_text = fetch_public_share(source)
             collected += int(store_prediction(conn, source["source_id"], target_period, based_on_period, numbers, raw_text=raw_text))
         except Exception as exc:
             warnings.append(f"{source['source_id']}: {exc}")
-    configured_collected, configured_warnings = collect_configured_public_sources(conn, target_period, based_on_period)
-    collected += configured_collected
-    warnings.extend(configured_warnings)
     collected += import_manual(conn, target_period, based_on_period)
     conn.commit()
     return {"collected": collected, "warnings": warnings, "target_period": target_period}
@@ -530,10 +327,8 @@ def run_cycle(db_path=DB_PATH):
     ensure_manual_template()
     with sqlite3.connect(db_path) as conn:
         ensure_tables(conn)
-        source_list_count = import_source_list(conn)
         settled = settle_predictions(conn)
         collection = collect_current(conn)
-        collection["source_list_count"] = source_list_count
         collection["settled"] = settled
         report = build_consensus(conn, collection)
     save_report(report)
