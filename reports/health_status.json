@@ -1,82 +1,80 @@
 {
-  "generated_at": "2026-06-04T15:02:01",
+  "generated_at": "2026-06-09T01:32:19",
   "database_exists": true,
-  "backup_count": 10,
-  "latest_backup": "C:\\Users\\MSI\\Documents\\Codex\\2026-06-01\\539\\outputs\\539-data-system-installable\\backups\\539_20260604_150117.sqlite",
+  "backup_count": 1,
+  "latest_backup": "/home/runner/work/mobile-539-system/mobile-539-system/backups/539_20260609_013148.sqlite",
   "log_exists": true,
   "latest_analysis_exists": true,
-  "status": "warning",
-  "warnings": [
-    "last update run was not successful"
-  ],
-  "draw_count": 5879,
+  "status": "ok",
+  "warnings": [],
+  "draw_count": 5883,
   "period_range": [
     96000001,
-    115000135
+    115000139
   ],
   "date_range": [
     "2007-01-01",
-    "2026-06-03"
+    "2026-06-08"
   ],
   "latest_draw": {
-    "period": 115000135,
-    "draw_date": "2026-06-03",
+    "period": 115000139,
+    "draw_date": "2026-06-08",
     "numbers": [
-      2,
       8,
+      14,
       17,
-      25,
-      38
+      18,
+      28
     ],
-    "source": "manual_verified_udn_ttv_nextapple_20260603",
-    "fetched_at": "2026-06-04T10:08:30"
+    "source": "taiwanlottery_latest_result",
+    "fetched_at": "2026-06-09T01:31:50"
   },
   "data_freshness": {
     "status": "fresh",
-    "latest_date": "2026-06-03",
-    "expected_latest_date": "2026-06-03"
+    "latest_date": "2026-06-08",
+    "expected_latest_date": "2026-06-08"
   },
   "last_run": {
     "run_type": "latest",
-    "started_at": "2026-06-04T15:01:17",
-    "finished_at": "2026-06-04T15:01:30",
-    "status": "warning",
-    "message": "{\"rows\": 5879, \"invalid_periods\": [], \"duplicate_periods\": [], \"latest_period\": 115000135, \"latest_date\": \"2026-06-03\", \"warnings\": [\"recent_month_download: 下載失敗：https://api.taiwanlottery.com/TLCAPIWeB/Lottery/Daily539Result?month=2026-06&endMonth=2026-06&pageNum=1&pageSize=100 (<urlopen error [WinError 10013] 嘗試存取通訊端被拒絕，因為存取權限不足。>)\", \"latest_download: 下載失敗：https://api.taiwanlottery.com/TLCAPIWeB/Lottery/LatestResult (<urlopen error [WinError 10013] 嘗試存取通訊端被拒絕，因為存取權限不足。>)\"]}"
+    "started_at": "2026-06-09T01:31:48",
+    "finished_at": "2026-06-09T01:31:50",
+    "status": "success",
+    "message": "{\"rows\": 5883, \"invalid_periods\": [], \"duplicate_periods\": [], \"latest_period\": 115000139, \"latest_date\": \"2026-06-08\"}"
   },
   "pending_predictions": 1,
-  "settled_predictions": 3,
-  "prediction_snapshots": 11,
+  "settled_predictions": 4,
+  "prediction_snapshots": 12,
   "prediction_performance": {
-    "settled": 3,
-    "top5_avg_hits": 1.333,
-    "top10_avg_hits": 1.667,
-    "top15_avg_hits": 2.0,
-    "set_avg_hits": 0.867,
+    "settled": 4,
+    "top5_avg_hits": 1.25,
+    "top10_avg_hits": 1.5,
+    "top15_avg_hits": 2.25,
+    "set_avg_hits": 0.8,
     "strong_pack_stats": {
       "strong_single": {
-        "rounds": 3,
-        "pass_rate": 0.667,
-        "avg_hits": 0.667
+        "rounds": 4,
+        "pass_rate": 0.5,
+        "avg_hits": 0.5
       },
       "two_hit_one": {
-        "rounds": 3,
-        "pass_rate": 0.667,
-        "avg_hits": 0.667
+        "rounds": 4,
+        "pass_rate": 0.5,
+        "avg_hits": 0.5
       },
       "three_hit_one": {
-        "rounds": 3,
-        "pass_rate": 0.667,
-        "avg_hits": 1.333
+        "rounds": 4,
+        "pass_rate": 0.5,
+        "avg_hits": 1.0
       },
       "five_hit_two": {
-        "rounds": 3,
-        "pass_rate": 0.667,
-        "avg_hits": 1.667
+        "rounds": 4,
+        "pass_rate": 0.5,
+        "avg_hits": 1.5
       },
       "nine_hit_three": {
-        "rounds": 3,
-        "pass_rate": 0.333,
-        "avg_hits": 1.667
+        "rounds": 4,
+        "pass_rate": 0.25,
+        "avg_hits": 1.75
       }
     }
   },
