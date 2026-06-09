@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-09T16:20:43",
+  "generated_at": "2026-06-09T16:39:47",
   "latest_draw": {
     "period": 115000140,
     "draw_date": "2026-06-09",
@@ -3863,7 +3863,7 @@
     }
   },
   "crowd_consensus": {
-    "generated_at": "2026-06-09T16:20:45",
+    "generated_at": "2026-06-09T16:39:49",
     "target_period": 115000141,
     "source_count": 1,
     "observations": [
@@ -3947,6 +3947,6 @@
     "latest_date": "2026-06-09",
     "expected_latest_date": "2026-06-08",
     "lag_days": 0,
-    "checked_at": "2026-06-09T16:20:28"
+    "checked_at": "2026-06-09T16:39:32"
   }
 }
