@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-10T16:44:14",
+  "generated_at": "2026-06-10T16:49:25",
   "target_period": 115000142,
   "source_count": 1,
   "observations": [
@@ -71,10 +71,10 @@
   "model_influence_status": "observation_only_weight_zero",
   "random_top5_expected_hits": 0.641,
   "collection": {
-    "collected": 1,
+    "collected": 0,
     "warnings": [],
     "target_period": 115000142,
-    "settled": 1
+    "settled": 0
   },
   "warning": "網路人氣不等於開出機率，未通過100期與近期回測的來源權重為0"
 }
