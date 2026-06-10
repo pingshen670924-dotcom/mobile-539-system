@@ -1,80 +1,80 @@
 {
-  "generated_at": "2026-06-09T16:40:01",
+  "generated_at": "2026-06-10T16:44:26",
   "database_exists": true,
   "backup_count": 1,
-  "latest_backup": "/home/runner/work/mobile-539-system/mobile-539-system/backups/539_20260609_163930.sqlite",
+  "latest_backup": "/home/runner/work/mobile-539-system/mobile-539-system/backups/539_20260610_164354.sqlite",
   "log_exists": true,
   "latest_analysis_exists": true,
   "status": "ok",
   "warnings": [],
-  "draw_count": 5884,
+  "draw_count": 5885,
   "period_range": [
     96000001,
-    115000140
+    115000141
   ],
   "date_range": [
     "2007-01-01",
-    "2026-06-09"
+    "2026-06-10"
   ],
   "latest_draw": {
-    "period": 115000140,
-    "draw_date": "2026-06-09",
+    "period": 115000141,
+    "draw_date": "2026-06-10",
     "numbers": [
-      10,
-      17,
-      20,
-      25,
-      28
+      1,
+      4,
+      32,
+      35,
+      39
     ],
     "source": "taiwanlottery_latest_result",
-    "fetched_at": "2026-06-09T16:39:32"
+    "fetched_at": "2026-06-10T16:43:57"
   },
   "data_freshness": {
     "status": "fresh",
-    "latest_date": "2026-06-09",
-    "expected_latest_date": "2026-06-08"
+    "latest_date": "2026-06-10",
+    "expected_latest_date": "2026-06-09"
   },
   "last_run": {
     "run_type": "latest",
-    "started_at": "2026-06-09T16:39:30",
-    "finished_at": "2026-06-09T16:39:32",
+    "started_at": "2026-06-10T16:43:54",
+    "finished_at": "2026-06-10T16:43:57",
     "status": "success",
-    "message": "{\"rows\": 5884, \"invalid_periods\": [], \"duplicate_periods\": [], \"latest_period\": 115000140, \"latest_date\": \"2026-06-09\"}"
+    "message": "{\"rows\": 5885, \"invalid_periods\": [], \"duplicate_periods\": [], \"latest_period\": 115000141, \"latest_date\": \"2026-06-10\"}"
   },
   "pending_predictions": 1,
-  "settled_predictions": 5,
-  "prediction_snapshots": 15,
+  "settled_predictions": 6,
+  "prediction_snapshots": 16,
   "prediction_performance": {
-    "settled": 5,
-    "top5_avg_hits": 1.2,
-    "top10_avg_hits": 1.4,
+    "settled": 6,
+    "top5_avg_hits": 1.167,
+    "top10_avg_hits": 1.333,
     "top15_avg_hits": 2.0,
-    "set_avg_hits": 0.72,
+    "set_avg_hits": 0.733,
     "strong_pack_stats": {
       "strong_single": {
-        "rounds": 5,
-        "pass_rate": 0.4,
-        "avg_hits": 0.4
+        "rounds": 6,
+        "pass_rate": 0.333,
+        "avg_hits": 0.333
       },
       "two_hit_one": {
-        "rounds": 5,
-        "pass_rate": 0.6,
-        "avg_hits": 0.6
+        "rounds": 6,
+        "pass_rate": 0.5,
+        "avg_hits": 0.5
       },
       "three_hit_one": {
-        "rounds": 5,
-        "pass_rate": 0.6,
+        "rounds": 6,
+        "pass_rate": 0.667,
         "avg_hits": 1.0
       },
       "five_hit_two": {
-        "rounds": 5,
-        "pass_rate": 0.4,
-        "avg_hits": 1.4
+        "rounds": 6,
+        "pass_rate": 0.333,
+        "avg_hits": 1.333
       },
       "nine_hit_three": {
-        "rounds": 5,
-        "pass_rate": 0.2,
-        "avg_hits": 1.6
+        "rounds": 6,
+        "pass_rate": 0.167,
+        "avg_hits": 1.667
       }
     }
   },
