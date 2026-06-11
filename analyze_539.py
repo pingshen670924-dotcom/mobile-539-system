@@ -6,7 +6,9 @@ from collections import Counter, defaultdict
 from datetime import datetime, timedelta
 from itertools import combinations
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
+from aerospace_engine import compute_aerospace_assurance
 from industrial_engine import compute_industrial_analysis
 
 
@@ -17,6 +19,11 @@ DB_PATH = DATA_DIR / "539.sqlite"
 LATEST_JSON = REPORT_DIR / "latest_analysis.json"
 LATEST_MD = REPORT_DIR / "latest_analysis.md"
 WINDOWS = [5, 10, 20, 50, 100]
+TAIPEI_TZ = ZoneInfo("Asia/Taipei")
+
+
+def taipei_now():
+    return datetime.now(TAIPEI_TZ).replace(tzinfo=None)
 
 DEFAULT_MODEL_WEIGHTS = {
     "heat_short": 0.24,
@@ -754,12 +761,12 @@ def render_markdown(analysis):
     ]
     for key, label in pack_labels:
         pack = analysis["strong_prediction_packs"][key]
-        nums = " ".join(f"{n:02d}" for n in pack["numbers"])
-        lines.append(f"- {label}：{nums}，\u5e73\u5747\u5206 {pack['avg_score']}")
+        nums = " ".join(f"{n:02d}" for n in pack.get("numbers", []))
+        lines.append(f"- {label}：{nums or '\u672a\u767c\u5e03'}，\u72c0\u614b {pack.get('status', 'released')}，\u5e73\u5747\u5206 {pack.get('avg_score', '-')}")
         if key == "nine_hit_three" and pack.get("wheel_tickets"):
             coverage = pack.get("wheel_coverage", {})
             lines.append(f"- 9\u4e2d3\u8f2a\u7d44\u8986\u84cb：{coverage.get('covered')}/{coverage.get('total')}，\u8986\u84cb\u7387 {coverage.get('rate')}")
-            for idx, ticket in enumerate(pack["wheel_tickets"], 1):
+            for idx, ticket in enumerate(pack.get("wheel_tickets", []), 1):
                 lines.append(f"  {idx}. " + " ".join(f"{n:02d}" for n in ticket))
     lines.append("")
 
@@ -817,18 +824,26 @@ def analyze(db_path=DB_PATH):
     review = failure_review(db_path)
     weights = apply_failure_adjustment(calibrated_weights(bt), review)
     industrial = compute_industrial_analysis(draws, review)
+    aerospace = compute_aerospace_assurance(draws, industrial)
+    if aerospace["release_assurance"]["status"] == "blocked":
+        industrial.setdefault("release_gate", {})["status"] = "aerospace_blocked"
+    elif aerospace["release_assurance"]["status"] == "watch_only":
+        industrial.setdefault("release_gate", {})["aerospace_status"] = "watch_only"
     analysis = {
-        "generated_at": datetime.now().isoformat(timespec="seconds"),
+        "generated_at": taipei_now().isoformat(timespec="seconds"),
+        "prediction_mode": "restored_20260604_hit4_v31",
         "latest_draw": draws[-1],
         "windows": [window_summary(draws, size) for size in WINDOWS],
         "relationships": relationship_analysis(draws),
         "failure_review": review,
         "industrial_engine": industrial,
+        "aerospace_assurance": aerospace,
         "backtest": bt,
         "model_weights": weights,
         "candidates": industrial["candidates"],
+        "official_candidates": industrial.get("qualified_candidates", industrial["candidates"]),
     }
-    analysis["suggested_sets"] = build_sets(analysis["candidates"])
+    analysis["suggested_sets"] = build_sets(analysis["official_candidates"]) if len(analysis["official_candidates"]) >= 18 else []
     analysis["strong_prediction_packs"] = industrial["strong_prediction_packs"]
     return analysis
 

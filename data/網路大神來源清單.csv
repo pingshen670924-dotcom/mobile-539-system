@@ -1,0 +1,10 @@
+﻿source_id,source_name,platform,source_url,enabled,note
+pilio_public_share,彩迷熱門號碼分享,public_web,https://www.pilio.idv.tw/lto539/ltoshare539_Do.asp,1,公開網頁來源
+pilio_live_public,Pilio今彩539公開直播與熱門號,public_web,https://www.pilio.idv.tw/server3/main_lto539.asp,1,公開頁面自動解析
+go539_live_public,Go539公開直播與AI推薦,public_web,https://go539.com/539live/,1,公開頁面自動解析
+hawo_tool_public,HAWO樂透分析工具,public_web,https://lotto.hawo.tw/539,1,公開分析頁觀察來源
+five_three_nine_pattern_public,539.tw版路拖牌公開頁,public_web,https://539.tw/539-strategy/pattern-techniques,1,版路公開頁觀察來源
+fb_manual_001,FB社團人工授權匯入,facebook,,1,私密社團不自動登入爬取
+youtube_live_001,YouTube直播主公開頁或人工匯入,youtube_public,,1,有公開直播網址時可自動解析
+fb_public_page_001,FB公開粉專或公開貼文,facebook_public,,1,放入不需登入即可瀏覽的FB公開網址
+fb_private_group_watch,FB私密社團觀察註記,facebook_private,,1,私密社團不自動登入爬取

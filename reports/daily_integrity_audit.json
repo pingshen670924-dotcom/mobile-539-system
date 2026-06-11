@@ -1,0 +1,158 @@
+{
+  "generated_at": "2026-06-11T09:14:06",
+  "status": "passed",
+  "failed_count": 0,
+  "checks": [
+    {
+      "name": "draw_count_minimum",
+      "passed": true,
+      "detail": {
+        "count": 5885,
+        "min_period": 96000001,
+        "max_period": 115000141,
+        "min_date": "2007-01-01",
+        "max_date": "2026-06-10"
+      }
+    },
+    {
+      "name": "latest_date_fresh",
+      "passed": true,
+      "detail": {
+        "latest": "2026-06-10",
+        "expected": "2026-06-10"
+      }
+    },
+    {
+      "name": "no_duplicate_periods",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "no_duplicate_dates",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "no_invalid_draw_rows",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "no_stale_pending_predictions",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "recent_predictions_settled",
+      "passed": true,
+      "detail": [
+        {
+          "target_period": 115000136,
+          "status": "settled",
+          "actual_period": 115000136,
+          "top5_hits": 1,
+          "top10_hits": 1,
+          "top15_hits": 3
+        },
+        {
+          "target_period": 115000137,
+          "status": "settled",
+          "actual_period": 115000137,
+          "top5_hits": 1,
+          "top10_hits": 3,
+          "top15_hits": 4
+        },
+        {
+          "target_period": 115000138,
+          "status": "settled",
+          "actual_period": 115000138,
+          "top5_hits": 0,
+          "top10_hits": 0,
+          "top15_hits": 0
+        },
+        {
+          "target_period": 115000139,
+          "status": "settled",
+          "actual_period": 115000139,
+          "top5_hits": 1,
+          "top10_hits": 1,
+          "top15_hits": 1
+        },
+        {
+          "target_period": 115000140,
+          "status": "settled",
+          "actual_period": 115000140,
+          "top5_hits": 2,
+          "top10_hits": 2,
+          "top15_hits": 2
+        },
+        {
+          "target_period": 115000141,
+          "status": "settled",
+          "actual_period": 115000141,
+          "top5_hits": 0,
+          "top10_hits": 0,
+          "top15_hits": 0
+        }
+      ]
+    },
+    {
+      "name": "analysis_matches_database",
+      "passed": true,
+      "detail": {
+        "analysis": 115000141,
+        "database": 115000141
+      }
+    },
+    {
+      "name": "health_sync_passed",
+      "passed": true,
+      "detail": {
+        "database_latest_period": 115000141,
+        "analysis_latest_period": 115000141,
+        "prediction_based_on_period": 115000141,
+        "status": "synced"
+      }
+    },
+    {
+      "name": "history_has_latest_pending_or_settled",
+      "passed": true,
+      "detail": {
+        "expected_target": 115000142
+      }
+    },
+    {
+      "name": "battle_report_mentions_latest",
+      "passed": true,
+      "detail": {
+        "period": 115000141,
+        "draw_date": "2026-06-10"
+      }
+    },
+    {
+      "name": "battle_report_has_settlement_rows",
+      "passed": true,
+      "detail": "settled and pending labels"
+    },
+    {
+      "name": "battle_report_has_active_mode",
+      "passed": true,
+      "detail": "restored_20260604_hit4_v31"
+    },
+    {
+      "name": "battle_report_has_explicit_dates",
+      "passed": true,
+      "detail": "date labels"
+    }
+  ],
+  "latest": {
+    "period": 115000141,
+    "draw_date": "2026-06-10",
+    "n1": 1,
+    "n2": 4,
+    "n3": 32,
+    "n4": 35,
+    "n5": 39
+  },
+  "expected_date": "2026-06-10"
+}

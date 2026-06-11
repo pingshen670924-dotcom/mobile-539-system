@@ -1,5 +1,6 @@
 {
-  "generated_at": "2026-06-10T17:31:27",
+  "generated_at": "2026-06-11T09:13:52",
+  "prediction_mode": "restored_20260604_hit4_v31",
   "latest_draw": {
     "period": 115000141,
     "draw_date": "2026-06-10",
@@ -1462,10 +1463,11 @@
   },
   "failure_review": {
     "has_review": true,
-    "severity": "warning",
+    "severity": "critical",
     "actions": [
-      "小幅降低短線追熱權重",
-      "提高中期與區間分散比重"
+      "降低短線熱號、拖牌、相似牌與雙生牌權重",
+      "提高中期均衡、遺漏補償、尾數區間與共現分散",
+      "強牌組加入區間分散限制，避免集中在同一段趨勢"
     ],
     "last_settled": {
       "based_on_period": 115000140,
@@ -1481,44 +1483,10 @@
       ],
       "candidate_numbers": [
         8,
-        16,
-        35,
-        3,
-        5,
-        18,
-        22,
-        9,
-        24,
-        23,
-        32,
-        34,
-        26,
-        29,
-        19,
-        14,
-        13,
-        30,
-        39,
-        33,
-        20,
-        28,
-        17,
-        10,
         2,
-        6,
         21,
         36,
-        12,
-        7,
-        27,
-        37,
-        4,
-        11,
-        15,
-        31,
-        38,
-        1,
-        25
+        6
       ],
       "strong_pack_hits": {
         "strong_single": {
@@ -1534,8 +1502,8 @@
           "name": "最強2中1",
           "hit_goal": 1,
           "numbers": [
-            8,
-            16
+            2,
+            8
           ],
           "hits": 0,
           "passed": false
@@ -1544,51 +1512,41 @@
           "name": "最強3中1",
           "hit_goal": 1,
           "numbers": [
+            2,
             8,
-            16,
-            35
+            21
           ],
-          "hits": 1,
-          "passed": true
+          "hits": 0,
+          "passed": false
         },
         "five_hit_two": {
           "name": "最強5中2",
           "hit_goal": 2,
           "numbers": [
-            3,
+            2,
+            6,
             8,
-            16,
-            22,
-            35
+            21,
+            36
           ],
-          "hits": 1,
+          "hits": 0,
           "passed": false
         },
         "nine_hit_three": {
           "name": "最強9中3",
           "hit_goal": 3,
-          "numbers": [
-            3,
-            8,
-            9,
-            16,
-            18,
-            22,
-            24,
-            32,
-            35
-          ],
-          "hits": 2,
+          "numbers": [],
+          "hits": 0,
           "passed": false
         }
       },
-      "top5_hits": 1,
-      "top10_hits": 1,
-      "top15_hits": 2
+      "top5_hits": 0,
+      "top10_hits": 0,
+      "top15_hits": 0
     }
   },
   "industrial_engine": {
-    "engine_version": "industrial_v4_previous_prediction_guard",
+    "engine_version": "industrial_v5_unlikely_number_risk_filter",
     "leakage_guard": true,
     "repeat_guard": {
       "32": {
@@ -1640,21 +1598,11 @@
     "previous_prediction_guard": {
       "policy": "block_previous_top15_unless_validated_dependency_and_two_exceptional_conditions",
       "previous_top15": [
-        3,
-        5,
+        2,
+        6,
         8,
-        9,
-        16,
-        18,
-        19,
-        22,
-        23,
-        24,
-        26,
-        29,
-        32,
-        34,
-        35
+        21,
+        36
       ],
       "reentry_passed": [],
       "current_top10_overlap": [],
@@ -1666,21 +1614,21 @@
       "snapshots": 5,
       "top10_retention": 1.0,
       "consensus_counts": {
-        "2": 4,
-        "6": 5,
-        "36": 5,
-        "7": 5,
-        "21": 5,
         "12": 5,
+        "7": 5,
         "25": 4,
-        "31": 5,
         "11": 5,
+        "15": 5,
+        "9": 4,
+        "31": 4,
+        "5": 4,
+        "22": 3,
         "27": 4,
-        "28": 3,
+        "18": 4,
         "20": 4,
-        "37": 4,
-        "15": 4,
-        "38": 3
+        "28": 2,
+        "26": 3,
+        "37": 3
       }
     },
     "dependency_analysis": {
@@ -1727,68 +1675,353 @@
       "warning": "關聯不等於因果，只允許通過分段驗證的連動進入模型"
     },
     "release_gate": {
-      "status": "watch_only",
+      "status": "research_kpi_blocked",
       "top10_retention_required": 0.6,
       "backtest_edge_required": 0,
-      "actual_backtest_edge": -0.015,
+      "actual_backtest_edge": -0.01,
       "recent_windows_required": [
         60,
         120
       ],
       "recent_edges": [
-        0.0346,
-        -0.0071
+        0.0179,
+        -0.0487
       ],
-      "recent_performance_passed": false
+      "recent_performance_passed": false,
+      "research_kpi_status": "insufficient_samples",
+      "research_kpi_release_allowed": false
     },
     "weights": {
-      "freq_5": 0.0224,
-      "freq_10": 0.0404,
-      "freq_20": 0.0762,
-      "freq_50": 0.1121,
-      "freq_100": 0.1166,
-      "freq_300": 0.0493,
-      "ewma_fast": 0.0538,
-      "ewma_slow": 0.0717,
-      "omission": 0.1166,
-      "transition": 0.0628,
-      "validated_dependency": 0.0583,
-      "pair": 0.0807,
-      "tail_zone": 0.0807,
-      "date": 0.0224,
-      "repeat": 0.0135,
-      "neighbor": 0.0224
+      "freq_5": 0.0081,
+      "freq_10": 0.0161,
+      "freq_20": 0.0484,
+      "freq_50": 0.121,
+      "freq_100": 0.1169,
+      "freq_300": 0.0444,
+      "ewma_fast": 0.0484,
+      "ewma_slow": 0.0645,
+      "omission": 0.129,
+      "transition": 0.0363,
+      "validated_dependency": 0.0524,
+      "markov_chain": 0.0323,
+      "time_series": 0.0323,
+      "neural_network": 0.0363,
+      "pair": 0.0887,
+      "tail_zone": 0.0927,
+      "date": 0.0202,
+      "repeat": 0.004,
+      "neighbor": 0.0081
     },
     "backtest": {
       "rounds": 360,
-      "top10_avg_hits": 1.267,
-      "top15_avg_hits": 1.881,
+      "top10_avg_hits": 1.272,
+      "top15_avg_hits": 1.867,
       "random_top10_expectation": 1.282,
       "rolling_windows": {
         "60": {
           "rounds": 60,
-          "top10_avg_hits": 1.317,
-          "top15_avg_hits": 1.867,
-          "top10_edge_vs_random": 0.0346
+          "top10_avg_hits": 1.3,
+          "top15_avg_hits": 1.883,
+          "top10_edge_vs_random": 0.0179
         },
         "120": {
           "rounds": 120,
-          "top10_avg_hits": 1.275,
-          "top15_avg_hits": 1.842,
-          "top10_edge_vs_random": -0.0071
+          "top10_avg_hits": 1.233,
+          "top15_avg_hits": 1.817,
+          "top10_edge_vs_random": -0.0487
         },
         "360": {
           "rounds": 360,
-          "top10_avg_hits": 1.267,
-          "top15_avg_hits": 1.881,
-          "top10_edge_vs_random": -0.0154
+          "top10_avg_hits": 1.272,
+          "top15_avg_hits": 1.867,
+          "top10_edge_vs_random": -0.0098
         }
       }
     },
+    "advanced_models": {
+      "models": [
+        {
+          "model": "markov_chain",
+          "name": "馬可夫鏈",
+          "top10": [
+            32,
+            25,
+            10,
+            6,
+            12,
+            17,
+            28,
+            36,
+            4,
+            31
+          ],
+          "method": "依上期號碼建立狀態轉移矩陣"
+        },
+        {
+          "model": "time_series",
+          "name": "時間序列",
+          "top10": [
+            28,
+            20,
+            39,
+            14,
+            26,
+            2,
+            30,
+            38,
+            35,
+            17
+          ],
+          "method": "以快慢 EWMA 追蹤號碼動能"
+        },
+        {
+          "model": "neural_network",
+          "name": "神經網路",
+          "top10": [
+            2,
+            6,
+            28,
+            25,
+            12,
+            17,
+            36,
+            9,
+            8,
+            31
+          ],
+          "method": "以頻率、遺漏、轉移與動能做非線性綜合"
+        }
+      ],
+      "consensus_top12": [
+        28,
+        25,
+        6,
+        12,
+        17,
+        36,
+        2,
+        32,
+        10,
+        20,
+        39,
+        14
+      ],
+      "warning": "進階模型只能提供輔助評分，必須通過回測與發布門檻才能進入主推"
+    },
+    "advanced_model_backtest": {
+      "rounds": 180,
+      "random_top10_expectation": 1.282,
+      "models": {
+        "markov_chain": {
+          "rounds": 180,
+          "top10_avg_hits": 1.222,
+          "top10_edge_vs_random": -0.0598
+        },
+        "time_series": {
+          "rounds": 180,
+          "top10_avg_hits": 1.306,
+          "top10_edge_vs_random": 0.0235
+        },
+        "neural_network": {
+          "rounds": 180,
+          "top10_avg_hits": 1.261,
+          "top10_edge_vs_random": -0.0209
+        }
+      }
+    },
+    "unlikely_number_analysis": {
+      "method": "inverse_signal_risk_filter",
+      "warning": "此區為風控避開觀察，不是絕對不開保證",
+      "numbers": [
+        {
+          "number": 39,
+          "avoid_score": 1.0,
+          "appearance_score": 0.0122,
+          "candidate_rank": 34,
+          "stability_count": 0,
+          "weak_signal_count": 5,
+          "reasons": [
+            "連莊守門未通過",
+            "擾動模型無穩定共識",
+            "短中長期與關聯指標偏弱",
+            "Top24外"
+          ],
+          "warning": "低機率不代表不會開出"
+        },
+        {
+          "number": 36,
+          "avoid_score": 1.0,
+          "appearance_score": 0.0001,
+          "candidate_rank": 38,
+          "stability_count": 0,
+          "weak_signal_count": 1,
+          "reasons": [
+            "昨日預測號未達極強重入門檻",
+            "上期失敗號碼隔離",
+            "擾動模型無穩定共識",
+            "Top24外"
+          ],
+          "warning": "低機率不代表不會開出"
+        },
+        {
+          "number": 35,
+          "avoid_score": 1.0,
+          "appearance_score": 0.1327,
+          "candidate_rank": 31,
+          "stability_count": 0,
+          "weak_signal_count": 1,
+          "reasons": [
+            "連莊守門未通過",
+            "擾動模型無穩定共識",
+            "Top24外"
+          ],
+          "warning": "低機率不代表不會開出"
+        },
+        {
+          "number": 32,
+          "avoid_score": 1.0,
+          "appearance_score": 0.0716,
+          "candidate_rank": 33,
+          "stability_count": 0,
+          "weak_signal_count": 5,
+          "reasons": [
+            "連莊僅觀察",
+            "擾動模型無穩定共識",
+            "短中長期與關聯指標偏弱",
+            "Top24外"
+          ],
+          "warning": "低機率不代表不會開出"
+        },
+        {
+          "number": 21,
+          "avoid_score": 1.0,
+          "appearance_score": 0.0,
+          "candidate_rank": 39,
+          "stability_count": 0,
+          "weak_signal_count": 1,
+          "reasons": [
+            "昨日預測號未達極強重入門檻",
+            "上期失敗號碼隔離",
+            "擾動模型無穩定共識",
+            "Top24外"
+          ],
+          "warning": "低機率不代表不會開出"
+        },
+        {
+          "number": 8,
+          "avoid_score": 1.0,
+          "appearance_score": 0.0012,
+          "candidate_rank": 36,
+          "stability_count": 0,
+          "weak_signal_count": 1,
+          "reasons": [
+            "昨日預測號未達極強重入門檻",
+            "上期失敗號碼隔離",
+            "擾動模型無穩定共識",
+            "Top24外"
+          ],
+          "warning": "低機率不代表不會開出"
+        },
+        {
+          "number": 6,
+          "avoid_score": 1.0,
+          "appearance_score": 0.0009,
+          "candidate_rank": 37,
+          "stability_count": 0,
+          "weak_signal_count": 1,
+          "reasons": [
+            "昨日預測號未達極強重入門檻",
+            "上期失敗號碼隔離",
+            "擾動模型無穩定共識",
+            "Top24外"
+          ],
+          "warning": "低機率不代表不會開出"
+        },
+        {
+          "number": 2,
+          "avoid_score": 1.0,
+          "appearance_score": 0.0016,
+          "candidate_rank": 35,
+          "stability_count": 0,
+          "weak_signal_count": 1,
+          "reasons": [
+            "昨日預測號未達極強重入門檻",
+            "上期失敗號碼隔離",
+            "擾動模型無穩定共識",
+            "Top24外"
+          ],
+          "warning": "低機率不代表不會開出"
+        },
+        {
+          "number": 1,
+          "avoid_score": 1.0,
+          "appearance_score": 0.1294,
+          "candidate_rank": 32,
+          "stability_count": 0,
+          "weak_signal_count": 4,
+          "reasons": [
+            "連莊守門未通過",
+            "擾動模型無穩定共識",
+            "Top24外"
+          ],
+          "warning": "低機率不代表不會開出"
+        },
+        {
+          "number": 4,
+          "avoid_score": 0.9505,
+          "appearance_score": 0.2489,
+          "candidate_rank": 30,
+          "stability_count": 0,
+          "weak_signal_count": 1,
+          "reasons": [
+            "連莊守門未通過",
+            "擾動模型無穩定共識",
+            "Top24外"
+          ],
+          "warning": "低機率不代表不會開出"
+        },
+        {
+          "number": 30,
+          "avoid_score": 0.8502,
+          "appearance_score": 0.2912,
+          "candidate_rank": 29,
+          "stability_count": 0,
+          "weak_signal_count": 6,
+          "reasons": [
+            "擾動模型無穩定共識",
+            "短中長期與關聯指標偏弱",
+            "Top24外"
+          ],
+          "warning": "低機率不代表不會開出"
+        },
+        {
+          "number": 10,
+          "avoid_score": 0.8403,
+          "appearance_score": 0.3118,
+          "candidate_rank": 28,
+          "stability_count": 0,
+          "weak_signal_count": 5,
+          "reasons": [
+            "擾動模型無穩定共識",
+            "短中長期與關聯指標偏弱",
+            "Top24外"
+          ],
+          "warning": "低機率不代表不會開出"
+        }
+      ]
+    },
+    "unlikely_backtest": {
+      "rounds": 120,
+      "avoid_size": 10,
+      "avg_accidental_hits": 1.3,
+      "random_expectation": 1.282,
+      "edge_vs_random": 0.0179,
+      "zero_hit_rate": 0.158
+    },
     "model_audit": {
       "risk_level": "高",
-      "edge_vs_random": -0.015,
-      "verdict": "回測優勢很小，不可過度放大信心"
+      "edge_vs_random": -0.01,
+      "verdict": "最近真實預測出現重大失敗，已啟用失敗隔離與分散模式"
     },
     "regime_analysis": {
       "latest_signature": {
@@ -1817,47 +2050,15 @@
     },
     "candidates": [
       {
-        "number": 2,
-        "score": 0.944,
-        "confidence_index": 96.3,
-        "omission": 5,
+        "number": 12,
+        "score": 0.958,
+        "confidence_index": 96.9,
+        "omission": 7,
         "repeat_guard": null,
         "previous_prediction_guard": null,
         "reasons": [
-          "共現關聯",
-          "尾數區間",
-          "中期穩定",
-          "穩定共識"
-        ],
-        "stability_count": 4,
-        "stability_rate": 0.8
-      },
-      {
-        "number": 6,
-        "score": 0.8561,
-        "confidence_index": 92.0,
-        "omission": 11,
-        "repeat_guard": null,
-        "previous_prediction_guard": null,
-        "reasons": [
-          "遺漏補償",
-          "尾數區間",
-          "中期穩定",
-          "日期牌"
-        ],
-        "stability_count": 5,
-        "stability_rate": 1.0
-      },
-      {
-        "number": 36,
-        "score": 0.7892,
-        "confidence_index": 88.7,
-        "omission": 14,
-        "repeat_guard": null,
-        "previous_prediction_guard": null,
-        "reasons": [
-          "遺漏補償",
-          "共現關聯",
+          "馬可夫轉移",
+          "神經網路綜合",
           "穩定共識"
         ],
         "stability_count": 5,
@@ -1865,41 +2066,13 @@
       },
       {
         "number": 7,
-        "score": 0.7757,
-        "confidence_index": 88.0,
+        "score": 0.9543,
+        "confidence_index": 96.8,
         "omission": 4,
         "repeat_guard": null,
         "previous_prediction_guard": null,
         "reasons": [
           "尾數區間",
-          "穩定共識"
-        ],
-        "stability_count": 5,
-        "stability_rate": 1.0
-      },
-      {
-        "number": 21,
-        "score": 0.7745,
-        "confidence_index": 88.0,
-        "omission": 4,
-        "repeat_guard": null,
-        "previous_prediction_guard": null,
-        "reasons": [
-          "尾數區間",
-          "穩定共識"
-        ],
-        "stability_count": 5,
-        "stability_rate": 1.0
-      },
-      {
-        "number": 12,
-        "score": 0.7517,
-        "confidence_index": 86.8,
-        "omission": 7,
-        "repeat_guard": null,
-        "previous_prediction_guard": null,
-        "reasons": [
-          "工業級綜合分數",
           "穩定共識"
         ],
         "stability_count": 5,
@@ -1907,37 +2080,24 @@
       },
       {
         "number": 25,
-        "score": 0.7367,
-        "confidence_index": 86.1,
+        "score": 0.944,
+        "confidence_index": 96.3,
         "omission": 1,
         "repeat_guard": null,
         "previous_prediction_guard": null,
         "reasons": [
+          "馬可夫轉移",
+          "神經網路綜合",
           "尾數區間",
-          "中期穩定",
-          "穩定共識"
+          "中期穩定"
         ],
         "stability_count": 4,
         "stability_rate": 0.8
       },
       {
-        "number": 31,
-        "score": 0.7005,
-        "confidence_index": 84.3,
-        "omission": 4,
-        "repeat_guard": null,
-        "previous_prediction_guard": null,
-        "reasons": [
-          "工業級綜合分數",
-          "穩定共識"
-        ],
-        "stability_count": 5,
-        "stability_rate": 1.0
-      },
-      {
         "number": 11,
-        "score": 0.6845,
-        "confidence_index": 83.5,
+        "score": 0.8332,
+        "confidence_index": 90.8,
         "omission": 13,
         "repeat_guard": null,
         "previous_prediction_guard": null,
@@ -1951,64 +2111,9 @@
         "stability_rate": 1.0
       },
       {
-        "number": 27,
-        "score": 0.6397,
-        "confidence_index": 81.3,
-        "omission": 3,
-        "repeat_guard": null,
-        "previous_prediction_guard": null,
-        "reasons": [
-          "尾數區間",
-          "穩定共識"
-        ],
-        "stability_count": 4,
-        "stability_rate": 0.8
-      },
-      {
-        "number": 28,
-        "score": 0.62,
-        "confidence_index": 80.4,
-        "omission": 1,
-        "repeat_guard": null,
-        "previous_prediction_guard": null,
-        "reasons": [
-          "尾數區間"
-        ],
-        "stability_count": 3,
-        "stability_rate": 0.6
-      },
-      {
-        "number": 20,
-        "score": 0.6197,
-        "confidence_index": 80.4,
-        "omission": 1,
-        "repeat_guard": null,
-        "previous_prediction_guard": null,
-        "reasons": [
-          "工業級綜合分數",
-          "穩定共識"
-        ],
-        "stability_count": 4,
-        "stability_rate": 0.8
-      },
-      {
-        "number": 37,
-        "score": 0.6121,
-        "confidence_index": 80.0,
-        "omission": 3,
-        "repeat_guard": null,
-        "previous_prediction_guard": null,
-        "reasons": [
-          "日期牌",
-          "穩定共識"
-        ],
-        "stability_count": 4,
-        "stability_rate": 0.8
-      },
-      {
         "number": 15,
-        "score": 0.6026,
-        "confidence_index": 79.5,
+        "score": 0.8242,
+        "confidence_index": 90.4,
         "omission": 10,
         "repeat_guard": null,
         "previous_prediction_guard": null,
@@ -2017,53 +2122,254 @@
           "尾數區間",
           "穩定共識"
         ],
+        "stability_count": 5,
+        "stability_rate": 1.0
+      },
+      {
+        "number": 9,
+        "score": 0.8167,
+        "confidence_index": 90.0,
+        "omission": 11,
+        "repeat_guard": null,
+        "previous_prediction_guard": null,
+        "reasons": [
+          "遺漏補償",
+          "神經網路綜合",
+          "尾數區間",
+          "日期牌"
+        ],
         "stability_count": 4,
         "stability_rate": 0.8
       },
       {
-        "number": 38,
-        "score": 0.5625,
-        "confidence_index": 77.6,
-        "omission": 3,
+        "number": 31,
+        "score": 0.7852,
+        "confidence_index": 88.5,
+        "omission": 4,
         "repeat_guard": null,
         "previous_prediction_guard": null,
         "reasons": [
-          "工業級綜合分數"
+          "神經網路綜合",
+          "穩定共識"
+        ],
+        "stability_count": 4,
+        "stability_rate": 0.8
+      },
+      {
+        "number": 5,
+        "score": 0.7826,
+        "confidence_index": 88.3,
+        "omission": 8,
+        "repeat_guard": null,
+        "previous_prediction_guard": null,
+        "reasons": [
+          "遺漏補償",
+          "共現關聯",
+          "尾數區間",
+          "穩定共識"
+        ],
+        "stability_count": 4,
+        "stability_rate": 0.8
+      },
+      {
+        "number": 22,
+        "score": 0.7765,
+        "confidence_index": 88.0,
+        "omission": 7,
+        "repeat_guard": null,
+        "previous_prediction_guard": null,
+        "reasons": [
+          "共現關聯",
+          "尾數區間"
         ],
         "stability_count": 3,
         "stability_rate": 0.6
       },
       {
-        "number": 17,
-        "score": 0.4484,
-        "confidence_index": 72.0,
+        "number": 27,
+        "score": 0.7688,
+        "confidence_index": 87.7,
+        "omission": 3,
+        "repeat_guard": null,
+        "previous_prediction_guard": null,
+        "reasons": [
+          "尾數區間",
+          "穩定共識"
+        ],
+        "stability_count": 4,
+        "stability_rate": 0.8
+      },
+      {
+        "number": 18,
+        "score": 0.7563,
+        "confidence_index": 87.1,
+        "omission": 2,
+        "repeat_guard": null,
+        "previous_prediction_guard": null,
+        "reasons": [
+          "尾數區間",
+          "日期牌",
+          "穩定共識"
+        ],
+        "stability_count": 4,
+        "stability_rate": 0.8
+      },
+      {
+        "number": 20,
+        "score": 0.749,
+        "confidence_index": 86.7,
         "omission": 1,
         "repeat_guard": null,
         "previous_prediction_guard": null,
         "reasons": [
+          "時間序列動能",
+          "穩定共識"
+        ],
+        "stability_count": 4,
+        "stability_rate": 0.8
+      },
+      {
+        "number": 28,
+        "score": 0.7374,
+        "confidence_index": 86.1,
+        "omission": 1,
+        "repeat_guard": null,
+        "previous_prediction_guard": null,
+        "reasons": [
+          "時間序列動能",
+          "神經網路綜合",
+          "尾數區間"
+        ],
+        "stability_count": 2,
+        "stability_rate": 0.4
+      },
+      {
+        "number": 26,
+        "score": 0.7021,
+        "confidence_index": 84.4,
+        "omission": 4,
+        "repeat_guard": null,
+        "previous_prediction_guard": null,
+        "reasons": [
+          "時間序列動能",
+          "日期牌"
+        ],
+        "stability_count": 3,
+        "stability_rate": 0.6
+      },
+      {
+        "number": 37,
+        "score": 0.6822,
+        "confidence_index": 83.4,
+        "omission": 3,
+        "repeat_guard": null,
+        "previous_prediction_guard": null,
+        "reasons": [
+          "時間序列動能",
+          "日期牌"
+        ],
+        "stability_count": 3,
+        "stability_rate": 0.6
+      },
+      {
+        "number": 16,
+        "score": 0.6683,
+        "confidence_index": 82.7,
+        "omission": 15,
+        "repeat_guard": null,
+        "previous_prediction_guard": null,
+        "reasons": [
+          "遺漏補償"
+        ],
+        "stability_count": 3,
+        "stability_rate": 0.6
+      },
+      {
+        "number": 3,
+        "score": 0.6122,
+        "confidence_index": 80.0,
+        "omission": 9,
+        "repeat_guard": null,
+        "previous_prediction_guard": null,
+        "reasons": [
+          "遺漏補償"
+        ],
+        "stability_count": 2,
+        "stability_rate": 0.4
+      },
+      {
+        "number": 17,
+        "score": 0.5831,
+        "confidence_index": 78.6,
+        "omission": 1,
+        "repeat_guard": null,
+        "previous_prediction_guard": null,
+        "reasons": [
+          "馬可夫轉移",
+          "時間序列動能",
+          "神經網路綜合",
           "日期牌"
         ],
         "stability_count": 1,
         "stability_rate": 0.2
       },
       {
-        "number": 14,
-        "score": 0.4397,
-        "confidence_index": 71.5,
-        "omission": 2,
+        "number": 24,
+        "score": 0.5453,
+        "confidence_index": 76.7,
+        "omission": 5,
         "repeat_guard": null,
         "previous_prediction_guard": null,
         "reasons": [
           "工業級綜合分數"
         ],
-        "stability_count": 2,
-        "stability_rate": 0.4
+        "stability_count": 1,
+        "stability_rate": 0.2
       },
       {
-        "number": 13,
-        "score": 0.2564,
-        "confidence_index": 62.6,
+        "number": 38,
+        "score": 0.52,
+        "confidence_index": 75.5,
         "omission": 3,
+        "repeat_guard": null,
+        "previous_prediction_guard": null,
+        "reasons": [
+          "時間序列動能"
+        ],
+        "stability_count": 0,
+        "stability_rate": 0.0
+      },
+      {
+        "number": 23,
+        "score": 0.4988,
+        "confidence_index": 74.4,
+        "omission": 18,
+        "repeat_guard": null,
+        "previous_prediction_guard": null,
+        "reasons": [
+          "遺漏補償"
+        ],
+        "stability_count": 0,
+        "stability_rate": 0.0
+      },
+      {
+        "number": 14,
+        "score": 0.4424,
+        "confidence_index": 71.7,
+        "omission": 2,
+        "repeat_guard": null,
+        "previous_prediction_guard": null,
+        "reasons": [
+          "時間序列動能"
+        ],
+        "stability_count": 0,
+        "stability_rate": 0.0
+      },
+      {
+        "number": 29,
+        "score": 0.4355,
+        "confidence_index": 71.3,
+        "omission": 5,
         "repeat_guard": null,
         "previous_prediction_guard": null,
         "reasons": [
@@ -2073,9 +2379,49 @@
         "stability_rate": 0.0
       },
       {
+        "number": 34,
+        "score": 0.4322,
+        "confidence_index": 71.2,
+        "omission": 10,
+        "repeat_guard": null,
+        "previous_prediction_guard": null,
+        "reasons": [
+          "遺漏補償"
+        ],
+        "stability_count": 0,
+        "stability_rate": 0.0
+      },
+      {
+        "number": 19,
+        "score": 0.4249,
+        "confidence_index": 70.8,
+        "omission": 8,
+        "repeat_guard": null,
+        "previous_prediction_guard": null,
+        "reasons": [
+          "遺漏補償",
+          "時間序列動能"
+        ],
+        "stability_count": 0,
+        "stability_rate": 0.0
+      },
+      {
+        "number": 13,
+        "score": 0.3692,
+        "confidence_index": 68.1,
+        "omission": 3,
+        "repeat_guard": null,
+        "previous_prediction_guard": null,
+        "reasons": [
+          "時間序列動能"
+        ],
+        "stability_count": 0,
+        "stability_rate": 0.0
+      },
+      {
         "number": 33,
-        "score": 0.214,
-        "confidence_index": 60.5,
+        "score": 0.324,
+        "confidence_index": 65.9,
         "omission": 20,
         "repeat_guard": null,
         "previous_prediction_guard": null,
@@ -2087,34 +2433,34 @@
       },
       {
         "number": 10,
-        "score": 0.2112,
-        "confidence_index": 60.4,
+        "score": 0.3118,
+        "confidence_index": 65.3,
         "omission": 1,
         "repeat_guard": null,
         "previous_prediction_guard": null,
         "reasons": [
-          "工業級綜合分數"
+          "馬可夫轉移"
         ],
         "stability_count": 0,
         "stability_rate": 0.0
       },
       {
         "number": 30,
-        "score": 0.1974,
-        "confidence_index": 59.7,
+        "score": 0.2912,
+        "confidence_index": 64.3,
         "omission": 3,
         "repeat_guard": null,
         "previous_prediction_guard": null,
         "reasons": [
-          "工業級綜合分數"
+          "時間序列動能"
         ],
         "stability_count": 0,
         "stability_rate": 0.0
       },
       {
         "number": 4,
-        "score": 0.246,
-        "confidence_index": 62.1,
+        "score": 0.2489,
+        "confidence_index": 62.2,
         "omission": 0,
         "repeat_guard": {
           "sample": 92,
@@ -2127,18 +2473,40 @@
         },
         "previous_prediction_guard": null,
         "reasons": [
+          "時間序列動能",
           "尾數區間",
           "日期牌",
-          "連莊守門未通過",
-          "穩定共識"
+          "連莊守門未通過"
         ],
         "stability_count": 4,
         "stability_rate": 0.8
       },
       {
+        "number": 35,
+        "score": 0.1327,
+        "confidence_index": 56.5,
+        "omission": 0,
+        "repeat_guard": {
+          "sample": 99,
+          "repeat_hits": 10,
+          "repeat_rate": 0.101,
+          "baseline": 0.1282,
+          "historical_support": false,
+          "passed": false,
+          "decision": "watch_only_not_main"
+        },
+        "previous_prediction_guard": null,
+        "reasons": [
+          "時間序列動能",
+          "連莊守門未通過"
+        ],
+        "stability_count": 2,
+        "stability_rate": 0.4
+      },
+      {
         "number": 1,
-        "score": 0.1845,
-        "confidence_index": 59.0,
+        "score": 0.1294,
+        "confidence_index": 56.3,
         "omission": 0,
         "repeat_guard": {
           "sample": 84,
@@ -2154,12 +2522,34 @@
           "尾數區間",
           "連莊守門未通過"
         ],
-        "stability_count": 3,
-        "stability_rate": 0.6
+        "stability_count": 2,
+        "stability_rate": 0.4
+      },
+      {
+        "number": 32,
+        "score": 0.0716,
+        "confidence_index": 53.5,
+        "omission": 0,
+        "repeat_guard": {
+          "sample": 83,
+          "repeat_hits": 16,
+          "repeat_rate": 0.1928,
+          "baseline": 0.1282,
+          "historical_support": true,
+          "passed": false,
+          "decision": "watch_only_not_main"
+        },
+        "previous_prediction_guard": null,
+        "reasons": [
+          "馬可夫轉移",
+          "連莊觀察不主推"
+        ],
+        "stability_count": 1,
+        "stability_rate": 0.2
       },
       {
         "number": 39,
-        "score": 0.0123,
+        "score": 0.0122,
         "confidence_index": 50.6,
         "omission": 0,
         "repeat_guard": {
@@ -2173,15 +2563,38 @@
         },
         "previous_prediction_guard": null,
         "reasons": [
+          "時間序列動能",
           "連莊守門未通過"
         ],
         "stability_count": 0,
         "stability_rate": 0.0
       },
       {
+        "number": 2,
+        "score": 0.0016,
+        "confidence_index": 50.1,
+        "omission": 5,
+        "repeat_guard": null,
+        "previous_prediction_guard": {
+          "passed": false,
+          "decision": "blocked_previous_prediction",
+          "validated_dependency": false,
+          "strong_condition_count": 3,
+          "required_strong_conditions": 2
+        },
+        "reasons": [
+          "昨日預測號未達極強重入門檻",
+          "上期失敗核心號碼隔離",
+          "共現關聯",
+          "時間序列動能"
+        ],
+        "stability_count": 0,
+        "stability_rate": 0.0
+      },
+      {
         "number": 8,
-        "score": 0.0202,
-        "confidence_index": 51.0,
+        "score": 0.0012,
+        "confidence_index": 50.1,
         "omission": 2,
         "repeat_guard": null,
         "previous_prediction_guard": {
@@ -2193,103 +2606,61 @@
         },
         "reasons": [
           "昨日預測號未達極強重入門檻",
+          "上期失敗核心號碼隔離",
           "共現關聯",
-          "尾數區間",
-          "中期穩定"
+          "神經網路綜合"
         ],
         "stability_count": 0,
         "stability_rate": 0.0
       },
       {
-        "number": 22,
-        "score": 0.0126,
-        "confidence_index": 50.6,
-        "omission": 7,
-        "repeat_guard": null,
-        "previous_prediction_guard": {
-          "passed": false,
-          "decision": "blocked_previous_prediction",
-          "validated_dependency": false,
-          "strong_condition_count": 1,
-          "required_strong_conditions": 2
-        },
-        "reasons": [
-          "昨日預測號未達極強重入門檻",
-          "共現關聯",
-          "尾數區間"
-        ],
-        "stability_count": 0,
-        "stability_rate": 0.0
-      },
-      {
-        "number": 5,
-        "score": 0.0118,
-        "confidence_index": 50.6,
-        "omission": 8,
-        "repeat_guard": null,
-        "previous_prediction_guard": {
-          "passed": false,
-          "decision": "blocked_previous_prediction",
-          "validated_dependency": false,
-          "strong_condition_count": 1,
-          "required_strong_conditions": 2
-        },
-        "reasons": [
-          "昨日預測號未達極強重入門檻",
-          "遺漏補償",
-          "共現關聯",
-          "尾數區間"
-        ],
-        "stability_count": 0,
-        "stability_rate": 0.0
-      },
-      {
-        "number": 9,
-        "score": 0.0115,
-        "confidence_index": 50.6,
+        "number": 6,
+        "score": 0.0009,
+        "confidence_index": 50.0,
         "omission": 11,
         "repeat_guard": null,
         "previous_prediction_guard": {
           "passed": false,
           "decision": "blocked_previous_prediction",
           "validated_dependency": false,
-          "strong_condition_count": 0,
+          "strong_condition_count": 1,
           "required_strong_conditions": 2
         },
         "reasons": [
           "昨日預測號未達極強重入門檻",
+          "上期失敗核心號碼隔離",
           "遺漏補償",
-          "尾數區間",
-          "日期牌"
+          "馬可夫轉移"
         ],
         "stability_count": 0,
         "stability_rate": 0.0
       },
       {
-        "number": 18,
-        "score": 0.0112,
-        "confidence_index": 50.6,
-        "omission": 2,
+        "number": 36,
+        "score": 0.0001,
+        "confidence_index": 50.0,
+        "omission": 14,
         "repeat_guard": null,
         "previous_prediction_guard": {
           "passed": false,
           "decision": "blocked_previous_prediction",
           "validated_dependency": false,
-          "strong_condition_count": 0,
+          "strong_condition_count": 2,
           "required_strong_conditions": 2
         },
         "reasons": [
           "昨日預測號未達極強重入門檻",
-          "尾數區間",
-          "日期牌"
+          "上期失敗核心號碼隔離",
+          "遺漏補償",
+          "共現關聯"
         ],
         "stability_count": 0,
         "stability_rate": 0.0
       },
       {
-        "number": 26,
-        "score": 0.0109,
-        "confidence_index": 50.5,
+        "number": 21,
+        "score": 0.0,
+        "confidence_index": 50.0,
         "omission": 4,
         "repeat_guard": null,
         "previous_prediction_guard": {
@@ -2301,201 +2672,8 @@
         },
         "reasons": [
           "昨日預測號未達極強重入門檻",
-          "日期牌"
-        ],
-        "stability_count": 0,
-        "stability_rate": 0.0
-      },
-      {
-        "number": 3,
-        "score": 0.0105,
-        "confidence_index": 50.5,
-        "omission": 9,
-        "repeat_guard": null,
-        "previous_prediction_guard": {
-          "passed": false,
-          "decision": "blocked_previous_prediction",
-          "validated_dependency": false,
-          "strong_condition_count": 0,
-          "required_strong_conditions": 2
-        },
-        "reasons": [
-          "昨日預測號未達極強重入門檻",
-          "遺漏補償"
-        ],
-        "stability_count": 0,
-        "stability_rate": 0.0
-      },
-      {
-        "number": 23,
-        "score": 0.0102,
-        "confidence_index": 50.5,
-        "omission": 18,
-        "repeat_guard": null,
-        "previous_prediction_guard": {
-          "passed": false,
-          "decision": "blocked_previous_prediction",
-          "validated_dependency": false,
-          "strong_condition_count": 1,
-          "required_strong_conditions": 2
-        },
-        "reasons": [
-          "昨日預測號未達極強重入門檻",
-          "遺漏補償"
-        ],
-        "stability_count": 0,
-        "stability_rate": 0.0
-      },
-      {
-        "number": 24,
-        "score": 0.0101,
-        "confidence_index": 50.5,
-        "omission": 5,
-        "repeat_guard": null,
-        "previous_prediction_guard": {
-          "passed": false,
-          "decision": "blocked_previous_prediction",
-          "validated_dependency": false,
-          "strong_condition_count": 0,
-          "required_strong_conditions": 2
-        },
-        "reasons": [
-          "昨日預測號未達極強重入門檻"
-        ],
-        "stability_count": 0,
-        "stability_rate": 0.0
-      },
-      {
-        "number": 16,
-        "score": 0.01,
-        "confidence_index": 50.5,
-        "omission": 15,
-        "repeat_guard": null,
-        "previous_prediction_guard": {
-          "passed": false,
-          "decision": "blocked_previous_prediction",
-          "validated_dependency": false,
-          "strong_condition_count": 1,
-          "required_strong_conditions": 2
-        },
-        "reasons": [
-          "昨日預測號未達極強重入門檻",
-          "遺漏補償"
-        ],
-        "stability_count": 0,
-        "stability_rate": 0.0
-      },
-      {
-        "number": 34,
-        "score": 0.0091,
-        "confidence_index": 50.4,
-        "omission": 10,
-        "repeat_guard": null,
-        "previous_prediction_guard": {
-          "passed": false,
-          "decision": "blocked_previous_prediction",
-          "validated_dependency": false,
-          "strong_condition_count": 0,
-          "required_strong_conditions": 2
-        },
-        "reasons": [
-          "昨日預測號未達極強重入門檻",
-          "遺漏補償"
-        ],
-        "stability_count": 0,
-        "stability_rate": 0.0
-      },
-      {
-        "number": 29,
-        "score": 0.0089,
-        "confidence_index": 50.4,
-        "omission": 5,
-        "repeat_guard": null,
-        "previous_prediction_guard": {
-          "passed": false,
-          "decision": "blocked_previous_prediction",
-          "validated_dependency": false,
-          "strong_condition_count": 0,
-          "required_strong_conditions": 2
-        },
-        "reasons": [
-          "昨日預測號未達極強重入門檻"
-        ],
-        "stability_count": 0,
-        "stability_rate": 0.0
-      },
-      {
-        "number": 19,
-        "score": 0.0079,
-        "confidence_index": 50.4,
-        "omission": 8,
-        "repeat_guard": null,
-        "previous_prediction_guard": {
-          "passed": false,
-          "decision": "blocked_previous_prediction",
-          "validated_dependency": false,
-          "strong_condition_count": 0,
-          "required_strong_conditions": 2
-        },
-        "reasons": [
-          "昨日預測號未達極強重入門檻",
-          "遺漏補償"
-        ],
-        "stability_count": 0,
-        "stability_rate": 0.0
-      },
-      {
-        "number": 35,
-        "score": 0.0001,
-        "confidence_index": 50.0,
-        "omission": 0,
-        "repeat_guard": {
-          "sample": 99,
-          "repeat_hits": 10,
-          "repeat_rate": 0.101,
-          "baseline": 0.1282,
-          "historical_support": false,
-          "passed": false,
-          "decision": "watch_only_not_main"
-        },
-        "previous_prediction_guard": {
-          "passed": false,
-          "decision": "blocked_previous_prediction",
-          "validated_dependency": false,
-          "strong_condition_count": 0,
-          "required_strong_conditions": 2
-        },
-        "reasons": [
-          "昨日預測號未達極強重入門檻",
-          "連莊守門未通過"
-        ],
-        "stability_count": 0,
-        "stability_rate": 0.0
-      },
-      {
-        "number": 32,
-        "score": 0.0,
-        "confidence_index": 50.0,
-        "omission": 0,
-        "repeat_guard": {
-          "sample": 83,
-          "repeat_hits": 16,
-          "repeat_rate": 0.1928,
-          "baseline": 0.1282,
-          "historical_support": true,
-          "passed": false,
-          "decision": "watch_only_not_main"
-        },
-        "previous_prediction_guard": {
-          "passed": false,
-          "decision": "blocked_previous_prediction",
-          "validated_dependency": false,
-          "strong_condition_count": 0,
-          "required_strong_conditions": 2
-        },
-        "reasons": [
-          "昨日預測號未達極強重入門檻",
-          "連莊觀察不主推"
+          "上期失敗核心號碼隔離",
+          "尾數區間"
         ],
         "stability_count": 0,
         "stability_rate": 0.0
@@ -2506,10 +2684,10 @@
         "name": "最強單支",
         "hit_goal": 1,
         "numbers": [
-          2
+          12
         ],
-        "score_sum": 0.944,
-        "avg_score": 0.944,
+        "score_sum": 0.958,
+        "avg_score": 0.958,
         "theoretical_probability": {
           "hit_goal": 1,
           "pool_size": 1,
@@ -2517,7 +2695,7 @@
           "odds_1_in": 7.8
         },
         "zones": {
-          "01-10": 1
+          "11-20": 1
         },
         "tails": {
           "2": 1
@@ -2527,11 +2705,11 @@
         "name": "最強2中1",
         "hit_goal": 1,
         "numbers": [
-          2,
-          6
+          7,
+          12
         ],
-        "score_sum": 1.8001,
-        "avg_score": 0.9001,
+        "score_sum": 1.9123,
+        "avg_score": 0.9562,
         "theoretical_probability": {
           "hit_goal": 1,
           "pool_size": 2,
@@ -2539,23 +2717,24 @@
           "odds_1_in": 4.12
         },
         "zones": {
-          "01-10": 2
+          "01-10": 1,
+          "11-20": 1
         },
         "tails": {
-          "2": 1,
-          "6": 1
+          "7": 1,
+          "2": 1
         }
       },
       "three_hit_one": {
         "name": "最強3中1",
         "hit_goal": 1,
         "numbers": [
-          2,
-          6,
-          21
+          7,
+          12,
+          25
         ],
-        "score_sum": 2.5746,
-        "avg_score": 0.8582,
+        "score_sum": 2.8563,
+        "avg_score": 0.9521,
         "theoretical_probability": {
           "hit_goal": 1,
           "pool_size": 3,
@@ -2563,27 +2742,28 @@
           "odds_1_in": 2.9
         },
         "zones": {
-          "01-10": 2,
+          "01-10": 1,
+          "11-20": 1,
           "21-30": 1
         },
         "tails": {
+          "7": 1,
           "2": 1,
-          "6": 1,
-          "1": 1
+          "5": 1
         }
       },
       "five_hit_two": {
         "name": "最強5中2",
         "hit_goal": 2,
         "numbers": [
-          2,
-          6,
-          21,
-          25,
-          36
+          7,
+          9,
+          11,
+          12,
+          25
         ],
-        "score_sum": 4.1005,
-        "avg_score": 0.8201,
+        "score_sum": 4.5062,
+        "avg_score": 0.9012,
         "theoretical_probability": {
           "hit_goal": 2,
           "pool_size": 5,
@@ -2592,13 +2772,14 @@
         },
         "zones": {
           "01-10": 2,
-          "21-30": 2,
-          "31-39": 1
+          "11-20": 2,
+          "21-30": 1
         },
         "tails": {
-          "2": 1,
-          "6": 2,
+          "7": 1,
+          "9": 1,
           "1": 1,
+          "2": 1,
           "5": 1
         }
       },
@@ -2606,18 +2787,18 @@
         "name": "最強9中3",
         "hit_goal": 3,
         "numbers": [
-          2,
-          6,
           7,
+          9,
           11,
           12,
-          21,
+          15,
+          20,
           25,
-          31,
-          36
+          28,
+          31
         ],
-        "score_sum": 7.0129,
-        "avg_score": 0.7792,
+        "score_sum": 7.602,
+        "avg_score": 0.8447,
         "theoretical_probability": {
           "hit_goal": 3,
           "pool_size": 9,
@@ -2625,110 +2806,305 @@
           "odds_1_in": 14.24
         },
         "zones": {
-          "01-10": 3,
-          "11-20": 2,
+          "01-10": 2,
+          "11-20": 4,
           "21-30": 2,
-          "31-39": 2
+          "31-39": 1
         },
         "tails": {
-          "2": 2,
-          "6": 2,
           "7": 1,
-          "1": 3,
-          "5": 1
+          "9": 1,
+          "1": 2,
+          "2": 1,
+          "5": 2,
+          "0": 1,
+          "8": 1
         },
         "wheel_tickets": [
           [
-            2,
             7,
-            11,
-            25,
-            36
-          ],
-          [
-            2,
-            6,
+            9,
             12,
-            21,
-            36
-          ],
-          [
-            6,
-            7,
-            12,
-            25,
-            31
-          ],
-          [
-            2,
-            6,
-            11,
-            21,
+            15,
             31
           ],
           [
             7,
+            20,
+            25,
+            28,
+            31
+          ],
+          [
+            9,
             11,
             12,
-            21,
-            36
-          ],
-          [
-            12,
-            21,
             25,
-            31,
-            36
+            28
           ],
           [
-            6,
             7,
             11,
-            31,
-            36
+            15,
+            20,
+            28
           ],
           [
-            2,
+            9,
             11,
-            12,
+            20,
             25,
             31
           ],
           [
-            2,
-            6,
+            12,
+            15,
+            20,
+            25,
+            31
+          ],
+          [
             7,
-            21,
+            9,
+            12,
+            20,
+            28
+          ],
+          [
+            7,
+            9,
+            11,
+            15,
             25
           ],
           [
-            2,
-            7,
+            11,
             12,
-            31,
-            36
+            15,
+            28,
+            31
           ],
           [
-            6,
+            9,
+            15,
+            20,
+            28,
+            31
+          ],
+          [
+            7,
             11,
             12,
             25,
-            36
+            31
           ],
           [
             7,
-            11,
-            21,
+            15,
             25,
+            28,
             31
           ]
         ],
         "wheel_coverage": {
-          "covered": 84,
+          "covered": 83,
           "total": 84,
-          "rate": 1.0
+          "rate": 0.9881
         }
       }
+    }
+  },
+  "aerospace_assurance": {
+    "engine_version": "aerospace_assurance_v1",
+    "principle": "fail_closed_redundant_verified_deterministic",
+    "input_fingerprint_sha256": "f1811f49bc08b8bf021385640bfb6c8258c156fdc3785cd59e38d764c61da052",
+    "output_fingerprint_sha256": "8e10f8534f955f53cfc45bbdd79cdee4dc73b9c510ca9f63567e449eb2a27bb0",
+    "input_invariants": {
+      "passed": true,
+      "checked_draws": 5885,
+      "failure_count": 0,
+      "failures": []
+    },
+    "redundant_channel_audit": {
+      "channels": {
+        "primary_industrial": [
+          12,
+          7,
+          25,
+          11,
+          15,
+          9,
+          31,
+          5,
+          22,
+          27
+        ],
+        "markov_chain": [
+          32,
+          25,
+          10,
+          6,
+          12,
+          17,
+          28,
+          36,
+          4,
+          31
+        ],
+        "time_series": [
+          28,
+          20,
+          39,
+          14,
+          26,
+          2,
+          30,
+          38,
+          35,
+          17
+        ],
+        "neural_network": [
+          2,
+          6,
+          28,
+          25,
+          12,
+          17,
+          36,
+          9,
+          8,
+          31
+        ]
+      },
+      "primary_top10": [
+        12,
+        7,
+        25,
+        11,
+        15,
+        9,
+        31,
+        5,
+        22,
+        27
+      ],
+      "secondary_consensus_top10": [
+        12,
+        17,
+        25,
+        28,
+        31,
+        2,
+        6,
+        9,
+        36,
+        4
+      ],
+      "overlap": [
+        9,
+        12,
+        25,
+        31
+      ],
+      "overlap_count": 4,
+      "jaccard": 0.25,
+      "status": "watch"
+    },
+    "uncertainty_audit": {
+      "method": "deterministic_score_perturbation_monte_carlo",
+      "simulations": 1200,
+      "seed": 17402224836684069055,
+      "top10_retention": 0.8,
+      "status": "stable",
+      "numbers": [
+        {
+          "number": 7,
+          "base_rank": 2,
+          "top10_rate": 1.0
+        },
+        {
+          "number": 12,
+          "base_rank": 1,
+          "top10_rate": 1.0
+        },
+        {
+          "number": 25,
+          "base_rank": 3,
+          "top10_rate": 0.9992
+        },
+        {
+          "number": 11,
+          "base_rank": 4,
+          "top10_rate": 0.9633
+        },
+        {
+          "number": 15,
+          "base_rank": 5,
+          "top10_rate": 0.94
+        },
+        {
+          "number": 9,
+          "base_rank": 6,
+          "top10_rate": 0.865
+        },
+        {
+          "number": 31,
+          "base_rank": 7,
+          "top10_rate": 0.6742
+        },
+        {
+          "number": 5,
+          "base_rank": 8,
+          "top10_rate": 0.6717
+        },
+        {
+          "number": 27,
+          "base_rank": 10,
+          "top10_rate": 0.5933
+        },
+        {
+          "number": 22,
+          "base_rank": 9,
+          "top10_rate": 0.5917
+        },
+        {
+          "number": 18,
+          "base_rank": 11,
+          "top10_rate": 0.4667
+        },
+        {
+          "number": 28,
+          "base_rank": 13,
+          "top10_rate": 0.3717
+        },
+        {
+          "number": 20,
+          "base_rank": 12,
+          "top10_rate": 0.3617
+        },
+        {
+          "number": 26,
+          "base_rank": 14,
+          "top10_rate": 0.1842
+        },
+        {
+          "number": 37,
+          "base_rank": 15,
+          "top10_rate": 0.1108
+        }
+      ]
+    },
+    "drift_audit": {
+      "method": "total_variation_recent50_vs_prior250",
+      "total_variation": 0.14,
+      "status": "stable",
+      "warning": "Distribution drift is a model-risk signal, not proof of a predictable pattern."
+    },
+    "release_assurance": {
+      "status": "verified",
+      "assurance_score": 92,
+      "critical_failures": [],
+      "meaning": "Reliability assurance only; it does not guarantee lottery prediction accuracy."
     }
   },
   "backtest": {
@@ -2850,61 +3226,29 @@
     }
   },
   "model_weights": {
-    "heat_short": 0.2001,
-    "heat_mid": 0.2046,
-    "heat_long": 0.0901,
-    "omission": 0.1251,
-    "pair": 0.092,
-    "tail_zone": 0.075,
-    "repeat_neighbor": 0.048,
-    "drag": 0.0729,
-    "date": 0.0278,
-    "similar": 0.036,
-    "twin": 0.0284
+    "heat_short": 0.1648,
+    "heat_mid": 0.2301,
+    "heat_long": 0.0973,
+    "omission": 0.149,
+    "pair": 0.1079,
+    "tail_zone": 0.0857,
+    "repeat_neighbor": 0.042,
+    "drag": 0.053,
+    "date": 0.0215,
+    "similar": 0.0282,
+    "twin": 0.0205
   },
   "candidates": [
     {
-      "number": 2,
-      "score": 0.944,
-      "confidence_index": 96.3,
-      "omission": 5,
+      "number": 12,
+      "score": 0.958,
+      "confidence_index": 96.9,
+      "omission": 7,
       "repeat_guard": null,
       "previous_prediction_guard": null,
       "reasons": [
-        "共現關聯",
-        "尾數區間",
-        "中期穩定",
-        "穩定共識"
-      ],
-      "stability_count": 4,
-      "stability_rate": 0.8
-    },
-    {
-      "number": 6,
-      "score": 0.8561,
-      "confidence_index": 92.0,
-      "omission": 11,
-      "repeat_guard": null,
-      "previous_prediction_guard": null,
-      "reasons": [
-        "遺漏補償",
-        "尾數區間",
-        "中期穩定",
-        "日期牌"
-      ],
-      "stability_count": 5,
-      "stability_rate": 1.0
-    },
-    {
-      "number": 36,
-      "score": 0.7892,
-      "confidence_index": 88.7,
-      "omission": 14,
-      "repeat_guard": null,
-      "previous_prediction_guard": null,
-      "reasons": [
-        "遺漏補償",
-        "共現關聯",
+        "馬可夫轉移",
+        "神經網路綜合",
         "穩定共識"
       ],
       "stability_count": 5,
@@ -2912,41 +3256,13 @@
     },
     {
       "number": 7,
-      "score": 0.7757,
-      "confidence_index": 88.0,
+      "score": 0.9543,
+      "confidence_index": 96.8,
       "omission": 4,
       "repeat_guard": null,
       "previous_prediction_guard": null,
       "reasons": [
         "尾數區間",
-        "穩定共識"
-      ],
-      "stability_count": 5,
-      "stability_rate": 1.0
-    },
-    {
-      "number": 21,
-      "score": 0.7745,
-      "confidence_index": 88.0,
-      "omission": 4,
-      "repeat_guard": null,
-      "previous_prediction_guard": null,
-      "reasons": [
-        "尾數區間",
-        "穩定共識"
-      ],
-      "stability_count": 5,
-      "stability_rate": 1.0
-    },
-    {
-      "number": 12,
-      "score": 0.7517,
-      "confidence_index": 86.8,
-      "omission": 7,
-      "repeat_guard": null,
-      "previous_prediction_guard": null,
-      "reasons": [
-        "工業級綜合分數",
         "穩定共識"
       ],
       "stability_count": 5,
@@ -2954,37 +3270,24 @@
     },
     {
       "number": 25,
-      "score": 0.7367,
-      "confidence_index": 86.1,
+      "score": 0.944,
+      "confidence_index": 96.3,
       "omission": 1,
       "repeat_guard": null,
       "previous_prediction_guard": null,
       "reasons": [
+        "馬可夫轉移",
+        "神經網路綜合",
         "尾數區間",
-        "中期穩定",
-        "穩定共識"
+        "中期穩定"
       ],
       "stability_count": 4,
       "stability_rate": 0.8
     },
     {
-      "number": 31,
-      "score": 0.7005,
-      "confidence_index": 84.3,
-      "omission": 4,
-      "repeat_guard": null,
-      "previous_prediction_guard": null,
-      "reasons": [
-        "工業級綜合分數",
-        "穩定共識"
-      ],
-      "stability_count": 5,
-      "stability_rate": 1.0
-    },
-    {
       "number": 11,
-      "score": 0.6845,
-      "confidence_index": 83.5,
+      "score": 0.8332,
+      "confidence_index": 90.8,
       "omission": 13,
       "repeat_guard": null,
       "previous_prediction_guard": null,
@@ -2998,64 +3301,9 @@
       "stability_rate": 1.0
     },
     {
-      "number": 27,
-      "score": 0.6397,
-      "confidence_index": 81.3,
-      "omission": 3,
-      "repeat_guard": null,
-      "previous_prediction_guard": null,
-      "reasons": [
-        "尾數區間",
-        "穩定共識"
-      ],
-      "stability_count": 4,
-      "stability_rate": 0.8
-    },
-    {
-      "number": 28,
-      "score": 0.62,
-      "confidence_index": 80.4,
-      "omission": 1,
-      "repeat_guard": null,
-      "previous_prediction_guard": null,
-      "reasons": [
-        "尾數區間"
-      ],
-      "stability_count": 3,
-      "stability_rate": 0.6
-    },
-    {
-      "number": 20,
-      "score": 0.6197,
-      "confidence_index": 80.4,
-      "omission": 1,
-      "repeat_guard": null,
-      "previous_prediction_guard": null,
-      "reasons": [
-        "工業級綜合分數",
-        "穩定共識"
-      ],
-      "stability_count": 4,
-      "stability_rate": 0.8
-    },
-    {
-      "number": 37,
-      "score": 0.6121,
-      "confidence_index": 80.0,
-      "omission": 3,
-      "repeat_guard": null,
-      "previous_prediction_guard": null,
-      "reasons": [
-        "日期牌",
-        "穩定共識"
-      ],
-      "stability_count": 4,
-      "stability_rate": 0.8
-    },
-    {
       "number": 15,
-      "score": 0.6026,
-      "confidence_index": 79.5,
+      "score": 0.8242,
+      "confidence_index": 90.4,
       "omission": 10,
       "repeat_guard": null,
       "previous_prediction_guard": null,
@@ -3064,53 +3312,254 @@
         "尾數區間",
         "穩定共識"
       ],
+      "stability_count": 5,
+      "stability_rate": 1.0
+    },
+    {
+      "number": 9,
+      "score": 0.8167,
+      "confidence_index": 90.0,
+      "omission": 11,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "遺漏補償",
+        "神經網路綜合",
+        "尾數區間",
+        "日期牌"
+      ],
       "stability_count": 4,
       "stability_rate": 0.8
     },
     {
-      "number": 38,
-      "score": 0.5625,
-      "confidence_index": 77.6,
-      "omission": 3,
+      "number": 31,
+      "score": 0.7852,
+      "confidence_index": 88.5,
+      "omission": 4,
       "repeat_guard": null,
       "previous_prediction_guard": null,
       "reasons": [
-        "工業級綜合分數"
+        "神經網路綜合",
+        "穩定共識"
+      ],
+      "stability_count": 4,
+      "stability_rate": 0.8
+    },
+    {
+      "number": 5,
+      "score": 0.7826,
+      "confidence_index": 88.3,
+      "omission": 8,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "遺漏補償",
+        "共現關聯",
+        "尾數區間",
+        "穩定共識"
+      ],
+      "stability_count": 4,
+      "stability_rate": 0.8
+    },
+    {
+      "number": 22,
+      "score": 0.7765,
+      "confidence_index": 88.0,
+      "omission": 7,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "共現關聯",
+        "尾數區間"
       ],
       "stability_count": 3,
       "stability_rate": 0.6
     },
     {
-      "number": 17,
-      "score": 0.4484,
-      "confidence_index": 72.0,
+      "number": 27,
+      "score": 0.7688,
+      "confidence_index": 87.7,
+      "omission": 3,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "尾數區間",
+        "穩定共識"
+      ],
+      "stability_count": 4,
+      "stability_rate": 0.8
+    },
+    {
+      "number": 18,
+      "score": 0.7563,
+      "confidence_index": 87.1,
+      "omission": 2,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "尾數區間",
+        "日期牌",
+        "穩定共識"
+      ],
+      "stability_count": 4,
+      "stability_rate": 0.8
+    },
+    {
+      "number": 20,
+      "score": 0.749,
+      "confidence_index": 86.7,
       "omission": 1,
       "repeat_guard": null,
       "previous_prediction_guard": null,
       "reasons": [
+        "時間序列動能",
+        "穩定共識"
+      ],
+      "stability_count": 4,
+      "stability_rate": 0.8
+    },
+    {
+      "number": 28,
+      "score": 0.7374,
+      "confidence_index": 86.1,
+      "omission": 1,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "時間序列動能",
+        "神經網路綜合",
+        "尾數區間"
+      ],
+      "stability_count": 2,
+      "stability_rate": 0.4
+    },
+    {
+      "number": 26,
+      "score": 0.7021,
+      "confidence_index": 84.4,
+      "omission": 4,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "時間序列動能",
+        "日期牌"
+      ],
+      "stability_count": 3,
+      "stability_rate": 0.6
+    },
+    {
+      "number": 37,
+      "score": 0.6822,
+      "confidence_index": 83.4,
+      "omission": 3,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "時間序列動能",
+        "日期牌"
+      ],
+      "stability_count": 3,
+      "stability_rate": 0.6
+    },
+    {
+      "number": 16,
+      "score": 0.6683,
+      "confidence_index": 82.7,
+      "omission": 15,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "遺漏補償"
+      ],
+      "stability_count": 3,
+      "stability_rate": 0.6
+    },
+    {
+      "number": 3,
+      "score": 0.6122,
+      "confidence_index": 80.0,
+      "omission": 9,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "遺漏補償"
+      ],
+      "stability_count": 2,
+      "stability_rate": 0.4
+    },
+    {
+      "number": 17,
+      "score": 0.5831,
+      "confidence_index": 78.6,
+      "omission": 1,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "馬可夫轉移",
+        "時間序列動能",
+        "神經網路綜合",
         "日期牌"
       ],
       "stability_count": 1,
       "stability_rate": 0.2
     },
     {
-      "number": 14,
-      "score": 0.4397,
-      "confidence_index": 71.5,
-      "omission": 2,
+      "number": 24,
+      "score": 0.5453,
+      "confidence_index": 76.7,
+      "omission": 5,
       "repeat_guard": null,
       "previous_prediction_guard": null,
       "reasons": [
         "工業級綜合分數"
       ],
-      "stability_count": 2,
-      "stability_rate": 0.4
+      "stability_count": 1,
+      "stability_rate": 0.2
     },
     {
-      "number": 13,
-      "score": 0.2564,
-      "confidence_index": 62.6,
+      "number": 38,
+      "score": 0.52,
+      "confidence_index": 75.5,
       "omission": 3,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "時間序列動能"
+      ],
+      "stability_count": 0,
+      "stability_rate": 0.0
+    },
+    {
+      "number": 23,
+      "score": 0.4988,
+      "confidence_index": 74.4,
+      "omission": 18,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "遺漏補償"
+      ],
+      "stability_count": 0,
+      "stability_rate": 0.0
+    },
+    {
+      "number": 14,
+      "score": 0.4424,
+      "confidence_index": 71.7,
+      "omission": 2,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "時間序列動能"
+      ],
+      "stability_count": 0,
+      "stability_rate": 0.0
+    },
+    {
+      "number": 29,
+      "score": 0.4355,
+      "confidence_index": 71.3,
+      "omission": 5,
       "repeat_guard": null,
       "previous_prediction_guard": null,
       "reasons": [
@@ -3120,9 +3569,49 @@
       "stability_rate": 0.0
     },
     {
+      "number": 34,
+      "score": 0.4322,
+      "confidence_index": 71.2,
+      "omission": 10,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "遺漏補償"
+      ],
+      "stability_count": 0,
+      "stability_rate": 0.0
+    },
+    {
+      "number": 19,
+      "score": 0.4249,
+      "confidence_index": 70.8,
+      "omission": 8,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "遺漏補償",
+        "時間序列動能"
+      ],
+      "stability_count": 0,
+      "stability_rate": 0.0
+    },
+    {
+      "number": 13,
+      "score": 0.3692,
+      "confidence_index": 68.1,
+      "omission": 3,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "時間序列動能"
+      ],
+      "stability_count": 0,
+      "stability_rate": 0.0
+    },
+    {
       "number": 33,
-      "score": 0.214,
-      "confidence_index": 60.5,
+      "score": 0.324,
+      "confidence_index": 65.9,
       "omission": 20,
       "repeat_guard": null,
       "previous_prediction_guard": null,
@@ -3134,34 +3623,34 @@
     },
     {
       "number": 10,
-      "score": 0.2112,
-      "confidence_index": 60.4,
+      "score": 0.3118,
+      "confidence_index": 65.3,
       "omission": 1,
       "repeat_guard": null,
       "previous_prediction_guard": null,
       "reasons": [
-        "工業級綜合分數"
+        "馬可夫轉移"
       ],
       "stability_count": 0,
       "stability_rate": 0.0
     },
     {
       "number": 30,
-      "score": 0.1974,
-      "confidence_index": 59.7,
+      "score": 0.2912,
+      "confidence_index": 64.3,
       "omission": 3,
       "repeat_guard": null,
       "previous_prediction_guard": null,
       "reasons": [
-        "工業級綜合分數"
+        "時間序列動能"
       ],
       "stability_count": 0,
       "stability_rate": 0.0
     },
     {
       "number": 4,
-      "score": 0.246,
-      "confidence_index": 62.1,
+      "score": 0.2489,
+      "confidence_index": 62.2,
       "omission": 0,
       "repeat_guard": {
         "sample": 92,
@@ -3174,18 +3663,40 @@
       },
       "previous_prediction_guard": null,
       "reasons": [
+        "時間序列動能",
         "尾數區間",
         "日期牌",
-        "連莊守門未通過",
-        "穩定共識"
+        "連莊守門未通過"
       ],
       "stability_count": 4,
       "stability_rate": 0.8
     },
     {
+      "number": 35,
+      "score": 0.1327,
+      "confidence_index": 56.5,
+      "omission": 0,
+      "repeat_guard": {
+        "sample": 99,
+        "repeat_hits": 10,
+        "repeat_rate": 0.101,
+        "baseline": 0.1282,
+        "historical_support": false,
+        "passed": false,
+        "decision": "watch_only_not_main"
+      },
+      "previous_prediction_guard": null,
+      "reasons": [
+        "時間序列動能",
+        "連莊守門未通過"
+      ],
+      "stability_count": 2,
+      "stability_rate": 0.4
+    },
+    {
       "number": 1,
-      "score": 0.1845,
-      "confidence_index": 59.0,
+      "score": 0.1294,
+      "confidence_index": 56.3,
       "omission": 0,
       "repeat_guard": {
         "sample": 84,
@@ -3201,12 +3712,34 @@
         "尾數區間",
         "連莊守門未通過"
       ],
-      "stability_count": 3,
-      "stability_rate": 0.6
+      "stability_count": 2,
+      "stability_rate": 0.4
+    },
+    {
+      "number": 32,
+      "score": 0.0716,
+      "confidence_index": 53.5,
+      "omission": 0,
+      "repeat_guard": {
+        "sample": 83,
+        "repeat_hits": 16,
+        "repeat_rate": 0.1928,
+        "baseline": 0.1282,
+        "historical_support": true,
+        "passed": false,
+        "decision": "watch_only_not_main"
+      },
+      "previous_prediction_guard": null,
+      "reasons": [
+        "馬可夫轉移",
+        "連莊觀察不主推"
+      ],
+      "stability_count": 1,
+      "stability_rate": 0.2
     },
     {
       "number": 39,
-      "score": 0.0123,
+      "score": 0.0122,
       "confidence_index": 50.6,
       "omission": 0,
       "repeat_guard": {
@@ -3220,15 +3753,38 @@
       },
       "previous_prediction_guard": null,
       "reasons": [
+        "時間序列動能",
         "連莊守門未通過"
       ],
       "stability_count": 0,
       "stability_rate": 0.0
     },
     {
+      "number": 2,
+      "score": 0.0016,
+      "confidence_index": 50.1,
+      "omission": 5,
+      "repeat_guard": null,
+      "previous_prediction_guard": {
+        "passed": false,
+        "decision": "blocked_previous_prediction",
+        "validated_dependency": false,
+        "strong_condition_count": 3,
+        "required_strong_conditions": 2
+      },
+      "reasons": [
+        "昨日預測號未達極強重入門檻",
+        "上期失敗核心號碼隔離",
+        "共現關聯",
+        "時間序列動能"
+      ],
+      "stability_count": 0,
+      "stability_rate": 0.0
+    },
+    {
       "number": 8,
-      "score": 0.0202,
-      "confidence_index": 51.0,
+      "score": 0.0012,
+      "confidence_index": 50.1,
       "omission": 2,
       "repeat_guard": null,
       "previous_prediction_guard": {
@@ -3240,103 +3796,61 @@
       },
       "reasons": [
         "昨日預測號未達極強重入門檻",
+        "上期失敗核心號碼隔離",
         "共現關聯",
-        "尾數區間",
-        "中期穩定"
+        "神經網路綜合"
       ],
       "stability_count": 0,
       "stability_rate": 0.0
     },
     {
-      "number": 22,
-      "score": 0.0126,
-      "confidence_index": 50.6,
-      "omission": 7,
-      "repeat_guard": null,
-      "previous_prediction_guard": {
-        "passed": false,
-        "decision": "blocked_previous_prediction",
-        "validated_dependency": false,
-        "strong_condition_count": 1,
-        "required_strong_conditions": 2
-      },
-      "reasons": [
-        "昨日預測號未達極強重入門檻",
-        "共現關聯",
-        "尾數區間"
-      ],
-      "stability_count": 0,
-      "stability_rate": 0.0
-    },
-    {
-      "number": 5,
-      "score": 0.0118,
-      "confidence_index": 50.6,
-      "omission": 8,
-      "repeat_guard": null,
-      "previous_prediction_guard": {
-        "passed": false,
-        "decision": "blocked_previous_prediction",
-        "validated_dependency": false,
-        "strong_condition_count": 1,
-        "required_strong_conditions": 2
-      },
-      "reasons": [
-        "昨日預測號未達極強重入門檻",
-        "遺漏補償",
-        "共現關聯",
-        "尾數區間"
-      ],
-      "stability_count": 0,
-      "stability_rate": 0.0
-    },
-    {
-      "number": 9,
-      "score": 0.0115,
-      "confidence_index": 50.6,
+      "number": 6,
+      "score": 0.0009,
+      "confidence_index": 50.0,
       "omission": 11,
       "repeat_guard": null,
       "previous_prediction_guard": {
         "passed": false,
         "decision": "blocked_previous_prediction",
         "validated_dependency": false,
-        "strong_condition_count": 0,
+        "strong_condition_count": 1,
         "required_strong_conditions": 2
       },
       "reasons": [
         "昨日預測號未達極強重入門檻",
+        "上期失敗核心號碼隔離",
         "遺漏補償",
-        "尾數區間",
-        "日期牌"
+        "馬可夫轉移"
       ],
       "stability_count": 0,
       "stability_rate": 0.0
     },
     {
-      "number": 18,
-      "score": 0.0112,
-      "confidence_index": 50.6,
-      "omission": 2,
+      "number": 36,
+      "score": 0.0001,
+      "confidence_index": 50.0,
+      "omission": 14,
       "repeat_guard": null,
       "previous_prediction_guard": {
         "passed": false,
         "decision": "blocked_previous_prediction",
         "validated_dependency": false,
-        "strong_condition_count": 0,
+        "strong_condition_count": 2,
         "required_strong_conditions": 2
       },
       "reasons": [
         "昨日預測號未達極強重入門檻",
-        "尾數區間",
-        "日期牌"
+        "上期失敗核心號碼隔離",
+        "遺漏補償",
+        "共現關聯"
       ],
       "stability_count": 0,
       "stability_rate": 0.0
     },
     {
-      "number": 26,
-      "score": 0.0109,
-      "confidence_index": 50.5,
+      "number": 21,
+      "score": 0.0,
+      "confidence_index": 50.0,
       "omission": 4,
       "repeat_guard": null,
       "previous_prediction_guard": {
@@ -3348,153 +3862,450 @@
       },
       "reasons": [
         "昨日預測號未達極強重入門檻",
-        "日期牌"
+        "上期失敗核心號碼隔離",
+        "尾數區間"
       ],
       "stability_count": 0,
       "stability_rate": 0.0
+    }
+  ],
+  "official_candidates": [
+    {
+      "number": 12,
+      "score": 0.958,
+      "confidence_index": 96.9,
+      "omission": 7,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "馬可夫轉移",
+        "神經網路綜合",
+        "穩定共識"
+      ],
+      "stability_count": 5,
+      "stability_rate": 1.0
+    },
+    {
+      "number": 7,
+      "score": 0.9543,
+      "confidence_index": 96.8,
+      "omission": 4,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "尾數區間",
+        "穩定共識"
+      ],
+      "stability_count": 5,
+      "stability_rate": 1.0
+    },
+    {
+      "number": 25,
+      "score": 0.944,
+      "confidence_index": 96.3,
+      "omission": 1,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "馬可夫轉移",
+        "神經網路綜合",
+        "尾數區間",
+        "中期穩定"
+      ],
+      "stability_count": 4,
+      "stability_rate": 0.8
+    },
+    {
+      "number": 11,
+      "score": 0.8332,
+      "confidence_index": 90.8,
+      "omission": 13,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "遺漏補償",
+        "尾數區間",
+        "日期牌",
+        "穩定共識"
+      ],
+      "stability_count": 5,
+      "stability_rate": 1.0
+    },
+    {
+      "number": 15,
+      "score": 0.8242,
+      "confidence_index": 90.4,
+      "omission": 10,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "遺漏補償",
+        "尾數區間",
+        "穩定共識"
+      ],
+      "stability_count": 5,
+      "stability_rate": 1.0
+    },
+    {
+      "number": 9,
+      "score": 0.8167,
+      "confidence_index": 90.0,
+      "omission": 11,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "遺漏補償",
+        "神經網路綜合",
+        "尾數區間",
+        "日期牌"
+      ],
+      "stability_count": 4,
+      "stability_rate": 0.8
+    },
+    {
+      "number": 31,
+      "score": 0.7852,
+      "confidence_index": 88.5,
+      "omission": 4,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "神經網路綜合",
+        "穩定共識"
+      ],
+      "stability_count": 4,
+      "stability_rate": 0.8
+    },
+    {
+      "number": 5,
+      "score": 0.7826,
+      "confidence_index": 88.3,
+      "omission": 8,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "遺漏補償",
+        "共現關聯",
+        "尾數區間",
+        "穩定共識"
+      ],
+      "stability_count": 4,
+      "stability_rate": 0.8
+    },
+    {
+      "number": 22,
+      "score": 0.7765,
+      "confidence_index": 88.0,
+      "omission": 7,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "共現關聯",
+        "尾數區間"
+      ],
+      "stability_count": 3,
+      "stability_rate": 0.6
+    },
+    {
+      "number": 27,
+      "score": 0.7688,
+      "confidence_index": 87.7,
+      "omission": 3,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "尾數區間",
+        "穩定共識"
+      ],
+      "stability_count": 4,
+      "stability_rate": 0.8
+    },
+    {
+      "number": 18,
+      "score": 0.7563,
+      "confidence_index": 87.1,
+      "omission": 2,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "尾數區間",
+        "日期牌",
+        "穩定共識"
+      ],
+      "stability_count": 4,
+      "stability_rate": 0.8
+    },
+    {
+      "number": 20,
+      "score": 0.749,
+      "confidence_index": 86.7,
+      "omission": 1,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "時間序列動能",
+        "穩定共識"
+      ],
+      "stability_count": 4,
+      "stability_rate": 0.8
+    },
+    {
+      "number": 28,
+      "score": 0.7374,
+      "confidence_index": 86.1,
+      "omission": 1,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "時間序列動能",
+        "神經網路綜合",
+        "尾數區間"
+      ],
+      "stability_count": 2,
+      "stability_rate": 0.4
+    },
+    {
+      "number": 26,
+      "score": 0.7021,
+      "confidence_index": 84.4,
+      "omission": 4,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "時間序列動能",
+        "日期牌"
+      ],
+      "stability_count": 3,
+      "stability_rate": 0.6
+    },
+    {
+      "number": 37,
+      "score": 0.6822,
+      "confidence_index": 83.4,
+      "omission": 3,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "時間序列動能",
+        "日期牌"
+      ],
+      "stability_count": 3,
+      "stability_rate": 0.6
+    },
+    {
+      "number": 16,
+      "score": 0.6683,
+      "confidence_index": 82.7,
+      "omission": 15,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "遺漏補償"
+      ],
+      "stability_count": 3,
+      "stability_rate": 0.6
     },
     {
       "number": 3,
-      "score": 0.0105,
-      "confidence_index": 50.5,
+      "score": 0.6122,
+      "confidence_index": 80.0,
       "omission": 9,
       "repeat_guard": null,
-      "previous_prediction_guard": {
-        "passed": false,
-        "decision": "blocked_previous_prediction",
-        "validated_dependency": false,
-        "strong_condition_count": 0,
-        "required_strong_conditions": 2
-      },
+      "previous_prediction_guard": null,
       "reasons": [
-        "昨日預測號未達極強重入門檻",
         "遺漏補償"
+      ],
+      "stability_count": 2,
+      "stability_rate": 0.4
+    },
+    {
+      "number": 17,
+      "score": 0.5831,
+      "confidence_index": 78.6,
+      "omission": 1,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "馬可夫轉移",
+        "時間序列動能",
+        "神經網路綜合",
+        "日期牌"
+      ],
+      "stability_count": 1,
+      "stability_rate": 0.2
+    },
+    {
+      "number": 24,
+      "score": 0.5453,
+      "confidence_index": 76.7,
+      "omission": 5,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "工業級綜合分數"
+      ],
+      "stability_count": 1,
+      "stability_rate": 0.2
+    },
+    {
+      "number": 38,
+      "score": 0.52,
+      "confidence_index": 75.5,
+      "omission": 3,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "時間序列動能"
       ],
       "stability_count": 0,
       "stability_rate": 0.0
     },
     {
       "number": 23,
-      "score": 0.0102,
-      "confidence_index": 50.5,
+      "score": 0.4988,
+      "confidence_index": 74.4,
       "omission": 18,
       "repeat_guard": null,
-      "previous_prediction_guard": {
-        "passed": false,
-        "decision": "blocked_previous_prediction",
-        "validated_dependency": false,
-        "strong_condition_count": 1,
-        "required_strong_conditions": 2
-      },
+      "previous_prediction_guard": null,
       "reasons": [
-        "昨日預測號未達極強重入門檻",
         "遺漏補償"
       ],
       "stability_count": 0,
       "stability_rate": 0.0
     },
     {
-      "number": 24,
-      "score": 0.0101,
-      "confidence_index": 50.5,
-      "omission": 5,
+      "number": 14,
+      "score": 0.4424,
+      "confidence_index": 71.7,
+      "omission": 2,
       "repeat_guard": null,
-      "previous_prediction_guard": {
-        "passed": false,
-        "decision": "blocked_previous_prediction",
-        "validated_dependency": false,
-        "strong_condition_count": 0,
-        "required_strong_conditions": 2
-      },
+      "previous_prediction_guard": null,
       "reasons": [
-        "昨日預測號未達極強重入門檻"
-      ],
-      "stability_count": 0,
-      "stability_rate": 0.0
-    },
-    {
-      "number": 16,
-      "score": 0.01,
-      "confidence_index": 50.5,
-      "omission": 15,
-      "repeat_guard": null,
-      "previous_prediction_guard": {
-        "passed": false,
-        "decision": "blocked_previous_prediction",
-        "validated_dependency": false,
-        "strong_condition_count": 1,
-        "required_strong_conditions": 2
-      },
-      "reasons": [
-        "昨日預測號未達極強重入門檻",
-        "遺漏補償"
-      ],
-      "stability_count": 0,
-      "stability_rate": 0.0
-    },
-    {
-      "number": 34,
-      "score": 0.0091,
-      "confidence_index": 50.4,
-      "omission": 10,
-      "repeat_guard": null,
-      "previous_prediction_guard": {
-        "passed": false,
-        "decision": "blocked_previous_prediction",
-        "validated_dependency": false,
-        "strong_condition_count": 0,
-        "required_strong_conditions": 2
-      },
-      "reasons": [
-        "昨日預測號未達極強重入門檻",
-        "遺漏補償"
+        "時間序列動能"
       ],
       "stability_count": 0,
       "stability_rate": 0.0
     },
     {
       "number": 29,
-      "score": 0.0089,
-      "confidence_index": 50.4,
+      "score": 0.4355,
+      "confidence_index": 71.3,
       "omission": 5,
       "repeat_guard": null,
-      "previous_prediction_guard": {
-        "passed": false,
-        "decision": "blocked_previous_prediction",
-        "validated_dependency": false,
-        "strong_condition_count": 0,
-        "required_strong_conditions": 2
-      },
+      "previous_prediction_guard": null,
       "reasons": [
-        "昨日預測號未達極強重入門檻"
+        "工業級綜合分數"
       ],
       "stability_count": 0,
       "stability_rate": 0.0
     },
     {
-      "number": 19,
-      "score": 0.0079,
-      "confidence_index": 50.4,
-      "omission": 8,
+      "number": 34,
+      "score": 0.4322,
+      "confidence_index": 71.2,
+      "omission": 10,
       "repeat_guard": null,
-      "previous_prediction_guard": {
-        "passed": false,
-        "decision": "blocked_previous_prediction",
-        "validated_dependency": false,
-        "strong_condition_count": 0,
-        "required_strong_conditions": 2
-      },
+      "previous_prediction_guard": null,
       "reasons": [
-        "昨日預測號未達極強重入門檻",
         "遺漏補償"
       ],
       "stability_count": 0,
       "stability_rate": 0.0
     },
     {
+      "number": 19,
+      "score": 0.4249,
+      "confidence_index": 70.8,
+      "omission": 8,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "遺漏補償",
+        "時間序列動能"
+      ],
+      "stability_count": 0,
+      "stability_rate": 0.0
+    },
+    {
+      "number": 13,
+      "score": 0.3692,
+      "confidence_index": 68.1,
+      "omission": 3,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "時間序列動能"
+      ],
+      "stability_count": 0,
+      "stability_rate": 0.0
+    },
+    {
+      "number": 33,
+      "score": 0.324,
+      "confidence_index": 65.9,
+      "omission": 20,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "遺漏補償"
+      ],
+      "stability_count": 0,
+      "stability_rate": 0.0
+    },
+    {
+      "number": 10,
+      "score": 0.3118,
+      "confidence_index": 65.3,
+      "omission": 1,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "馬可夫轉移"
+      ],
+      "stability_count": 0,
+      "stability_rate": 0.0
+    },
+    {
+      "number": 30,
+      "score": 0.2912,
+      "confidence_index": 64.3,
+      "omission": 3,
+      "repeat_guard": null,
+      "previous_prediction_guard": null,
+      "reasons": [
+        "時間序列動能"
+      ],
+      "stability_count": 0,
+      "stability_rate": 0.0
+    },
+    {
+      "number": 4,
+      "score": 0.2489,
+      "confidence_index": 62.2,
+      "omission": 0,
+      "repeat_guard": {
+        "sample": 92,
+        "repeat_hits": 5,
+        "repeat_rate": 0.0543,
+        "baseline": 0.1282,
+        "historical_support": false,
+        "passed": false,
+        "decision": "watch_only_not_main"
+      },
+      "previous_prediction_guard": null,
+      "reasons": [
+        "時間序列動能",
+        "尾數區間",
+        "日期牌",
+        "連莊守門未通過"
+      ],
+      "stability_count": 4,
+      "stability_rate": 0.8
+    },
+    {
       "number": 35,
-      "score": 0.0001,
-      "confidence_index": 50.0,
+      "score": 0.1327,
+      "confidence_index": 56.5,
       "omission": 0,
       "repeat_guard": {
         "sample": 99,
@@ -3505,24 +4316,40 @@
         "passed": false,
         "decision": "watch_only_not_main"
       },
-      "previous_prediction_guard": {
-        "passed": false,
-        "decision": "blocked_previous_prediction",
-        "validated_dependency": false,
-        "strong_condition_count": 0,
-        "required_strong_conditions": 2
-      },
+      "previous_prediction_guard": null,
       "reasons": [
-        "昨日預測號未達極強重入門檻",
+        "時間序列動能",
         "連莊守門未通過"
       ],
-      "stability_count": 0,
-      "stability_rate": 0.0
+      "stability_count": 2,
+      "stability_rate": 0.4
+    },
+    {
+      "number": 1,
+      "score": 0.1294,
+      "confidence_index": 56.3,
+      "omission": 0,
+      "repeat_guard": {
+        "sample": 84,
+        "repeat_hits": 9,
+        "repeat_rate": 0.1071,
+        "baseline": 0.1282,
+        "historical_support": false,
+        "passed": false,
+        "decision": "watch_only_not_main"
+      },
+      "previous_prediction_guard": null,
+      "reasons": [
+        "尾數區間",
+        "連莊守門未通過"
+      ],
+      "stability_count": 2,
+      "stability_rate": 0.4
     },
     {
       "number": 32,
-      "score": 0.0,
-      "confidence_index": 50.0,
+      "score": 0.0716,
+      "confidence_index": 53.5,
       "omission": 0,
       "repeat_guard": {
         "sample": 83,
@@ -3533,6 +4360,130 @@
         "passed": false,
         "decision": "watch_only_not_main"
       },
+      "previous_prediction_guard": null,
+      "reasons": [
+        "馬可夫轉移",
+        "連莊觀察不主推"
+      ],
+      "stability_count": 1,
+      "stability_rate": 0.2
+    },
+    {
+      "number": 39,
+      "score": 0.0122,
+      "confidence_index": 50.6,
+      "omission": 0,
+      "repeat_guard": {
+        "sample": 85,
+        "repeat_hits": 7,
+        "repeat_rate": 0.0824,
+        "baseline": 0.1282,
+        "historical_support": false,
+        "passed": false,
+        "decision": "watch_only_not_main"
+      },
+      "previous_prediction_guard": null,
+      "reasons": [
+        "時間序列動能",
+        "連莊守門未通過"
+      ],
+      "stability_count": 0,
+      "stability_rate": 0.0
+    },
+    {
+      "number": 2,
+      "score": 0.0016,
+      "confidence_index": 50.1,
+      "omission": 5,
+      "repeat_guard": null,
+      "previous_prediction_guard": {
+        "passed": false,
+        "decision": "blocked_previous_prediction",
+        "validated_dependency": false,
+        "strong_condition_count": 3,
+        "required_strong_conditions": 2
+      },
+      "reasons": [
+        "昨日預測號未達極強重入門檻",
+        "上期失敗核心號碼隔離",
+        "共現關聯",
+        "時間序列動能"
+      ],
+      "stability_count": 0,
+      "stability_rate": 0.0
+    },
+    {
+      "number": 8,
+      "score": 0.0012,
+      "confidence_index": 50.1,
+      "omission": 2,
+      "repeat_guard": null,
+      "previous_prediction_guard": {
+        "passed": false,
+        "decision": "blocked_previous_prediction",
+        "validated_dependency": false,
+        "strong_condition_count": 4,
+        "required_strong_conditions": 2
+      },
+      "reasons": [
+        "昨日預測號未達極強重入門檻",
+        "上期失敗核心號碼隔離",
+        "共現關聯",
+        "神經網路綜合"
+      ],
+      "stability_count": 0,
+      "stability_rate": 0.0
+    },
+    {
+      "number": 6,
+      "score": 0.0009,
+      "confidence_index": 50.0,
+      "omission": 11,
+      "repeat_guard": null,
+      "previous_prediction_guard": {
+        "passed": false,
+        "decision": "blocked_previous_prediction",
+        "validated_dependency": false,
+        "strong_condition_count": 1,
+        "required_strong_conditions": 2
+      },
+      "reasons": [
+        "昨日預測號未達極強重入門檻",
+        "上期失敗核心號碼隔離",
+        "遺漏補償",
+        "馬可夫轉移"
+      ],
+      "stability_count": 0,
+      "stability_rate": 0.0
+    },
+    {
+      "number": 36,
+      "score": 0.0001,
+      "confidence_index": 50.0,
+      "omission": 14,
+      "repeat_guard": null,
+      "previous_prediction_guard": {
+        "passed": false,
+        "decision": "blocked_previous_prediction",
+        "validated_dependency": false,
+        "strong_condition_count": 2,
+        "required_strong_conditions": 2
+      },
+      "reasons": [
+        "昨日預測號未達極強重入門檻",
+        "上期失敗核心號碼隔離",
+        "遺漏補償",
+        "共現關聯"
+      ],
+      "stability_count": 0,
+      "stability_rate": 0.0
+    },
+    {
+      "number": 21,
+      "score": 0.0,
+      "confidence_index": 50.0,
+      "omission": 4,
+      "repeat_guard": null,
       "previous_prediction_guard": {
         "passed": false,
         "decision": "blocked_previous_prediction",
@@ -3542,7 +4493,8 @@
       },
       "reasons": [
         "昨日預測號未達極強重入門檻",
-        "連莊觀察不主推"
+        "上期失敗核心號碼隔離",
+        "尾數區間"
       ],
       "stability_count": 0,
       "stability_rate": 0.0
@@ -3550,39 +4502,39 @@
   ],
   "suggested_sets": [
     [
-      2,
-      11,
+      9,
       12,
       20,
-      36
+      22,
+      25
     ],
     [
-      6,
       7,
+      11,
       16,
-      25,
+      31,
       33
     ],
     [
-      2,
-      21,
-      23,
-      28,
-      31
+      5,
+      12,
+      15,
+      18,
+      23
     ],
     [
+      9,
       11,
-      12,
+      25,
       27,
-      36,
       36
     ],
     [
-      2,
-      13,
+      12,
+      16,
       17,
-      25,
-      37
+      28,
+      31
     ]
   ],
   "strong_prediction_packs": {
@@ -3590,10 +4542,10 @@
       "name": "最強單支",
       "hit_goal": 1,
       "numbers": [
-        2
+        12
       ],
-      "score_sum": 0.944,
-      "avg_score": 0.944,
+      "score_sum": 0.958,
+      "avg_score": 0.958,
       "theoretical_probability": {
         "hit_goal": 1,
         "pool_size": 1,
@@ -3601,7 +4553,7 @@
         "odds_1_in": 7.8
       },
       "zones": {
-        "01-10": 1
+        "11-20": 1
       },
       "tails": {
         "2": 1
@@ -3611,11 +4563,11 @@
       "name": "最強2中1",
       "hit_goal": 1,
       "numbers": [
-        2,
-        6
+        7,
+        12
       ],
-      "score_sum": 1.8001,
-      "avg_score": 0.9001,
+      "score_sum": 1.9123,
+      "avg_score": 0.9562,
       "theoretical_probability": {
         "hit_goal": 1,
         "pool_size": 2,
@@ -3623,23 +4575,24 @@
         "odds_1_in": 4.12
       },
       "zones": {
-        "01-10": 2
+        "01-10": 1,
+        "11-20": 1
       },
       "tails": {
-        "2": 1,
-        "6": 1
+        "7": 1,
+        "2": 1
       }
     },
     "three_hit_one": {
       "name": "最強3中1",
       "hit_goal": 1,
       "numbers": [
-        2,
-        6,
-        21
+        7,
+        12,
+        25
       ],
-      "score_sum": 2.5746,
-      "avg_score": 0.8582,
+      "score_sum": 2.8563,
+      "avg_score": 0.9521,
       "theoretical_probability": {
         "hit_goal": 1,
         "pool_size": 3,
@@ -3647,27 +4600,28 @@
         "odds_1_in": 2.9
       },
       "zones": {
-        "01-10": 2,
+        "01-10": 1,
+        "11-20": 1,
         "21-30": 1
       },
       "tails": {
+        "7": 1,
         "2": 1,
-        "6": 1,
-        "1": 1
+        "5": 1
       }
     },
     "five_hit_two": {
       "name": "最強5中2",
       "hit_goal": 2,
       "numbers": [
-        2,
-        6,
-        21,
-        25,
-        36
+        7,
+        9,
+        11,
+        12,
+        25
       ],
-      "score_sum": 4.1005,
-      "avg_score": 0.8201,
+      "score_sum": 4.5062,
+      "avg_score": 0.9012,
       "theoretical_probability": {
         "hit_goal": 2,
         "pool_size": 5,
@@ -3676,13 +4630,14 @@
       },
       "zones": {
         "01-10": 2,
-        "21-30": 2,
-        "31-39": 1
+        "11-20": 2,
+        "21-30": 1
       },
       "tails": {
-        "2": 1,
-        "6": 2,
+        "7": 1,
+        "9": 1,
         "1": 1,
+        "2": 1,
         "5": 1
       }
     },
@@ -3690,18 +4645,18 @@
       "name": "最強9中3",
       "hit_goal": 3,
       "numbers": [
-        2,
-        6,
         7,
+        9,
         11,
         12,
-        21,
+        15,
+        20,
         25,
-        31,
-        36
+        28,
+        31
       ],
-      "score_sum": 7.0129,
-      "avg_score": 0.7792,
+      "score_sum": 7.602,
+      "avg_score": 0.8447,
       "theoretical_probability": {
         "hit_goal": 3,
         "pool_size": 9,
@@ -3709,196 +4664,202 @@
         "odds_1_in": 14.24
       },
       "zones": {
-        "01-10": 3,
-        "11-20": 2,
+        "01-10": 2,
+        "11-20": 4,
         "21-30": 2,
-        "31-39": 2
+        "31-39": 1
       },
       "tails": {
-        "2": 2,
-        "6": 2,
         "7": 1,
-        "1": 3,
-        "5": 1
+        "9": 1,
+        "1": 2,
+        "2": 1,
+        "5": 2,
+        "0": 1,
+        "8": 1
       },
       "wheel_tickets": [
         [
-          2,
           7,
-          11,
-          25,
-          36
-        ],
-        [
-          2,
-          6,
+          9,
           12,
-          21,
-          36
-        ],
-        [
-          6,
-          7,
-          12,
-          25,
-          31
-        ],
-        [
-          2,
-          6,
-          11,
-          21,
+          15,
           31
         ],
         [
           7,
+          20,
+          25,
+          28,
+          31
+        ],
+        [
+          9,
           11,
           12,
-          21,
-          36
-        ],
-        [
-          12,
-          21,
           25,
-          31,
-          36
+          28
         ],
         [
-          6,
           7,
           11,
-          31,
-          36
+          15,
+          20,
+          28
         ],
         [
-          2,
+          9,
           11,
-          12,
+          20,
           25,
           31
         ],
         [
-          2,
-          6,
+          12,
+          15,
+          20,
+          25,
+          31
+        ],
+        [
           7,
-          21,
+          9,
+          12,
+          20,
+          28
+        ],
+        [
+          7,
+          9,
+          11,
+          15,
           25
         ],
         [
-          2,
-          7,
+          11,
           12,
-          31,
-          36
+          15,
+          28,
+          31
         ],
         [
-          6,
+          9,
+          15,
+          20,
+          28,
+          31
+        ],
+        [
+          7,
           11,
           12,
           25,
-          36
+          31
         ],
         [
           7,
-          11,
-          21,
+          15,
           25,
+          28,
           31
         ]
       ],
       "wheel_coverage": {
-        "covered": 84,
+        "covered": 83,
         "total": 84,
-        "rate": 1.0
+        "rate": 0.9881
       }
     }
-  },
-  "crowd_consensus": {
-    "generated_at": "2026-06-10T17:31:29",
-    "target_period": 115000142,
-    "source_count": 1,
-    "observations": [
-      {
-        "source_id": "pilio_public_share",
-        "source_name": "彩迷熱門號碼分享",
-        "source_type": "public_crowd_share",
-        "source_url": "https://www.pilio.idv.tw/lto539/ltoshare539_Do.asp",
-        "numbers": [
-          8,
-          1,
-          2,
-          7,
-          12
-        ],
-        "engagement": null,
-        "collected_at": "2026-06-10T16:44:14"
-      }
-    ],
-    "consensus_ranking": [
-      {
-        "number": 1,
-        "source_votes": 1
-      },
-      {
-        "number": 2,
-        "source_votes": 1
-      },
-      {
-        "number": 7,
-        "source_votes": 1
-      },
-      {
-        "number": 8,
-        "source_votes": 1
-      },
-      {
-        "number": 12,
-        "source_votes": 1
-      }
-    ],
-    "source_performance": [
-      {
-        "source_id": "pilio_public_share",
-        "source_name": "彩迷熱門號碼分享",
-        "source_type": "public_crowd_share",
-        "source_url": "https://www.pilio.idv.tw/lto539/ltoshare539_Do.asp",
-        "settled_rounds": 2,
-        "avg_hits": 1.0,
-        "recent30_avg_hits": 1.0,
-        "edge_vs_random": 0.359,
-        "eligible_for_model": false,
-        "model_weight_cap": 0.0
-      },
-      {
-        "source_id": "pilio_web_verified_20260604",
-        "source_name": "公開彩迷熱門分享",
-        "source_type": "manual_authorized_social",
-        "source_url": "https://www.pilio.idv.tw/lto539/ltoshare539_Do.asp",
-        "settled_rounds": 1,
-        "avg_hits": 0.0,
-        "recent30_avg_hits": 0.0,
-        "edge_vs_random": -0.641,
-        "eligible_for_model": false,
-        "model_weight_cap": 0.0
-      }
-    ],
-    "eligible_source_count": 0,
-    "model_influence_status": "observation_only_weight_zero",
-    "random_top5_expected_hits": 0.641,
-    "collection": {
-      "collected": 0,
-      "warnings": [],
-      "target_period": 115000142,
-      "settled": 0
-    },
-    "warning": "網路人氣不等於開出機率，未通過100期與近期回測的來源權重為0"
   },
   "data_freshness": {
     "status": "fresh",
     "latest_date": "2026-06-10",
-    "expected_latest_date": "2026-06-09",
+    "expected_latest_date": "2026-06-10",
     "lag_days": 0,
-    "checked_at": "2026-06-10T17:31:12"
-  }
+    "checked_at": "2026-06-11T09:13:09"
+  },
+  "research_kpi": {
+    "status": "insufficient_samples",
+    "settled_samples": 9,
+    "minimum_settled_samples": 30,
+    "target_pass_rate": 1.0,
+    "all_observed_pass": false,
+    "release_allowed": false,
+    "warning": "Research targets are evaluation goals, not guaranteed lottery outcomes.",
+    "levels": {
+      "top15": {
+        "label": "15顆中3至5顆",
+        "minimum_hits": 3,
+        "maximum_hits": 5,
+        "settled_samples": 9,
+        "successes": 3,
+        "failures": 6,
+        "pass_rate": 0.3333,
+        "wilson_lower_95": 0.1206,
+        "average_hits": 1.7778,
+        "met_in_observed_samples": false
+      },
+      "nine_hit_three": {
+        "label": "9顆中2至4顆",
+        "minimum_hits": 2,
+        "maximum_hits": 4,
+        "settled_samples": 9,
+        "successes": 4,
+        "failures": 5,
+        "pass_rate": 0.4444,
+        "wilson_lower_95": 0.1888,
+        "average_hits": 1.2222,
+        "met_in_observed_samples": false
+      },
+      "five_hit_two": {
+        "label": "5顆中1至3顆",
+        "minimum_hits": 1,
+        "maximum_hits": 3,
+        "settled_samples": 9,
+        "successes": 6,
+        "failures": 3,
+        "pass_rate": 0.6667,
+        "wilson_lower_95": 0.3542,
+        "average_hits": 1.1111,
+        "met_in_observed_samples": false
+      },
+      "three_hit_one": {
+        "label": "3顆中1至3顆",
+        "minimum_hits": 1,
+        "maximum_hits": 3,
+        "settled_samples": 9,
+        "successes": 4,
+        "failures": 5,
+        "pass_rate": 0.4444,
+        "wilson_lower_95": 0.1888,
+        "average_hits": 0.6667,
+        "met_in_observed_samples": false
+      },
+      "two_hit_one": {
+        "label": "2顆中1至2顆",
+        "minimum_hits": 1,
+        "maximum_hits": 2,
+        "settled_samples": 9,
+        "successes": 3,
+        "failures": 6,
+        "pass_rate": 0.3333,
+        "wilson_lower_95": 0.1206,
+        "average_hits": 0.3333,
+        "met_in_observed_samples": false
+      },
+      "strong_single": {
+        "label": "1顆中1顆",
+        "minimum_hits": 1,
+        "maximum_hits": 1,
+        "settled_samples": 9,
+        "successes": 2,
+        "failures": 7,
+        "pass_rate": 0.2222,
+        "wilson_lower_95": 0.0632,
+        "average_hits": 0.2222,
+        "met_in_observed_samples": false
+      }
+    }
+  },
+  "official_prediction_status": "observation_only_recalculated_same_as_official"
 }

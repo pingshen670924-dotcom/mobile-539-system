@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: mobile-539-system
+    runtime: docker
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: AUTO_UPDATE
+        value: "1"
+      - key: MOBILE_ACCESS_TOKEN
+        generateValue: true
+    disk:
+      name: mobile-539-data
+      mountPath: /app/data
+      sizeGB: 1

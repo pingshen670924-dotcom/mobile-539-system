@@ -14,13 +14,14 @@ import zipfile
 from collections import defaultdict
 from datetime import datetime, time as clock_time, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from analyze_539 import analyze, save_analysis
 from battle_report import ENHANCED_BATTLE_HTML, build_report, save_battle_reports
-from crowd_consensus import run_cycle as run_crowd_cycle
 from dashboard import DASHBOARD_HTML, save_dashboard
 from health_check import build_health, save_health
 from model_competition import run_competition, save_competition
+from research_kpi import evaluate_research_kpis
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -36,6 +37,11 @@ LATEST_API = f"{API_BASE}/Lottery/LatestResult"
 HISTORY_API = f"{API_BASE}/Lottery/Daily539Result"
 
 START_ROC_YEAR = 96
+TAIPEI_TZ = ZoneInfo("Asia/Taipei")
+
+
+def taipei_now():
+    return datetime.now(TAIPEI_TZ).replace(tzinfo=None)
 GAME_NAME = "\u4eca\u5f69539"
 
 
@@ -53,11 +59,11 @@ def setup_logging():
 
 
 def roc_year_now():
-    return datetime.now().year - 1911
+    return taipei_now().year - 1911
 
 
 def expected_latest_draw_date(now=None):
-    now = now or datetime.now()
+    now = now or taipei_now()
     candidate = now.date()
     if now.time() < clock_time(21, 0):
         candidate -= timedelta(days=1)
@@ -67,7 +73,7 @@ def expected_latest_draw_date(now=None):
 
 
 def data_freshness(latest_date, now=None):
-    now = now or datetime.now()
+    now = now or taipei_now()
     expected = expected_latest_draw_date(now)
     latest = datetime.strptime(latest_date, "%Y-%m-%d").date()
     expected_date = datetime.strptime(expected, "%Y-%m-%d").date()
@@ -414,7 +420,7 @@ def update_latest(conn):
 
 
 def month_strings(count=2):
-    today = datetime.now()
+    today = taipei_now()
     year = today.year
     month = today.month
     months = []
@@ -603,7 +609,7 @@ def store_prediction_snapshot(conn, analysis, reason):
             latest["period"],
             latest["draw_date"],
             latest["period"] + 1,
-            json.dumps(analysis["candidates"], ensure_ascii=False),
+            json.dumps(analysis.get("official_candidates", analysis["candidates"]), ensure_ascii=False),
             json.dumps(analysis["suggested_sets"], ensure_ascii=False),
             json.dumps(analysis["strong_prediction_packs"], ensure_ascii=False),
             json.dumps(analysis["model_weights"], ensure_ascii=False),
@@ -642,18 +648,29 @@ def archive_existing_prediction(conn, prediction_id, reason):
 
 def store_prediction(conn, analysis):
     latest = analysis["latest_draw"]
+    new_candidates_json = json.dumps(analysis.get("official_candidates", analysis["candidates"]), ensure_ascii=False)
+    new_sets_json = json.dumps(analysis["suggested_sets"], ensure_ascii=False)
+    new_packs_json = json.dumps(analysis["strong_prediction_packs"], ensure_ascii=False)
+    new_weights_json = json.dumps(analysis["model_weights"], ensure_ascii=False)
+    new_backtest_json = json.dumps(analysis["backtest"], ensure_ascii=False)
     exists = conn.execute(
-        "SELECT id, status, candidates_json FROM predictions_539 WHERE based_on_period=?",
+        """
+        SELECT id, status, candidates_json, suggested_sets_json, strong_packs_json,
+               model_weights_json, backtest_json
+        FROM predictions_539
+        WHERE based_on_period=?
+        """,
         (latest["period"],),
     ).fetchone()
     if exists:
         previous_guard = analysis.get("industrial_engine", {}).get("previous_prediction_guard", {})
+        restored_mode = analysis.get("prediction_mode") == "restored_20260604_hit4_v31"
         existing_top15 = {
             item["number"] for item in json.loads(exists[2] or "[]")[:15]
         }
         previous_top15 = set(previous_guard.get("previous_top15", []))
         requires_guard_correction = bool(existing_top15 & previous_top15)
-        if exists[1] == "pending" and previous_guard and requires_guard_correction and not previous_guard.get("current_top15_overlap"):
+        if exists[1] == "pending" and not restored_mode and previous_guard and requires_guard_correction and not previous_guard.get("current_top15_overlap"):
             archive_existing_prediction(conn, exists[0], "official_prediction_before_previous_prediction_guard_correction")
             conn.execute(
                 """
@@ -675,9 +692,38 @@ def store_prediction(conn, analysis):
             store_prediction_snapshot(conn, analysis, "official_prediction_corrected_by_previous_prediction_guard")
             conn.commit()
             return "corrected_pending"
+        changed = (
+            exists[2] != new_candidates_json
+            or exists[3] != new_sets_json
+            or (exists[4] or "") != new_packs_json
+            or exists[5] != new_weights_json
+            or exists[6] != new_backtest_json
+        )
+        if exists[1] == "pending" and changed:
+            archive_existing_prediction(conn, exists[0], "official_prediction_before_recalculation_update")
+            conn.execute(
+                """
+                UPDATE predictions_539
+                SET candidates_json=?, suggested_sets_json=?, strong_packs_json=?,
+                    model_weights_json=?, backtest_json=?, created_at=?
+                WHERE id=?
+                """,
+                (
+                    new_candidates_json,
+                    new_sets_json,
+                    new_packs_json,
+                    new_weights_json,
+                    new_backtest_json,
+                    datetime.now().isoformat(timespec="seconds"),
+                    exists[0],
+                ),
+            )
+            store_prediction_snapshot(conn, analysis, "official_prediction_recalculated_and_updated")
+            conn.commit()
+            return "updated_pending"
         store_prediction_snapshot(conn, analysis, "rerun_preserved_official_prediction")
         conn.commit()
-        return "preserved_pending" if exists[1] == "pending" else "preserved_settled"
+        return "recalculated_same_as_official" if exists[1] == "pending" else "preserved_settled"
     conn.execute(
         """
         INSERT INTO predictions_539 (
@@ -691,11 +737,11 @@ def store_prediction(conn, analysis):
             latest["period"],
             latest["draw_date"],
             latest["period"] + 1,
-            json.dumps(analysis["candidates"], ensure_ascii=False),
-            json.dumps(analysis["suggested_sets"], ensure_ascii=False),
-            json.dumps(analysis["strong_prediction_packs"], ensure_ascii=False),
-            json.dumps(analysis["model_weights"], ensure_ascii=False),
-            json.dumps(analysis["backtest"], ensure_ascii=False),
+            new_candidates_json,
+            new_sets_json,
+            new_packs_json,
+            new_weights_json,
+            new_backtest_json,
             datetime.now().isoformat(timespec="seconds"),
         ),
     )
@@ -715,11 +761,14 @@ def prediction_performance(conn):
     if not rows:
         return {"settled": 0}
     set_hit_totals = []
+    kpi_records = []
     pack_stats = defaultdict(lambda: {"rounds": 0, "passed": 0, "hits": 0})
     for row in rows:
         set_hits = json.loads(row[3] or "[]")
         set_hit_totals.extend(item["hits"] for item in set_hits)
-        for key, item in json.loads(row[4] or "{}").items():
+        strong_pack_hits = json.loads(row[4] or "{}")
+        kpi_records.append({"top15_hits": row[2], "strong_pack_hits": strong_pack_hits})
+        for key, item in strong_pack_hits.items():
             pack_stats[key]["rounds"] += 1
             pack_stats[key]["passed"] += 1 if item.get("passed") else 0
             pack_stats[key]["hits"] += item.get("hits", 0)
@@ -738,6 +787,7 @@ def prediction_performance(conn):
             }
             for key, value in pack_stats.items()
         },
+        "research_kpi": evaluate_research_kpis(kpi_records),
     }
 
 
@@ -809,9 +859,17 @@ def main():
             raise
 
     analysis = analyze(DB_PATH)
-    crowd_consensus = run_crowd_cycle(DB_PATH)
-    analysis["crowd_consensus"] = crowd_consensus
     analysis["data_freshness"] = freshness
+    with sqlite3.connect(DB_PATH) as conn:
+        init_db(conn)
+        live_performance = prediction_performance(conn)
+    research_kpi = live_performance.get("research_kpi", {})
+    analysis["research_kpi"] = research_kpi
+    if not research_kpi.get("release_allowed", False):
+        release_gate = analysis.setdefault("industrial_engine", {}).setdefault("release_gate", {})
+        release_gate["status"] = "research_kpi_blocked"
+        release_gate["research_kpi_status"] = research_kpi.get("status")
+        release_gate["research_kpi_release_allowed"] = False
     if freshness and freshness["status"] != "fresh":
         release_gate = analysis.setdefault("industrial_engine", {}).setdefault("release_gate", {})
         release_gate["status"] = "stale_data_blocked"
@@ -822,15 +880,40 @@ def main():
 
     with sqlite3.connect(DB_PATH) as conn:
         init_db(conn)
-        prediction_status = store_prediction(conn, analysis)
-        if prediction_status == "inserted":
-            logging.info("\u5df2\u65b0\u589e\u9810\u6e2c\u7d00\u9304：based_on_period=%s", analysis["latest_draw"]["period"])
-        elif prediction_status == "corrected_pending":
-            logging.info("Pending official prediction corrected by previous-prediction guard: based_on_period=%s", analysis["latest_draw"]["period"])
-        elif prediction_status == "preserved_pending":
-            logging.info("\u5df2\u4fdd\u7559\u540c\u671f\u5f85\u7d50\u7b97\u6b63\u5f0f\u9810\u6e2c，\u672c\u6b21\u91cd\u8dd1\u53e6\u5b58\u5feb\u7167：based_on_period=%s", analysis["latest_draw"]["period"])
+        prediction_status = "stale_data_blocked"
+        aerospace_status = analysis.get("aerospace_assurance", {}).get("release_assurance", {}).get("status")
+        if aerospace_status == "blocked":
+            prediction_status = "aerospace_assurance_blocked"
+            store_prediction_snapshot(conn, analysis, "aerospace_assurance_blocked_official_prediction")
+            conn.commit()
+            logging.warning("Official prediction blocked by aerospace assurance.")
+        elif freshness and freshness["status"] != "fresh":
+            store_prediction_snapshot(conn, analysis, "stale_data_analysis_snapshot_no_official_prediction")
+            conn.commit()
+            logging.warning(
+                "Official prediction blocked because data is stale: latest=%s expected=%s",
+                freshness.get("latest_date"),
+                freshness.get("expected_latest_date"),
+            )
         else:
-            logging.info("\u6b63\u5f0f\u9810\u6e2c\u7d00\u9304\u5df2\u7d50\u7b97，\u672c\u6b21\u91cd\u8dd1\u53e6\u5b58\u5feb\u7167：based_on_period=%s", analysis["latest_draw"]["period"])
+            prediction_status = store_prediction(conn, analysis)
+            if prediction_status == "inserted":
+                logging.info("\u5df2\u65b0\u589e\u9810\u6e2c\u7d00\u9304：based_on_period=%s", analysis["latest_draw"]["period"])
+            elif prediction_status == "corrected_pending":
+                logging.info("Pending official prediction corrected by previous-prediction guard: based_on_period=%s", analysis["latest_draw"]["period"])
+            elif prediction_status == "updated_pending":
+                logging.info("Pending official prediction recalculated and updated: based_on_period=%s", analysis["latest_draw"]["period"])
+            elif prediction_status == "recalculated_same_as_official":
+                logging.info("\u5df2\u91cd\u65b0\u904b\u7b97，\u7d50\u679c\u8207\u76ee\u524d\u6b63\u5f0f\u9810\u6e2c\u76f8\u540c，\u672c\u6b21\u53e6\u5b58\u5feb\u7167：based_on_period=%s", analysis["latest_draw"]["period"])
+            else:
+                logging.info("\u6b63\u5f0f\u9810\u6e2c\u7d00\u9304\u5df2\u7d50\u7b97，\u672c\u6b21\u91cd\u8dd1\u53e6\u5b58\u5feb\u7167：based_on_period=%s", analysis["latest_draw"]["period"])
+        if (
+            analysis.get("industrial_engine", {}).get("release_gate", {}).get("status") != "official"
+            and prediction_status not in {"stale_data_blocked", "aerospace_assurance_blocked"}
+        ):
+            prediction_status = "observation_only_" + prediction_status
+        analysis["official_prediction_status"] = prediction_status
+        save_analysis(analysis)
         performance = prediction_performance(conn)
         logging.info("\u5be6\u969b\u9810\u6e2c\u7e3e\u6548：%s", json.dumps(performance, ensure_ascii=False))
 

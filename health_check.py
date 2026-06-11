@@ -4,6 +4,8 @@ from collections import defaultdict
 from datetime import datetime, time as clock_time, timedelta
 from pathlib import Path
 
+from research_kpi import evaluate_research_kpis
+
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
@@ -40,10 +42,13 @@ def prediction_performance(conn):
     if not rows:
         return {"settled": 0}
     set_hits = []
+    kpi_records = []
     pack_stats = defaultdict(lambda: {"rounds": 0, "passed": 0, "hits": 0})
     for row in rows:
         set_hits.extend(item["hits"] for item in json.loads(row[3] or "[]"))
-        for key, item in json.loads(row[4] or "{}").items():
+        strong_pack_hits = json.loads(row[4] or "{}")
+        kpi_records.append({"top15_hits": row[2], "strong_pack_hits": strong_pack_hits})
+        for key, item in strong_pack_hits.items():
             pack_stats[key]["rounds"] += 1
             pack_stats[key]["passed"] += 1 if item.get("passed") else 0
             pack_stats[key]["hits"] += item.get("hits", 0)
@@ -62,6 +67,7 @@ def prediction_performance(conn):
             }
             for key, value in pack_stats.items()
         },
+        "research_kpi": evaluate_research_kpis(kpi_records),
     }
 
 
@@ -173,9 +179,37 @@ def build_health():
             }
         )
 
-    if health["last_run"]["status"] != "success":
+    analysis_period = None
+    analysis_based_on_period = None
+    if latest_analysis_path.exists():
+        try:
+            analysis_payload = json.loads(latest_analysis_path.read_text(encoding="utf-8"))
+            analysis_period = analysis_payload.get("latest_draw", {}).get("period")
+            analysis_based_on_period = analysis_payload.get("latest_draw", {}).get("period")
+        except (OSError, json.JSONDecodeError, AttributeError):
+            health["status"] = "warning"
+            health["warnings"].append("latest analysis cannot be read")
+
+    database_period = health.get("latest_draw", {}).get("period")
+    health["analysis_sync"] = {
+        "database_latest_period": database_period,
+        "analysis_latest_period": analysis_period,
+        "prediction_based_on_period": analysis_based_on_period,
+        "status": "synced" if str(analysis_period) == str(database_period) else "behind",
+    }
+    if latest_analysis_path.exists() and str(analysis_period) != str(database_period):
         health["status"] = "warning"
-        health["warnings"].append("last update run was not successful")
+        health["warnings"].append("latest analysis/report is behind database")
+
+    if health["last_run"]["status"] != "success":
+        message = health["last_run"].get("message") or ""
+        if health.get("data_freshness", {}).get("status") == "fresh" and "WinError 10013" in message:
+            health["external_risk"] = "network_permission_blocked_but_local_data_is_fresh"
+            health["status"] = "warning"
+            health["warnings"].append("external network was blocked, but local data is fresh")
+        else:
+            health["status"] = "warning"
+            health["warnings"].append("last update run was not successful")
     if health.get("data_freshness", {}).get("status") != "fresh":
         health["status"] = "warning"
         health["warnings"].append("database is behind the expected latest draw date")
@@ -204,9 +238,12 @@ def save_health(health):
         f"- \u7522\u751f\u6642\u9593：{health['generated_at']}",
         f"- \u72c0\u614b：{health['status']}",
         f"- \u8b66\u544a：{', '.join(health['warnings']) if health['warnings'] else '\u7121'}",
+        f"- \u5916\u90e8\u98a8\u96aa：{health.get('external_risk', '\u7121')}",
         f"- \u8cc7\u6599\u7b46\u6578：{health.get('draw_count', 0)}",
         f"- \u6700\u65b0\u671f\u5225：{latest.get('period')} ({latest.get('draw_date')})",
         "- \u6700\u65b0\u865f\u78bc：" + " ".join(f"{n:02d}" for n in latest.get("numbers", [])),
+        f"- \u5206\u6790\u540c\u6b65：{health.get('analysis_sync', {}).get('status')} / "
+        f"{health.get('analysis_sync', {}).get('analysis_latest_period')}",
         f"- \u6700\u8fd1\u66f4\u65b0：{health.get('last_run', {}).get('status')} / {health.get('last_run', {}).get('finished_at')}",
         f"- \u5099\u4efd\u6578\u91cf：{health.get('backup_count', 0)}",
         f"- \u5f85\u7d50\u7b97\u9810\u6e2c：{health.get('pending_predictions', 0)}",

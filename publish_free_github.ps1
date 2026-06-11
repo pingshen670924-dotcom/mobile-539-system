@@ -1,7 +1,6 @@
 $ErrorActionPreference = "Stop"
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-Set-Location $ScriptDir
 $RepoName = "mobile-539-system"
 
 function Refresh-Path {
@@ -43,6 +42,45 @@ function Test-GhRepository {
   return $exists
 }
 
+function Confirm-TemporaryPath {
+  param([string]$Path)
+  $resolvedTemp = [System.IO.Path]::GetFullPath($env:TEMP).TrimEnd([char]92)
+  $resolvedPath = [System.IO.Path]::GetFullPath($Path).TrimEnd([char]92)
+  if (-not $resolvedPath.StartsWith($resolvedTemp, [System.StringComparison]::OrdinalIgnoreCase)) {
+    throw "The publish stage must remain inside the user temporary directory."
+  }
+}
+
+function Clear-PublishStage {
+  param([string]$Path)
+  Confirm-TemporaryPath $Path
+  Get-ChildItem -LiteralPath $Path -Force |
+    Where-Object { $_.Name -ne ".git" } |
+    Remove-Item -Recurse -Force
+}
+
+function Copy-PublishPayload {
+  param([string]$From, [string]$To)
+  Confirm-TemporaryPath $To
+  New-Item -ItemType Directory -Path $To -Force | Out-Null
+
+  Get-ChildItem -LiteralPath $From -Force -File |
+    Where-Object { $_.Name -ne "crowd_consensus.py" } |
+    ForEach-Object {
+      Copy-Item -LiteralPath $_.FullName -Destination $To -Force
+    }
+
+  foreach ($directoryName in @(".github", "data", "reports", "site")) {
+    $sourceDirectory = Join-Path $From $directoryName
+    if (Test-Path $sourceDirectory) {
+      Copy-Item -LiteralPath $sourceDirectory -Destination $To -Recurse -Force
+    }
+  }
+
+  Get-ChildItem -LiteralPath $To -Recurse -Force -File -Filter "crowd_consensus*" |
+    Remove-Item -Force
+}
+
 Write-Host "Preparing the free independent mobile 539 system..."
 Ensure-Command "git" "Git.Git"
 Ensure-Command "gh" "GitHub.cli"
@@ -56,57 +94,74 @@ if (-not (Test-GhAuthentication)) {
 }
 
 $Owner = gh api user --jq .login
-if (-not (Test-GhRepository "$Owner/$RepoName")) {
-  git init
-  git checkout -b main
-  git config user.name "$Owner"
-  git config user.email "$Owner@users.noreply.github.com"
-  git add .
-  git commit -m "Create free independent mobile 539 system"
-  gh repo create $RepoName --public --source . --remote origin --push
-} else {
-  if (-not (Test-Path ".git")) {
-    git init
-    git remote add origin "https://github.com/$Owner/$RepoName.git"
-    git fetch origin main
-    git checkout -b main
-    git reset origin/main
-  } else {
-    git fetch origin main
-    git reset origin/main
-  }
-  git config user.name "$Owner"
-  git config user.email "$Owner@users.noreply.github.com"
-  git add .
-  git diff --cached --quiet
-  if ($LASTEXITCODE -ne 0) {
-    git commit -m "Update free independent mobile 539 system"
-  }
-  git push -u origin main
+if (-not $Owner) {
+  throw "The GitHub account name could not be detected."
 }
 
+$Repository = "$Owner/$RepoName"
+$RepositoryExists = Test-GhRepository $Repository
+$PublishStage = Join-Path $env:TEMP ("mobile-539-publish-" + [guid]::NewGuid().ToString("N"))
+Confirm-TemporaryPath $PublishStage
+
 try {
-  gh api "repos/$Owner/$RepoName/pages" -X POST -f build_type=workflow | Out-Null
-} catch {
-  Write-Host "GitHub Pages already exists or will be enabled by the workflow."
+  if ($RepositoryExists) {
+    gh repo clone $Repository $PublishStage
+    if ($LASTEXITCODE -ne 0) {
+      throw "The existing mobile repository could not be cloned."
+    }
+    Clear-PublishStage $PublishStage
+  } else {
+    New-Item -ItemType Directory -Path $PublishStage -Force | Out-Null
+    git -C $PublishStage init
+    git -C $PublishStage checkout -b main
+  }
+
+  Copy-PublishPayload $ScriptDir $PublishStage
+  git -C $PublishStage config user.name $Owner
+  git -C $PublishStage config user.email "$Owner@users.noreply.github.com"
+  git -C $PublishStage add --all
+  git -C $PublishStage diff --cached --quiet
+  if ($LASTEXITCODE -ne 0) {
+    git -C $PublishStage commit -m "Update free independent mobile 539 system"
+  }
+
+  if ($RepositoryExists) {
+    git -C $PublishStage push origin main
+  } else {
+    gh repo create $RepoName --public --source $PublishStage --remote origin --push
+  }
+  if ($LASTEXITCODE -ne 0) {
+    throw "The mobile website files could not be pushed to GitHub."
+  }
+} finally {
+  if (Test-Path $PublishStage) {
+    Confirm-TemporaryPath $PublishStage
+    Remove-Item -LiteralPath $PublishStage -Recurse -Force -ErrorAction SilentlyContinue
+  }
 }
+
+$previousPreference = $ErrorActionPreference
+$ErrorActionPreference = "SilentlyContinue"
+gh api "repos/$Repository/pages" -X POST -f build_type=workflow *> $null
+$ErrorActionPreference = $previousPreference
 
 $PageUrl = "https://$Owner.github.io/$RepoName/"
 $UrlName = ([char]0x624B) + ([char]0x6A5F) + ([char]0x7368) + ([char]0x7ACB) + ([char]0x7248) + ([char]0x7DB2) + ([char]0x5740) + ".txt"
 Set-Content -Path (Join-Path $ScriptDir $UrlName) -Value $PageUrl -Encoding UTF8
 
 Write-Host ""
-Write-Host "Starting the first cloud calculation and website deployment..."
-gh workflow run daily-update.yml --repo "$Owner/$RepoName"
+Write-Host "Starting the cloud calculation and website deployment..."
+gh workflow run daily-update.yml --repo $Repository
+if ($LASTEXITCODE -ne 0) {
+  throw "The cloud update workflow could not be started."
+}
+
 Start-Sleep -Seconds 5
-$RunId = gh run list --repo "$Owner/$RepoName" --workflow daily-update.yml --limit 1 --json databaseId --jq ".[0].databaseId"
+$RunId = gh run list --repo $Repository --workflow daily-update.yml --limit 1 --json databaseId --jq ".[0].databaseId"
 if ($RunId) {
-  gh run watch $RunId --repo "$Owner/$RepoName" --exit-status
+  gh run watch $RunId --repo $Repository --exit-status
   if ($LASTEXITCODE -ne 0) {
-    Write-Host ""
-    Write-Host "The first deployment did not finish successfully."
-    Write-Host "Opening the GitHub Actions page so the error can be inspected."
-    Start-Process "https://github.com/$Owner/$RepoName/actions"
+    Start-Process "https://github.com/$Repository/actions"
     throw "GitHub Pages deployment failed."
   }
 }

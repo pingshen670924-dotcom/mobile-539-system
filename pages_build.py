@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parent
 REPORTS = ROOT / "reports"
 SITE = ROOT / "site"
 REPORT = REPORTS / "539\u6700\u65b0\u5f37\u5316\u6230\u5831.html"
+HISTORY_REPORT = REPORTS / "539\u6bcf\u671f\u9810\u6e2c\u5c0d\u6bd4.html"
 REPOSITORY = os.environ.get("GITHUB_REPOSITORY", "OWNER/REPOSITORY")
 
 
@@ -21,15 +22,29 @@ def build():
     controls = f"""
     <section class="band">
       <h2>\u624b\u6a5f\u7368\u7acb\u64cd\u4f5c</h2>
-      <p><a class="mobile-action" href="{repository_url('actions/workflows/daily-update.yml')}">\u7acb\u5373\u66f4\u65b0\u8207\u91cd\u65b0\u904b\u7b97</a></p>
-      <p><a class="mobile-action secondary" href="{repository_url('issues/new?template=crowd-numbers.yml')}">\u63d0\u4ea4 Facebook / \u793e\u5718\u4eba\u6c23\u865f\u78bc</a></p>
-      <p>\u6bcf\u65e5\u53f0\u5317\u6642\u9593 21:10\u300121:40\u300122:10 \u81ea\u52d5\u5617\u8a66\u66f4\u65b0\u3002\u7db2\u8def\u4eba\u6c23\u672a\u901a\u904e100\u671f\u56de\u6e2c\u524d\u6b0a\u91cd\u70ba0\u3002</p>
+      <p><a class="mobile-action history" href="prediction-history.html">\u67e5\u770b\u6bcf\u671f\u9810\u6e2c\u5c0d\u6bd4</a></p>
+      <p><a class="mobile-action" href="{repository_url('actions/workflows/daily-update.yml')}">\u767b\u5165 GitHub \u5f8c\u7acb\u5373\u66f4\u65b0</a></p>
+      <p>\u514d\u8cbb\u624b\u6a5f\u7248\u6703\u81ea\u52d5\u66f4\u65b0\uff1a\u53f0\u5317\u6642\u9593 20:50 \u9810\u5099\u6aa2\u67e5\uff0c21:00-23:50 \u6bcf10\u5206\u9418\u91cd\u8a66\uff0c00:10 \u6700\u5f8c\u6aa2\u67e5\u3002\u624b\u52d5\u7acb\u5373\u66f4\u65b0\u9700\u767b\u5165 GitHub\u3002</p>
+      <p>\u624b\u6a5f\u7248\u8207\u96fb\u8166\u7248\u53ef\u540c\u6642\u5b58\u5728\uff1a\u96fb\u8166\u7248\u5728\u672c\u6a5f\u8f38\u51fa\u5b8c\u6574\u6230\u5831\uff0c\u624b\u6a5f\u7248\u5728 GitHub \u96f2\u7aef\u7368\u7acb\u66f4\u65b0\uff0c\u4e92\u4e0d\u8986\u84cb\u3002</p>
     </section>
     """
     style = """
     <style>
       .mobile-action{display:block;text-align:center;padding:14px;background:#166534;color:#fff!important;text-decoration:none;border-radius:6px;font-weight:800}
       .mobile-action.secondary{background:#0f766e}
+      .mobile-action.history{background:#1d4ed8}
+      .band{overflow-x:auto}
+      table{min-width:720px}
+      @media (max-width:640px){
+        header{padding:16px}
+        header h1{font-size:22px}
+        main{padding:10px}
+        .band{padding:12px;margin-top:10px}
+        .grid{grid-template-columns:1fr}
+        .card{padding:12px}
+        th,td{padding:8px;font-size:13px;white-space:normal;vertical-align:top}
+        .value{font-size:20px}
+      }
     </style>
     <link rel="manifest" href="manifest.webmanifest">
     <meta name="theme-color" content="#111827">
@@ -38,10 +53,12 @@ def build():
     html = html.replace("<main>", "<main>" + controls, 1)
     html = html.replace("</body>", '<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("service-worker.js");</script></body>')
     (SITE / "index.html").write_text(html, encoding="utf-8")
-    for name in ["latest_analysis.json", "crowd_consensus.json", "health_status.json", "model_competition.json"]:
+    for name in ["latest_analysis.json", "health_status.json", "model_competition.json", "prediction_history.json"]:
         source = REPORTS / name
         if source.exists():
             shutil.copy2(source, SITE / name)
+    if HISTORY_REPORT.exists():
+        shutil.copy2(HISTORY_REPORT, SITE / "prediction-history.html")
     manifest = {
         "name": "539 \u624b\u6a5f\u7368\u7acb\u7cfb\u7d71",
         "short_name": "539\u7cfb\u7d71",
@@ -53,7 +70,7 @@ def build():
     }
     (SITE / "manifest.webmanifest").write_text(json.dumps(manifest, ensure_ascii=False), encoding="utf-8")
     (SITE / "service-worker.js").write_text(
-        'const CACHE="539-v1";self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(["./","index.html"]))));self.addEventListener("fetch",e=>e.respondWith(fetch(e.request).catch(()=>caches.match(e.request))));',
+        'const CACHE="539-v31-restored-20260611";self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(["./","index.html","prediction-history.html"]))));self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))));self.addEventListener("fetch",e=>e.respondWith(fetch(e.request).catch(()=>caches.match(e.request))));',
         encoding="utf-8",
     )
     (SITE / "icon.svg").write_text(
