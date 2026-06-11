@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-12T00:42:14",
+  "generated_at": "2026-06-12T00:53:08",
   "total_periods": 11,
   "settled_periods": 10,
   "pending_periods": 1,
@@ -56,7 +56,7 @@
       "status": "pending",
       "created_at": "2026-06-11T16:42:14",
       "settled_at": null,
-      "snapshot_count": 1
+      "snapshot_count": 2
     },
     {
       "based_on_period": 115000141,
