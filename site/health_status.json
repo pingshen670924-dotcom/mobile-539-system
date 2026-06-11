@@ -1,14 +1,12 @@
 {
-  "generated_at": "2026-06-11T09:14:05",
+  "generated_at": "2026-06-11T02:03:56",
   "database_exists": true,
-  "backup_count": 10,
-  "latest_backup": "C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\backups\\539_20260611_091256.sqlite",
+  "backup_count": 1,
+  "latest_backup": "/home/runner/work/mobile-539-system/mobile-539-system/backups/539_20260611_020303.sqlite",
   "log_exists": true,
   "latest_analysis_exists": true,
-  "status": "warning",
-  "warnings": [
-    "external network was blocked, but local data is fresh"
-  ],
+  "status": "ok",
+  "warnings": [],
   "draw_count": 5885,
   "period_range": [
     96000001,
@@ -29,7 +27,7 @@
       39
     ],
     "source": "taiwanlottery_latest_result",
-    "fetched_at": "2026-06-11T08:57:06"
+    "fetched_at": "2026-06-11T02:03:04"
   },
   "data_freshness": {
     "status": "fresh",
@@ -38,14 +36,14 @@
   },
   "last_run": {
     "run_type": "latest",
-    "started_at": "2026-06-11T09:12:56",
-    "finished_at": "2026-06-11T09:13:09",
-    "status": "warning",
-    "message": "{\"rows\": 5885, \"invalid_periods\": [], \"duplicate_periods\": [], \"latest_period\": 115000141, \"latest_date\": \"2026-06-10\", \"warnings\": [\"recent_month_download: 下載失敗：https://api.taiwanlottery.com/TLCAPIWeB/Lottery/Daily539Result?month=2026-06&endMonth=2026-06&pageNum=1&pageSize=100 (<urlopen error [WinError 10013] 嘗試存取通訊端被拒絕，因為存取權限不足。>)\", \"latest_download: 下載失敗：https://api.taiwanlottery.com/TLCAPIWeB/Lottery/LatestResult (<urlopen error [WinError 10013] 嘗試存取通訊端被拒絕，因為存取權限不足。>)\"]}"
+    "started_at": "2026-06-11T02:03:03",
+    "finished_at": "2026-06-11T02:03:04",
+    "status": "success",
+    "message": "{\"rows\": 5885, \"invalid_periods\": [], \"duplicate_periods\": [], \"latest_period\": 115000141, \"latest_date\": \"2026-06-10\"}"
   },
   "pending_predictions": 1,
   "settled_predictions": 9,
-  "prediction_snapshots": 55,
+  "prediction_snapshots": 56,
   "prediction_performance": {
     "settled": 9,
     "top5_avg_hits": 1.0,
@@ -169,6 +167,5 @@
     "analysis_latest_period": 115000141,
     "prediction_based_on_period": 115000141,
     "status": "synced"
-  },
-  "external_risk": "network_permission_blocked_but_local_data_is_fresh"
+  }
 }
