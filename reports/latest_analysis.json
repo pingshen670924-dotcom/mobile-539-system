@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-12T00:52:56",
+  "generated_at": "2026-06-12T02:54:00",
   "prediction_mode": "restored_20260604_hit4_v31",
   "latest_draw": {
     "period": 115000142,
@@ -5076,7 +5076,7 @@
     "latest_date": "2026-06-11",
     "expected_latest_date": "2026-06-11",
     "lag_days": 0,
-    "checked_at": "2026-06-12T00:52:17"
+    "checked_at": "2026-06-12T02:53:21"
   },
   "research_kpi": {
     "status": "insufficient_samples",
