@@ -1,9 +1,63 @@
 {
-  "generated_at": "2026-06-12T02:54:12",
-  "total_periods": 11,
-  "settled_periods": 10,
+  "generated_at": "2026-06-12T23:58:17",
+  "total_periods": 12,
+  "settled_periods": 11,
   "pending_periods": 1,
   "periods": [
+    {
+      "based_on_period": 115000143,
+      "based_on_date": "2026-06-12",
+      "target_period": 115000144,
+      "target_expected_date": "2026-06-13",
+      "top5": [
+        7,
+        12,
+        28,
+        25,
+        22
+      ],
+      "top10": [
+        7,
+        12,
+        28,
+        25,
+        22,
+        26,
+        15,
+        20,
+        9,
+        11
+      ],
+      "top15": [
+        7,
+        12,
+        28,
+        25,
+        22,
+        26,
+        15,
+        20,
+        9,
+        11,
+        5,
+        37,
+        27,
+        32,
+        34
+      ],
+      "actual_period": null,
+      "actual_date": null,
+      "actual_numbers": [],
+      "top5_hits": null,
+      "top10_hits": null,
+      "top15_hits": null,
+      "top10_hit_numbers": [],
+      "strong_pack_hits": {},
+      "status": "pending",
+      "created_at": "2026-06-12T15:58:17",
+      "settled_at": null,
+      "snapshot_count": 1
+    },
     {
       "based_on_period": 115000142,
       "based_on_date": "2026-06-11",
@@ -45,17 +99,86 @@
         23,
         17
       ],
-      "actual_period": null,
-      "actual_date": null,
-      "actual_numbers": [],
-      "top5_hits": null,
-      "top10_hits": null,
-      "top15_hits": null,
-      "top10_hit_numbers": [],
-      "strong_pack_hits": {},
-      "status": "pending",
+      "actual_period": 115000143,
+      "actual_date": "2026-06-12",
+      "actual_numbers": [
+        6,
+        8,
+        18,
+        29,
+        31
+      ],
+      "top5_hits": 1,
+      "top10_hits": 1,
+      "top15_hits": 1,
+      "top10_hit_numbers": [
+        6
+      ],
+      "strong_pack_hits": {
+        "strong_single": {
+          "name": "最強單支",
+          "hit_goal": 1,
+          "numbers": [
+            2
+          ],
+          "hits": 0,
+          "passed": false
+        },
+        "two_hit_one": {
+          "name": "最強2中1",
+          "hit_goal": 1,
+          "numbers": [
+            2,
+            6
+          ],
+          "hits": 1,
+          "passed": true
+        },
+        "three_hit_one": {
+          "name": "最強3中1",
+          "hit_goal": 1,
+          "numbers": [
+            2,
+            6,
+            21
+          ],
+          "hits": 1,
+          "passed": true
+        },
+        "five_hit_two": {
+          "name": "最強5中2",
+          "hit_goal": 2,
+          "numbers": [
+            2,
+            6,
+            21,
+            24,
+            38
+          ],
+          "hits": 1,
+          "passed": false
+        },
+        "nine_hit_three": {
+          "name": "最強9中3",
+          "hit_goal": 3,
+          "numbers": [
+            2,
+            4,
+            6,
+            14,
+            16,
+            21,
+            24,
+            36,
+            38
+          ],
+          "hits": 1,
+          "passed": false
+        }
+      },
+      "status": "settled",
       "created_at": "2026-06-11T16:42:14",
-      "settled_at": null,
+      "settled_at": "2026-06-12T15:57:29",
       "snapshot_count": 3
     },
     {
