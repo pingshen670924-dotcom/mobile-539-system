@@ -1,21 +1,15 @@
 {
-  "generated_at": "2026-06-12T10:09:30",
-  "status": "ok",
-  "checked_files": 100,
+  "generated_at": "2026-06-15T12:23:05",
+  "status": "warning",
+  "checked_files": 106,
   "failed_count": 0,
-  "warning_count": 0,
+  "warning_count": 2,
   "files": [
     {
-      "path": "539-one-click.bat",
+      "path": "539一鍵全自動啟動.bat",
       "status": "ok",
       "warnings": [],
-      "size": 159
-    },
-    {
-      "path": "539-repair-network.bat",
-      "status": "ok",
-      "warnings": [],
-      "size": 170
+      "size": 153
     },
     {
       "path": "539安裝.ps1",
@@ -37,9 +31,11 @@
     },
     {
       "path": "analyze_539.py",
-      "status": "ok",
-      "warnings": [],
-      "size": 41995
+      "status": "warning",
+      "warnings": [
+        "direct_cjk_found_in_code"
+      ],
+      "size": 44905
     },
     {
       "path": "auto_update_monitor.ps1",
@@ -51,7 +47,13 @@
       "path": "battle_report.py",
       "status": "ok",
       "warnings": [],
-      "size": 87290
+      "size": 115885
+    },
+    {
+      "path": "cleanup_report.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 917
     },
     {
       "path": "cloud_entry.py",
@@ -87,7 +89,7 @@
       "path": "industrial_engine.py",
       "status": "ok",
       "warnings": [],
-      "size": 42299
+      "size": 73438
     },
     {
       "path": "install_all_auto_tasks.ps1",
@@ -141,7 +143,7 @@
       "path": "main_one_click.ps1",
       "status": "ok",
       "warnings": [],
-      "size": 3263
+      "size": 4649
     },
     {
       "path": "mobile_server.py",
@@ -165,7 +167,7 @@
       "path": "pages_build.py",
       "status": "ok",
       "warnings": [],
-      "size": 4430
+      "size": 7190
     },
     {
       "path": "publish_free_github.ps1",
@@ -189,13 +191,13 @@
       "path": "research_kpi.py",
       "status": "ok",
       "warnings": [],
-      "size": 2798
+      "size": 3121
     },
     {
       "path": "run_539_once.ps1",
       "status": "ok",
       "warnings": [],
-      "size": 3507
+      "size": 3417
     },
     {
       "path": "setup_line_push.ps1",
@@ -231,7 +233,7 @@
       "path": "update_539.py",
       "status": "ok",
       "warnings": [],
-      "size": 41757
+      "size": 45185
     },
     {
       "path": "一鍵啟動主系統.ps1",
@@ -282,10 +284,24 @@
       "size": 932
     },
     {
+      "path": "手機獨立版網址.txt",
+      "status": "ok",
+      "warnings": [],
+      "size": 63
+    },
+    {
       "path": "手機獨立版部署說明.txt",
       "status": "ok",
       "warnings": [],
       "size": 1013
+    },
+    {
+      "path": "清理主程式垃圾.ps1",
+      "status": "warning",
+      "warnings": [
+        "direct_cjk_found_in_code"
+      ],
+      "size": 1536
     },
     {
       "path": "網路權限診斷.ps1",
@@ -300,58 +316,10 @@
       "size": 913
     },
     {
-      "path": "點我一鍵啟動539主系統.bat",
-      "status": "ok",
-      "warnings": [],
-      "size": 159
-    },
-    {
-      "path": "點我一鍵診斷網路權限.bat",
-      "status": "ok",
-      "warnings": [],
-      "size": 174
-    },
-    {
-      "path": "點我修復台彩網路權限.bat",
-      "status": "ok",
-      "warnings": [],
-      "size": 170
-    },
-    {
-      "path": "點我安裝每日開獎後與開機自動更新.bat",
-      "status": "ok",
-      "warnings": [],
-      "size": 167
-    },
-    {
-      "path": "點我手機版一鍵上線.bat",
-      "status": "ok",
-      "warnings": [],
-      "size": 164
-    },
-    {
-      "path": "點我檢查系統檔案.bat",
-      "status": "ok",
-      "warnings": [],
-      "size": 364
-    },
-    {
-      "path": "點我設定LINE推送.bat",
-      "status": "ok",
-      "warnings": [],
-      "size": 160
-    },
-    {
-      "path": "點我開啟最新中文戰報.bat",
-      "status": "ok",
-      "warnings": [],
-      "size": 293
-    },
-    {
       "path": "data\\539.csv",
       "status": "ok",
       "warnings": [],
-      "size": 710069
+      "size": 710360
     },
     {
       "path": "data\\mobile_access_token.txt",
@@ -375,13 +343,13 @@
       "path": "reports\\539最新強化戰報.html",
       "status": "ok",
       "warnings": [],
-      "size": 59658
+      "size": 64222
     },
     {
       "path": "reports\\539每期預測對比.html",
       "status": "ok",
       "warnings": [],
-      "size": 4365
+      "size": 4651
     },
     {
       "path": "reports\\crowd_consensus.json",
@@ -393,73 +361,73 @@
       "path": "reports\\daily_integrity_audit.json",
       "status": "ok",
       "warnings": [],
-      "size": 3695
+      "size": 3483
     },
     {
       "path": "reports\\daily_integrity_audit.md",
       "status": "ok",
       "warnings": [],
-      "size": 1907
+      "size": 1783
     },
     {
       "path": "reports\\dashboard.html",
       "status": "ok",
       "warnings": [],
-      "size": 4875
+      "size": 4984
     },
     {
       "path": "reports\\file_integrity_report.json",
       "status": "ok",
       "warnings": [],
-      "size": 12823
+      "size": 13945
     },
     {
       "path": "reports\\file_integrity_report.md",
       "status": "ok",
       "warnings": [],
-      "size": 227
+      "size": 264
     },
     {
       "path": "reports\\health_status.json",
       "status": "ok",
       "warnings": [],
-      "size": 4754
+      "size": 5276
     },
     {
       "path": "reports\\health_status.md",
       "status": "ok",
       "warnings": [],
-      "size": 425
+      "size": 428
     },
     {
       "path": "reports\\latest_analysis.json",
       "status": "ok",
       "warnings": [],
-      "size": 126812
+      "size": 445637
     },
     {
       "path": "reports\\latest_analysis.md",
       "status": "ok",
       "warnings": [],
-      "size": 5735
+      "size": 6192
     },
     {
       "path": "reports\\latest_battle_report.html",
       "status": "ok",
       "warnings": [],
-      "size": 59658
+      "size": 64222
     },
     {
       "path": "reports\\latest_battle_report.md",
       "status": "ok",
       "warnings": [],
-      "size": 19644
+      "size": 20845
     },
     {
       "path": "reports\\latest_battle_report.txt",
       "status": "ok",
       "warnings": [],
-      "size": 19644
+      "size": 20845
     },
     {
       "path": "reports\\line_push_status.json",
@@ -471,13 +439,13 @@
       "path": "reports\\model_competition.json",
       "status": "ok",
       "warnings": [],
-      "size": 28707
+      "size": 28675
     },
     {
       "path": "reports\\model_competition.md",
       "status": "ok",
       "warnings": [],
-      "size": 3127
+      "size": 3119
     },
     {
       "path": "reports\\network_permission_diagnostic.json",
@@ -495,7 +463,7 @@
       "path": "reports\\prediction_history.json",
       "status": "ok",
       "warnings": [],
-      "size": 24066
+      "size": 26432
     },
     {
       "path": "site\\crowd_consensus.json",
@@ -507,37 +475,103 @@
       "path": "site\\health_status.json",
       "status": "ok",
       "warnings": [],
-      "size": 4754
+      "size": 5276
     },
     {
       "path": "site\\index.html",
       "status": "ok",
       "warnings": [],
-      "size": 61251
+      "size": 67215
     },
     {
       "path": "site\\latest_analysis.json",
       "status": "ok",
       "warnings": [],
-      "size": 126812
+      "size": 445637
     },
     {
       "path": "site\\model_competition.json",
       "status": "ok",
       "warnings": [],
-      "size": 28707
+      "size": 28675
     },
     {
       "path": "site\\prediction-history.html",
       "status": "ok",
       "warnings": [],
-      "size": 4365
+      "size": 4651
     },
     {
       "path": "site\\prediction_history.json",
       "status": "ok",
       "warnings": [],
-      "size": 24066
+      "size": 26432
+    },
+    {
+      "path": "site\\version.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 190
+    },
+    {
+      "path": "封存_舊的一鍵按鈕\\539-one-click.bat",
+      "status": "ok",
+      "warnings": [],
+      "size": 153
+    },
+    {
+      "path": "封存_舊的一鍵按鈕\\539-repair-network.bat",
+      "status": "ok",
+      "warnings": [],
+      "size": 170
+    },
+    {
+      "path": "封存_舊的一鍵按鈕\\點我一鍵啟動539主系統.bat",
+      "status": "ok",
+      "warnings": [],
+      "size": 153
+    },
+    {
+      "path": "封存_舊的一鍵按鈕\\點我一鍵診斷網路權限.bat",
+      "status": "ok",
+      "warnings": [],
+      "size": 174
+    },
+    {
+      "path": "封存_舊的一鍵按鈕\\點我修復台彩網路權限.bat",
+      "status": "ok",
+      "warnings": [],
+      "size": 170
+    },
+    {
+      "path": "封存_舊的一鍵按鈕\\點我安裝每日開獎後與開機自動更新.bat",
+      "status": "ok",
+      "warnings": [],
+      "size": 167
+    },
+    {
+      "path": "封存_舊的一鍵按鈕\\點我手機版一鍵上線.bat",
+      "status": "ok",
+      "warnings": [],
+      "size": 164
+    },
+    {
+      "path": "封存_舊的一鍵按鈕\\點我檢查系統檔案.bat",
+      "status": "ok",
+      "warnings": [],
+      "size": 364
+    },
+    {
+      "path": "封存_舊的一鍵按鈕\\點我設定LINE推送.bat",
+      "status": "ok",
+      "warnings": [],
+      "size": 160
+    },
+    {
+      "path": "封存_舊的一鍵按鈕\\點我開啟最新中文戰報.bat",
+      "status": "ok",
+      "warnings": [],
+      "size": 293
     },
     {
       "path": "reports\\history\\period_115000133.json",
@@ -603,7 +637,13 @@
       "path": "reports\\history\\period_115000143.json",
       "status": "ok",
       "warnings": [],
-      "size": 767
+      "size": 1865
+    },
+    {
+      "path": "reports\\history\\period_115000145.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 773
     }
   ]
 }

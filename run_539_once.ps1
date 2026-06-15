@@ -48,20 +48,10 @@ try {
   "==== 539 run started $(Get-Date -Format s) ====" | Out-File -FilePath $RunLog -Encoding utf8 -Append
   $Python = Find-Python
   Run-Step "Compile check" @("-m", "py_compile", ".\update_539.py", ".\analyze_539.py", ".\battle_report.py", ".\health_check.py", ".\dashboard.py", ".\pages_build.py", ".\industrial_engine.py", ".\aerospace_engine.py", ".\research_kpi.py", ".\daily_integrity_audit.py", ".\line_push.py")
-  $Updated = $false
-  for ($Attempt = 1; $Attempt -le 4; $Attempt++) {
-    "Update attempt $Attempt/4" | Out-File -FilePath $RunLog -Encoding utf8 -Append
-    & $Python ".\update_539.py" --latest --require-fresh 2>&1 | Tee-Object -FilePath $RunLog -Append
-    if ($LASTEXITCODE -eq 0) {
-      $Updated = $true
-      break
-    }
-    if ($Attempt -lt 4) {
-      Start-Sleep -Seconds 600
-    }
-  }
-  if (-not $Updated) {
-    throw "Latest draw update remained stale after four attempts."
+  "Update latest draw and rebuild all outputs" | Out-File -FilePath $RunLog -Encoding utf8 -Append
+  & $Python ".\update_539.py" --latest 2>&1 | Tee-Object -FilePath $RunLog -Append
+  if ($LASTEXITCODE -ne 0) {
+    "Main update returned a warning or failure. Continue rebuilding local reports so the user always gets an opened battle report." | Out-File -FilePath $RunLog -Encoding utf8 -Append
   }
   Run-Step "Rebuild battle report" @(".\battle_report.py")
   Run-Step "Rebuild dashboard" @(".\dashboard.py") $false

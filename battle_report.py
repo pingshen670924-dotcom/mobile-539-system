@@ -1,5 +1,6 @@
 ﻿import json
 import sqlite3
+from collections import defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -39,6 +40,12 @@ def fmt_numbers(numbers):
     return " ".join(f"{int(n):02d}" for n in numbers)
 
 
+def atomic_write_text(path, text):
+    temp_path = path.with_name(path.name + ".tmp")
+    temp_path.write_text(text, encoding="utf-8")
+    temp_path.replace(path)
+
+
 def official_status_label(status):
     labels = {
         "inserted": "\u5df2\u4f9d\u6700\u65b0\u958b\u734e\u91cd\u65b0\u5efa\u7acb\u6b63\u5f0f\u9810\u6e2c",
@@ -51,6 +58,10 @@ def official_status_label(status):
         "observation_only_inserted": "\u672a\u9054\u767c\u5e03\u9580\u6abb\uff0c\u50c5\u5efa\u7acb\u89c0\u5bdf\u8a18\u9304",
         "observation_only_updated_pending": "\u672a\u9054\u767c\u5e03\u9580\u6abb\uff0c\u5df2\u91cd\u7b97\u4e26\u66f4\u65b0\u89c0\u5bdf\u8a18\u9304",
         "observation_only_recalculated_same_as_official": "\u672a\u9054\u767c\u5e03\u9580\u6abb\uff0c\u91cd\u7b97\u5f8c\u89c0\u5bdf\u8a18\u9304\u76f8\u540c",
+        "blocked_previous_top15_exact_copy": "\u7981\u6b62\u767c\u5e03\uff1a\u65b0\u4e00\u671f Top15 \u8207\u4e0a\u4e00\u671f\u6b63\u5f0f\u9810\u6e2c\u5b8c\u5168\u76f8\u540c",
+        "blocked_previous_strong_packs_exact_copy": "\u7981\u6b62\u767c\u5e03\uff1a\u65b0\u4e00\u671f\u5f37\u724c\u7d44\u8207\u4e0a\u4e00\u671f\u6b63\u5f0f\u9810\u6e2c\u5b8c\u5168\u76f8\u540c",
+        "observation_only_blocked_previous_top15_exact_copy": "\u7981\u6b62\u767c\u5e03\uff1a\u65b0\u4e00\u671f Top15 \u8207\u4e0a\u4e00\u671f\u6b63\u5f0f\u9810\u6e2c\u5b8c\u5168\u76f8\u540c",
+        "observation_only_blocked_previous_strong_packs_exact_copy": "\u7981\u6b62\u767c\u5e03\uff1a\u65b0\u4e00\u671f\u5f37\u724c\u7d44\u8207\u4e0a\u4e00\u671f\u6b63\u5f0f\u9810\u6e2c\u5b8c\u5168\u76f8\u540c",
     }
     return labels.get(status or "", status or "\u672c\u6b21\u91cd\u65b0\u904b\u7b97")
 
@@ -203,13 +214,13 @@ def save_prediction_history(history):
         "pending_periods": sum(1 for item in history if item.get("status") == "pending"),
         "periods": history,
     }
-    HISTORY_JSON.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    atomic_write_text(HISTORY_JSON, json.dumps(payload, ensure_ascii=False, indent=2))
     for item in history:
         target = item.get("target_period")
         if target is None:
             continue
         path = HISTORY_DIR / f"period_{target}.json"
-        path.write_text(json.dumps(item, ensure_ascii=False, indent=2), encoding="utf-8")
+        atomic_write_text(path, json.dumps(item, ensure_ascii=False, indent=2))
     return payload
 
 
@@ -447,8 +458,8 @@ def build_report():
 
     latest = analysis["latest_draw"]
     prediction_mode = analysis.get("prediction_mode", "")
-    restored_mode = prediction_mode == "restored_20260604_hit4_v31"
-    mode_label = "已恢復 2026-06-04 中4版 v31" if restored_mode else prediction_mode or "目前正式模式"
+    current_mode = True
+    mode_label = "目前正式模式"
     packs = analysis.get("strong_prediction_packs", {})
     relationships = analysis.get("relationships", {})
     candidates = analysis.get("candidates", [])
@@ -459,9 +470,12 @@ def build_report():
     dependency = industrial.get("dependency_analysis", {})
     release_gate = industrial.get("release_gate", {})
     stability = industrial.get("stability_consensus", {})
+    top10_promotion = industrial.get("top10_promotion_audit", {})
     industrial_backtest = industrial.get("backtest", {})
     guard_audit = industrial.get("guard_policy_audit", {})
     precision_governor = industrial.get("precision_governor", {})
+    weight_calibration = industrial.get("adaptive_weight_calibration", {})
+    rolling_adjustment = analysis.get("failure_review", {}).get("rolling_adjustment", {})
     rolling_windows = industrial_backtest.get("rolling_windows", {})
     unlikely = industrial.get("unlikely_number_analysis", {})
     unlikely_backtest = industrial.get("unlikely_backtest", {})
@@ -498,7 +512,7 @@ def build_report():
         f"- \u6b63\u5f0f\u9810\u6e2c\u72c0\u614b\uff1a{official_status_label(official_status_code)}",
         f"- \u76ee\u524d\u5f85\u7d50\u7b97\u8ffd\u8e64\u8a18\u9304\uff1a\u4f9d\u64da\u671f {pending_prediction.get('based_on_period', '\u7121')} / \u76ee\u6a19\u671f {pending_prediction.get('target_period', '\u7121')} / \u5efa\u7acb {pending_prediction.get('created_at', '\u7121')}",
         f"- \u904b\u7b97\u6a21\u5f0f\uff1a{mode_label}",
-        "- \u91cd\u865f\u653f\u7b56\uff1a\u4f7f\u7528 2026-06-04 \u4e2d4\u7248 v31 \u539f\u59cb\u5b88\u9580\u898f\u5247" if restored_mode else "- \u91cd\u865f\u653f\u7b56\uff1a\u6700\u65b0\u958b\u734e\u865f\u4e0d\u518d\u786c\u6027\u6392\u9664\uff0c\u50c5\u4f9d\u9023\u838a\u56de\u6e2c\u8edf\u6027\u964d\u6b0a",
+        "- \u91cd\u865f\u653f\u7b56\uff1a\u6700\u65b0\u958b\u734e\u865f\u4e0d\u518d\u786c\u6027\u6392\u9664\uff0c\u50c5\u4f9d\u9023\u838a\u56de\u6e2c\u8edf\u6027\u964d\u6b0a",
         f"- \u5de5\u696d\u5f15\u64ce\uff1a{industrial.get('engine_version', '')}",
         f"- \u9810\u6e2c\u767c\u5e03\u7b49\u7d1a\uff1a{release_label}",
         f"- Top10 \u7a69\u5b9a\u5171\u8b58\u7387\uff1a{stability.get('top10_retention', '')}",
@@ -845,6 +859,16 @@ def build_report():
             f"\u901a\u904e\u7387 {item.get('pass_rate')} / \u5e73\u5747\u547d\u4e2d {item.get('average_hits')} / "
             f"95% \u4e0b\u9650 {item.get('wilson_lower_95')}"
         )
+    if rolling_adjustment:
+        lines.extend([
+            "",
+            "## 每日檢討後滾動調整",
+            f"- 樣本期數：{rolling_adjustment.get('sample_size')}",
+            f"- 政策：{rolling_adjustment.get('policy')}",
+            "- 升權來源：" + "、".join(item.get("reason", "") for item in rolling_adjustment.get("boosted_reasons", [])[:8]),
+            "- 降權來源：" + "、".join(item.get("reason", "") for item in rolling_adjustment.get("penalized_reasons", [])[:8]),
+            "- 連續落空號碼：" + fmt_numbers([item.get("number") for item in rolling_adjustment.get("repeated_failed_numbers", [])[:12]]),
+        ])
     if rank_calibration.get("settled_periods"):
         lines.extend([
             "",
@@ -871,8 +895,8 @@ def build_report():
 def build_html_report(markdown_text):
     analysis = load_json(ANALYSIS_JSON)
     prediction_mode = analysis.get("prediction_mode", "")
-    restored_mode = prediction_mode == "restored_20260604_hit4_v31"
-    mode_label = "已恢復 2026-06-04 中4版 v31" if restored_mode else prediction_mode or "目前正式模式"
+    current_mode = True
+    mode_label = "目前正式模式"
     health = load_json(HEALTH_JSON)
     daily_audit = load_json(DAILY_AUDIT_JSON)
     history = prediction_history()
@@ -888,9 +912,12 @@ def build_html_report(markdown_text):
     road_pattern = industrial.get("road_pattern_analysis", {})
     release_gate = industrial.get("release_gate", {})
     stability = industrial.get("stability_consensus", {})
+    top10_promotion = industrial.get("top10_promotion_audit", {})
     industrial_backtest = industrial.get("backtest", {})
     guard_audit = industrial.get("guard_policy_audit", {})
     precision_governor = industrial.get("precision_governor", {})
+    weight_calibration = industrial.get("adaptive_weight_calibration", {})
+    rolling_adjustment = analysis.get("failure_review", {}).get("rolling_adjustment", {})
     rolling_windows = industrial_backtest.get("rolling_windows", {})
     unlikely = industrial.get("unlikely_number_analysis", {})
     unlikely_backtest = industrial.get("unlikely_backtest", {})
@@ -907,14 +934,10 @@ def build_html_report(markdown_text):
     previous_guard = industrial.get("previous_prediction_guard", {})
     qualification = industrial.get("candidate_qualification", {})
     qualification_text = (
-        "\u5df2\u6062\u5fa9 2026-06-04 \u4e2d4\u7248 v31 \u539f\u59cb\u5019\u9078\u8207\u5b88\u9580\u898f\u5247\u3002"
-        if restored_mode
-        else (
-            f"\u4e0d\u786c\u6e4a\u653f\u7b56\uff1a\u5408\u683c\u865f\u78bc {qualification.get('qualified_count')} \u9846 / "
-            f"\u9580\u6abb\u5206\u6578 {qualification.get('minimum_score')} / "
-            f"\u4fe1\u5fc3\u6307\u6578 {qualification.get('minimum_confidence_index')} / "
-            f"\u7a69\u5b9a\u5171\u8b58 {qualification.get('minimum_stability_count')}"
-        )
+        f"\u4e0d\u786c\u6e4a\u653f\u7b56\uff1a\u5408\u683c\u865f\u78bc {qualification.get('qualified_count')} \u9846 / "
+        f"\u9580\u6abb\u5206\u6578 {qualification.get('minimum_score')} / "
+        f"\u4fe1\u5fc3\u6307\u6578 {qualification.get('minimum_confidence_index')} / "
+        f"\u7a69\u5b9a\u5171\u8b58 {qualification.get('minimum_stability_count')}"
     )
     settled_prediction = latest_settled_prediction()
     pending_prediction = latest_pending_prediction()
@@ -959,38 +982,99 @@ def build_html_report(markdown_text):
             odds = probability.get("odds_1_in")
             status = pack.get("status", "released")
             reason = pack.get("withheld_reason", "")
+            status_label = {
+                "released": "\u6b63\u5f0f\u4e3b\u63a8",
+                "research_prediction": "\u4eca\u65e5\u4f5c\u6230\u9810\u6e2c\uff08\u7814\u7a76\u7d1a\uff09",
+                "withheld": "\u672a\u7522\u51fa",
+            }.get(status, status)
             sub = (
-                f"\u72c0\u614b {status} / \u7406\u8ad6\u6a5f\u7387 {probability.get('probability')} / 1\u4e2d{odds}"
+                f"\u72c0\u614b {status_label} / \u7406\u8ad6\u6a5f\u7387 {probability.get('probability')} / 1\u4e2d{odds}"
                 if odds
-                else f"\u72c0\u614b {status} / {reason}"
+                else f"\u72c0\u614b {status_label} / {reason}"
             )
             pack_cards.append(card(label, fmt_numbers(pack.get("numbers", [])) or "\u672a\u767c\u5e03", sub))
             gov = pack.get("governance", {})
             number_text = fmt_numbers(pack.get("numbers", [])) or "\u6263\u7559"
             gov_result = "\u901a\u904e" if gov.get("passed") else "\u672a\u901a\u904e"
             decision_reason = reason or "\u9054\u5230\u767c\u5e03\u9580\u6abb"
+            variant_label = {
+                "dedicated": "\u5c08\u7528\u6a21\u578b",
+                "top_rank": "\u7e3d\u5206\u6392\u540d",
+                "stability": "\u7a69\u5b9a\u5171\u8b58",
+            }.get(gov.get("best_variant"), gov.get("best_variant", "-"))
             pack_governance_rows += (
                 "<tr>"
-                f"<td>{label}</td><td>{status}</td><td>{number_text}</td>"
-                f"<td>{gov.get('rounds', '-')}</td><td>{gov.get('pass_rate', '-')}</td>"
+                f"<td>{label}</td><td>{status_label}</td><td>{number_text}</td>"
+                f"<td>{variant_label}</td><td>{gov.get('rounds', '-')}</td><td>{gov.get('pass_rate', '-')}</td>"
                 f"<td>{gov.get('avg_hits', '-')}</td><td>{gov.get('zero_hit_rate', '-')}</td>"
                 f"<td>{gov_result}</td><td>{decision_reason}</td>"
                 "</tr>"
             )
+
+    boosted_weight_rows = ""
+    for item in weight_calibration.get("top_boosted_features", []):
+        boosted_weight_rows += (
+            "<tr>"
+            f"<td>{item.get('feature')}</td><td>{item.get('top5_avg_hits')}</td>"
+            f"<td>{item.get('top10_avg_hits')}</td><td>{item.get('top15_avg_hits')}</td>"
+            f"<td>{item.get('weighted_edge')}</td><td>{item.get('multiplier')}</td>"
+            "</tr>"
+        )
+    penalized_weight_rows = ""
+    for item in weight_calibration.get("top_penalized_features", []):
+        penalized_weight_rows += (
+            "<tr>"
+            f"<td>{item.get('feature')}</td><td>{item.get('top5_avg_hits')}</td>"
+            f"<td>{item.get('top10_avg_hits')}</td><td>{item.get('top15_avg_hits')}</td>"
+            f"<td>{item.get('weighted_edge')}</td><td>{item.get('multiplier')}</td>"
+            "</tr>"
+        )
 
     wheel_rows = ""
     wheel = packs.get("nine_hit_three", {})
     for idx, ticket in enumerate(wheel.get("wheel_tickets", []), 1):
         wheel_rows += f"<tr><td>{idx}</td><td>{fmt_numbers(ticket)}</td></tr>"
     coverage = wheel.get("wheel_coverage", {})
+    candidate_by_number = {item.get("number"): item for item in candidates}
+    predicted_numbers = []
+    predicted_levels = defaultdict(list)
+    for key, label in pack_order:
+        for number in packs.get(key, {}).get("numbers", []):
+            if number not in predicted_numbers:
+                predicted_numbers.append(number)
+            predicted_levels[number].append(label)
+    predicted_audit_rows = ""
+    for number in sorted(predicted_numbers, key=lambda n: candidate_by_number.get(n, {}).get("rank", 99)):
+        item = candidate_by_number.get(number, {"number": number})
+        sources = item.get("model_sources", [])
+        source_text = "<br>".join(
+            f"{src.get('label')} {src.get('signal')} / 權重 {src.get('weight')}"
+            for src in sources[:6]
+        ) or "-"
+        cv = item.get("cross_validation", {})
+        cv_text = "、".join(row.get("label") for row in cv.get("passed", [])) or "-"
+        predicted_audit_rows += (
+            "<tr>"
+            f"<td>{number:02d}</td><td>{'、'.join(predicted_levels[number])}</td>"
+            f"<td>{item.get('rank', '-')}</td><td>{item.get('score', '-')}</td>"
+            f"<td>{item.get('model_probability_percent', '-')}%</td><td>{item.get('confidence_index', '-')}</td>"
+            f"<td>{source_text}</td><td>{cv.get('passed_count', 0)}/{cv.get('total_count', 0)}：{cv_text}</td>"
+            f"<td>{cv.get('status', '-')}</td>"
+            "</tr>"
+        )
 
     candidate_rows = ""
     for idx, item in enumerate(candidates[:15], 1):
         reason = "\u3001".join(item.get("reasons", []))
+        sources = "、".join(src.get("label") for src in item.get("model_sources", [])[:4]) or "-"
+        cv = item.get("cross_validation", {})
         candidate_rows += (
             "<tr>"
-            f"<td>{idx}</td><td>{item['number']:02d}</td><td>{item['confidence_index']}</td>"
-            f"<td>{item['omission']}</td><td>{reason}</td>"
+            f"<td>{idx}</td><td>{item['number']:02d}</td><td>{item.get('rank', idx)}</td>"
+            f"<td>{item.get('score')}</td><td>{item.get('model_probability_percent')}%</td>"
+            f"<td>{item['confidence_index']}</td><td>{item['omission']}</td>"
+            f"<td>{sources}</td><td>{cv.get('passed_count', 0)}/{cv.get('total_count', 0)} {cv.get('status', '-')}</td>"
+            f"<td>{reason}</td>"
             "</tr>"
         )
 
@@ -1137,6 +1221,49 @@ def build_html_report(markdown_text):
             "</tr>"
         )
 
+    rolling_boost_rows = ""
+    for item in rolling_adjustment.get("boosted_reasons", []):
+        rolling_boost_rows += (
+            "<tr>"
+            f"<td>{item.get('reason')}</td><td>{item.get('hit')}</td><td>{item.get('miss')}</td>"
+            f"<td>{item.get('late_hit_count', 0)}</td><td>{item.get('hit_rate')}</td><td>升權</td>"
+            "</tr>"
+        )
+    rolling_penalty_rows = ""
+    for item in rolling_adjustment.get("penalized_reasons", []):
+        rolling_penalty_rows += (
+            "<tr>"
+            f"<td>{item.get('reason')}</td><td>{item.get('hit')}</td><td>{item.get('miss')}</td>"
+            f"<td>{item.get('hit_rate')}</td><td>降權</td>"
+            "</tr>"
+        )
+    rolling_number_rows = ""
+    for item in rolling_adjustment.get("repeated_failed_numbers", []):
+        rolling_number_rows += (
+            "<tr>"
+            f"<td>{int(item.get('number')):02d}</td><td>{item.get('miss_count')}</td><td>連續落空隔離降權</td>"
+            "</tr>"
+        )
+    if not rolling_boost_rows:
+        rolling_boost_rows = "<tr><td colspan=\"6\">目前沒有達到升權門檻的來源。</td></tr>"
+    if not rolling_penalty_rows:
+        rolling_penalty_rows = "<tr><td colspan=\"5\">目前沒有達到降權門檻的來源。</td></tr>"
+    if not rolling_number_rows:
+        rolling_number_rows = "<tr><td colspan=\"3\">目前沒有達到連續落空隔離門檻的號碼。</td></tr>"
+
+    top10_promotion_rows = ""
+    for item in top10_promotion.get("promotion_candidates", []):
+        top10_promotion_rows += (
+            "<tr>"
+            f"<td>{int(item.get('number')):02d}</td><td>{item.get('current_rank')}</td>"
+            f"<td>{item.get('score')}</td><td>{item.get('confidence_index')}</td>"
+            f"<td>{item.get('stability_count')}</td><td>{'、'.join(item.get('reasons', []))}</td>"
+            f"<td>{item.get('action')}</td>"
+            "</tr>"
+        )
+    if not top10_promotion_rows:
+        top10_promotion_rows = "<tr><td colspan=\"7\">目前沒有 11-15 名需要擠入 Top10 邊界的候選。</td></tr>"
+
     rank_bucket_rows = ""
     for item in rank_calibration.get("buckets", {}).values():
         rank_bucket_rows += (
@@ -1199,9 +1326,6 @@ def build_html_report(markdown_text):
         and settled_prediction.get("status", "settled") != "pending"
     )
     failure_banner = (
-        "\u5df2\u4f9d\u8981\u6c42\u6062\u5fa9 2026-06-04 \u4e2d4\u7248 v31\uff1b\u6aa2\u8a0e\u50c5\u4f7f\u7528\u7576\u671f\u771f\u5be6\u4fdd\u5b58\u7684\u9810\u6e2c\u8207\u5c0d\u61c9\u958b\u734e\u65e5\u3002"
-        if restored_mode
-        else
         "\u91cd\u5927\u5931\u6557\uff1a\u4e0a\u671f Top15 \u96f6\u547d\u4e2d\uff0c\u5df2\u64a4\u92b7\u6628\u65e5\u9810\u6e2c\u865f\u8207\u9023\u838a\u865f\u786c\u5c01\u9396\uff0c\u6539\u7528\u53ef\u56de\u6e2c\u8edf\u6027\u964d\u6b0a\u3002"
         if latest_failure_is_critical
         else "\u4e0a\u671f\u672a\u767c\u751f Top15 \u96f6\u547d\u4e2d\u3002"
@@ -1352,6 +1476,19 @@ def build_html_report(markdown_text):
     .blocked {{ background:#fee2e2; color:#991b1b; }}
     .fresh {{ background:#dcfce7; color:#166534; }}
     .notice {{ border-left:5px solid #dc2626; background:#fff7f7; }}
+    .tabbar {{ position:sticky; top:0; z-index:5; display:flex; gap:8px; flex-wrap:wrap; background:#f6f7fb; padding:10px 0 14px; }}
+    .tabbar button {{ border:1px solid #cbd5e1; background:white; color:#0f172a; border-radius:8px; padding:10px 14px; font-weight:800; cursor:pointer; }}
+    .tabbar button.active {{ background:#0f172a; color:white; border-color:#0f172a; }}
+    .tab-panel {{ display:none; }}
+    .tab-panel.active {{ display:block; }}
+    .tab-panel > .band:first-child {{ margin-top:0; }}
+    .dategrid {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; }}
+    .dateitem {{ border:1px solid #cbd5e1; border-radius:8px; padding:12px; background:#f8fafc; }}
+    .dateitem strong {{ display:block; color:#475569; font-size:13px; margin-bottom:6px; }}
+    .dateitem span {{ display:block; color:#0f172a; font-size:18px; font-weight:900; }}
+    details.advanced {{ margin-top:16px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; padding:12px; }}
+    details.advanced > summary {{ cursor:pointer; font-weight:900; color:#0f172a; }}
+    details.advanced .band {{ margin-top:12px; }}
     pre {{ white-space:pre-wrap; background:#0b1020; color:#dbeafe; border-radius:8px; padding:16px; overflow:auto; }}
   </style>
 </head>
@@ -1362,6 +1499,24 @@ def build_html_report(markdown_text):
     <p>\u6700\u65b0\u671f\u5225 {latest.get('period')} / \u958b\u734e {latest_numbers}</p>
   </header>
   <main>
+    <nav class="tabbar" aria-label="\u6230\u5831\u5206\u9801">
+      <button type="button" class="active" data-tab="prediction">\u4e0b\u671f\u9810\u6e2c</button>
+      <button type="button" data-tab="review">\u4e0a\u671f\u672a\u547d\u4e2d\u6aa2\u8a0e</button>
+      <button type="button" data-tab="models">\u6a21\u578b\u56de\u6e2c\u8207\u6539\u5584\u898f\u5283</button>
+    </nav>
+    <div id="prediction" class="tab-panel active"></div>
+    <div id="review" class="tab-panel"></div>
+    <div id="models" class="tab-panel"></div>
+    <section class="band notice">
+      <h2>\u91cd\u8981\u65e5\u671f\u5100\u8868\u677f</h2>
+      <div class="dategrid">
+        <div class="dateitem"><strong>\u5831\u8868\u7522\u751f\u6642\u9593</strong><span>{report_generated_at}</span></div>
+        <div class="dateitem"><strong>\u8cc7\u6599\u6700\u65b0\u958b\u734e\u65e5</strong><span>{latest_data_date}</span></div>
+        <div class="dateitem"><strong>\u672c\u6b21\u9810\u6e2c\u4f9d\u64da\u65e5</strong><span>{pending_prediction.get('based_on_date', latest_draw_date)}</span></div>
+        <div class="dateitem"><strong>\u4e0b\u671f\u9810\u6e2c\u76ee\u6a19\u65e5</strong><span>{pending_target_date}</span></div>
+        <div class="dateitem"><strong>\u4e0a\u671f\u6aa2\u8a0e\u958b\u734e\u65e5</strong><span>{settled_prediction.get('actual_date', '-')}</span></div>
+      </div>
+    </section>
     <section class="band notice">
       <h2>\u672c\u671f\u767c\u5e03\u7d50\u8ad6\uff08\u8cc7\u6599\u65e5 {latest_data_date} / \u76ee\u6a19\u65e5 {pending_target_date}\uff09</h2>
       <p><span class="status {'fresh' if freshness.get('status') == 'fresh' else 'blocked'}">{freshness_label}</span>
@@ -1409,6 +1564,29 @@ def build_html_report(markdown_text):
       <table><thead><tr><th>\u4f86\u6e90\u7406\u7531</th><th>\u6b21\u6578</th><th>\u6d89\u53ca\u865f\u78bc</th></tr></thead><tbody>{late_rank_reason_rows}</tbody></table>
       <h3>Top11-15 \u547d\u4e2d\u660e\u7d30</h3>
       <table><thead><tr><th>\u9810\u6e2c -> \u958b\u734e</th><th>\u865f\u78bc</th><th>\u539f\u6392\u540d</th><th>\u5206\u6578</th><th>\u4fe1\u5fc3</th><th>\u4f86\u6e90</th></tr></thead><tbody>{late_rank_detail_rows}</tbody></table>
+    </section>
+    <section class="band">
+      <h2>\u6bcf\u65e5\u6aa2\u8a0e\u5f8c\u6efe\u52d5\u8abf\u6574\uff08\u6a23\u672c {rolling_adjustment.get('sample_size', 0)} \u671f\uff09</h2>
+      <p>\u6b63\u78ba\u908f\u8f2f\uff1a\u4e0d\u56fa\u5b9a\u6b0a\u91cd\uff0c\u6539\u7528\u547d\u4e2d\u4f86\u6e90\u3001\u672a\u547d\u4e2d\u4f86\u6e90\u3001\u6392\u540d\u504f\u4f4e\u8207\u9023\u7e8c\u843d\u7a7a\u865f\u78bc\u9032\u884c\u4e0b\u671f\u5c0f\u5e45\u6efe\u52d5\u8abf\u6574\u3002</p>
+      <p>\u653f\u7b56\uff1a{rolling_adjustment.get('policy', '-')}</p>
+      <h3>\u5347\u6b0a\u4f86\u6e90</h3>
+      <table><thead><tr><th>\u4f86\u6e90</th><th>\u547d\u4e2d</th><th>\u672a\u547d\u4e2d</th><th>11-15\u540d\u547d\u4e2d</th><th>\u547d\u4e2d\u7387</th><th>\u52d5\u4f5c</th></tr></thead><tbody>{rolling_boost_rows}</tbody></table>
+      <h3>\u964d\u6b0a\u4f86\u6e90</h3>
+      <table><thead><tr><th>\u4f86\u6e90</th><th>\u547d\u4e2d</th><th>\u672a\u547d\u4e2d</th><th>\u547d\u4e2d\u7387</th><th>\u52d5\u4f5c</th></tr></thead><tbody>{rolling_penalty_rows}</tbody></table>
+      <h3>\u9023\u7e8c\u843d\u7a7a\u865f\u78bc</h3>
+      <table><thead><tr><th>\u865f\u78bc</th><th>\u672a\u547d\u4e2d\u6b21\u6578</th><th>\u8abf\u6574</th></tr></thead><tbody>{rolling_number_rows}</tbody></table>
+    </section>
+    <section class="band">
+      <h2>1\u4e2d1 / 5\u4e2d2 / 9\u4e2d3~5 \u6838\u5fc3\u5c08\u7528\u6a21\u578b</h2>
+      <p>1\u4e2d1 \u4f7f\u7528\u7368\u96bb\u5c08\u7528\u5b88\u9580\uff1a\u5fc5\u9808\u540c\u6642\u5177\u5099\u6975\u9ad8\u5206\u6578\u3001\u6975\u9ad8\u4fe1\u5fc3\u3001\u7a69\u5b9a\u5171\u8b58\u6216\u6efe\u52d5\u5347\u6b0a\u4f86\u6e90\uff0c\u4e14\u4e0d\u80fd\u662f\u9023\u7e8c\u843d\u7a7a\u865f\u6216\u672a\u901a\u904e\u6628\u65e5\u91cd\u5165\u5b88\u9580\u865f\u3002\u4e0d\u9054\u6a19\u5c31\u6263\u7559\uff0c\u4e0d\u786c\u767c\u7368\u96bb\u3002</p>
+      <p>5\u4e2d2 \u4f7f\u7528\u96c6\u4e2d\u578b\u9078\u865f\uff1a\u512a\u5148\u9ad8\u5206\u3001\u9ad8\u4fe1\u5fc3\u3001\u6392\u9664\u9023\u7e8c\u843d\u7a7a\u8207\u672a\u901a\u904e\u91cd\u5165\u5b88\u9580\u865f\uff0c\u76ee\u6a19\u662f\u63d0\u9ad8 5 \u9846\u88e1\u81f3\u5c11\u4e2d 2 \u7684\u5bc6\u5ea6\u3002</p>
+      <p>9\u4e2d3~5 \u4f7f\u7528\u8986\u84cb\u578b\u9078\u865f\uff1a\u512a\u5148\u5340\u9593\u5206\u6563\u3001\u5c3e\u6578\u5206\u6563\u3001\u5c07 11-15 \u540d\u904e\u5f80\u547d\u4e2d\u4f86\u6e90\u7d0d\u5165\u52a0\u5206\uff0c\u76ee\u6a19\u662f\u63d0\u9ad8 9 \u9846\u88e1\u4e2d 3~5 \u7684\u8986\u84cb\u7387\u3002</p>
+      <p>\u767c\u5e03\u9435\u5f8b\uff1a5\u4e2d2 \u8207 9\u4e2d3~5 \u5169\u500b\u4e3b\u76ee\u6a19\u90fd\u5fc5\u9808\u901a\u904e\u8fd1\u671f walk-forward \u56de\u6e2c\uff0c\u5426\u5247\u4e0d\u5217\u6b63\u5f0f\u4e3b\u63a8\u3002\u76ee\u524d\u4e3b\u76ee\u6a19\u662f\u5426\u901a\u904e\uff1a{release_gate.get('main_targets_passed')}</p>
+    </section>
+    <section class="band">
+      <h2>Top10 \u64e0\u5165\u6821\u6e96</h2>
+      <p>\u7528\u4f86\u89e3\u6c7a\u547d\u4e2d\u865f\u7d93\u5e38\u843d\u5728 11-15 \u540d\u7684\u554f\u984c\u3002\u82e5 11-15 \u540d\u6709\u904e\u5f80\u5ef6\u5f8c\u547d\u4e2d\u6216\u6efe\u52d5\u5347\u6b0a\u4f86\u6e90\uff0c\u6703\u5217\u5165 Top10 \u908a\u754c\u64e0\u5165\u89c0\u5bdf\u3002</p>
+      <table><thead><tr><th>\u865f\u78bc</th><th>\u539f\u6392\u540d</th><th>\u5206\u6578</th><th>\u4fe1\u5fc3</th><th>\u7a69\u5b9a\u6b21\u6578</th><th>\u4f86\u6e90</th><th>\u52d5\u4f5c</th></tr></thead><tbody>{top10_promotion_rows}</tbody></table>
     </section>
     <div class="grid">
       {card('\u8cc7\u6599\u65b0\u9bae\u5ea6', freshness_label, f"\u6700\u65b0 {freshness.get('latest_date', latest.get('draw_date'))} / \u61c9\u6709 {freshness.get('expected_latest_date', '')}")}
@@ -1458,8 +1636,21 @@ def build_html_report(markdown_text):
     <section class="band">
       <h2>\u7cbe\u6e96\u5ea6\u6cbb\u7406\u5668 v34\uff1a\u5f37\u724c\u767c\u5e03\u5be9\u6838\uff08\u7522\u751f {report_generated_at}\uff09</h2>
       <p>\u71c8\u865f\uff1a{precision_governor.get('release_light', '-')} / \u901a\u904e\u5305\u6578\uff1a{precision_governor.get('allowed_pack_count', 0)} / \u56de\u6e2c\u6a23\u672c\uff1a{precision_governor.get('rounds', 0)} / \u8aaa\u660e\uff1a{precision_governor.get('message', '')}</p>
-      <p>\u9435\u5f8b\uff1a\u5f37\u724c\u5305\u4e0d\u518d\u786c\u6e4a\u3002\u82e5\u8fd1\u671f walk-forward \u56de\u6e2c\u3001\u5e73\u5747\u547d\u4e2d\u3001\u7a69\u5b9a\u5171\u8b58\u6216\u6628\u65e5\u9810\u6e2c\u91cd\u5165\u5b88\u9580\u672a\u901a\u904e\uff0c\u8a72\u5305\u76f4\u63a5\u6263\u7559\u4e0d\u767c\u5e03\u3002</p>
-      <table><thead><tr><th>\u5f37\u724c\u7d1a\u5225</th><th>\u72c0\u614b</th><th>\u865f\u78bc</th><th>\u56de\u6e2c\u6a23\u672c</th><th>\u9054\u6a19\u7387</th><th>\u5e73\u5747\u547d\u4e2d</th><th>\u96f6\u547d\u4e2d\u7387</th><th>\u56de\u6e2c\u5224\u5b9a</th><th>\u767c\u5e03\u539f\u56e0 / \u6263\u7559\u539f\u56e0</th></tr></thead><tbody>{pack_governance_rows}</tbody></table>
+      <p>\u9435\u5f8b\uff1a\u6bcf\u65e5\u5fc5\u7522\u51fa\u4eca\u65e5\u4f5c\u6230\u9810\u6e2c\uff0c\u4f46\u6b63\u5f0f\u4e3b\u63a8\u9808\u901a\u904e\u8fd1\u671f walk-forward \u56de\u6e2c\u3002\u7cfb\u7d71\u6703\u6bcf\u65e5\u6bd4\u8f03\u5c08\u7528\u6a21\u578b\u3001\u7e3d\u5206\u6392\u540d\u3001\u7a69\u5b9a\u5171\u8b58\u4e09\u7a2e\u7248\u672c\uff0c\u7528\u8fd1\u671f\u8868\u73fe\u6700\u597d\u7684\u7248\u672c\u7522\u51fa\u4eca\u65e5\u865f\u78bc\u3002</p>
+      <table><thead><tr><th>\u5f37\u724c\u7d1a\u5225</th><th>\u72c0\u614b</th><th>\u865f\u78bc</th><th>\u63a1\u7528\u6a21\u578b</th><th>\u56de\u6e2c\u6a23\u672c</th><th>\u9054\u6a19\u7387</th><th>\u5e73\u5747\u547d\u4e2d</th><th>\u96f6\u547d\u4e2d\u7387</th><th>\u56de\u6e2c\u5224\u5b9a</th><th>\u767c\u5e03\u539f\u56e0 / \u98a8\u96aa\u539f\u56e0</th></tr></thead><tbody>{pack_governance_rows}</tbody></table>
+    </section>
+    <section class="band">
+      <h2>\u9810\u6e2c\u865f\u78bc\u9010\u865f\u7cbe\u7b97\u9a57\u8b49\uff08\u76ee\u6a19 {pending_target_date}\uff09</h2>
+      <p>\u9435\u5f8b\uff1a\u6bcf\u4e00\u9846\u9810\u6e2c\u865f\u78bc\u90fd\u5fc5\u9808\u6709\u6392\u540d\u3001\u5206\u6578\u3001\u6a5f\u7387\u3001\u4f86\u6e90\u6a21\u578b\u3001\u4ea4\u53c9\u9a57\u8b49\u8207\u56de\u6e2c\u72c0\u614b\u3002</p>
+      <table><thead><tr><th>\u865f\u78bc</th><th>\u6240\u5c6c\u9810\u6e2c</th><th>\u6392\u540d</th><th>\u5206\u6578</th><th>\u4fdd\u5b88\u6a5f\u7387</th><th>\u4fe1\u5fc3</th><th>\u4f86\u6e90\u6a21\u578b / \u8a0a\u865f / \u6b0a\u91cd</th><th>\u4ea4\u53c9\u9a57\u8b49</th><th>\u72c0\u614b</th></tr></thead><tbody>{predicted_audit_rows}</tbody></table>
+    </section>
+    <section class="band">
+      <h2>\u81ea\u52d5\u6b0a\u91cd\u6821\u6e96\uff1a\u8fd1\u671f\u5be6\u6230\u7279\u5fb5\u8abf\u6b0a\uff08\u76ee\u6a19 {pending_target_date}\uff09</h2>
+      <p>\u65b9\u6cd5\uff1a{weight_calibration.get('method', '-')} / \u56de\u6e2c\u6a23\u672c\uff1a{weight_calibration.get('rounds', 0)} / \u72c0\u614b\uff1a{weight_calibration.get('status', '-')}</p>
+      <h3>\u4eca\u65e5\u81ea\u52d5\u5347\u6b0a\u6a21\u578b</h3>
+      <table><thead><tr><th>\u7279\u5fb5</th><th>Top5 \u5e73\u5747\u547d\u4e2d</th><th>Top10 \u5e73\u5747\u547d\u4e2d</th><th>Top15 \u5e73\u5747\u547d\u4e2d</th><th>\u52a0\u6b0a\u512a\u52e2</th><th>\u8abf\u6b0a\u500d\u6578</th></tr></thead><tbody>{boosted_weight_rows}</tbody></table>
+      <h3>\u4eca\u65e5\u81ea\u52d5\u964d\u6b0a\u6a21\u578b</h3>
+      <table><thead><tr><th>\u7279\u5fb5</th><th>Top5 \u5e73\u5747\u547d\u4e2d</th><th>Top10 \u5e73\u5747\u547d\u4e2d</th><th>Top15 \u5e73\u5747\u547d\u4e2d</th><th>\u52a0\u6b0a\u512a\u52e2</th><th>\u8abf\u6b0a\u500d\u6578</th></tr></thead><tbody>{penalized_weight_rows}</tbody></table>
     </section>
     <section class="band">
       <h2>\u4e0b\u671f\u9810\u6e2c\u5c08\u5340\uff1a\u5de5\u696d\u7d1a\u6a21\u578b\u5be9\u8a08\uff08\u76ee\u6a19 {pending_target_date}\uff09</h2>
@@ -1529,7 +1720,7 @@ def build_html_report(markdown_text):
     </section>
     <section class="band">
       <h2>\u5019\u9078 Top 15</h2>
-      <table><thead><tr><th>#</th><th>\u865f\u78bc</th><th>\u6307\u6578</th><th>\u907a\u6f0f</th><th>\u7406\u7531</th></tr></thead><tbody>{candidate_rows}</tbody></table>
+      <table><thead><tr><th>#</th><th>\u865f\u78bc</th><th>\u6392\u540d</th><th>\u5206\u6578</th><th>\u4fdd\u5b88\u6a5f\u7387</th><th>\u4fe1\u5fc3</th><th>\u907a\u6f0f</th><th>\u4f86\u6e90\u6a21\u578b</th><th>\u4ea4\u53c9\u9a57\u8b49</th><th>\u7406\u7531</th></tr></thead><tbody>{candidate_rows}</tbody></table>
     </section>
     <section class="band">
       <h2>\u4f4e\u6a5f\u7387\u66ab\u907f\u865f\u78bc\uff08\u98a8\u63a7\u89c0\u5bdf\uff09</h2>
@@ -1538,10 +1729,79 @@ def build_html_report(markdown_text):
       <table><thead><tr><th>#</th><th>\u865f\u78bc</th><th>\u66ab\u907f\u6307\u6578</th><th>\u51fa\u73fe\u8a55\u5206</th><th>\u5019\u9078\u6392\u540d</th><th>\u7a69\u5b9a\u6b21\u6578</th><th>\u66ab\u907f\u539f\u56e0</th></tr></thead><tbody>{unlikely_rows}</tbody></table>
     </section>
     <section class="band">
-      <h2>\u539f\u59cb\u6230\u5831</h2>
-      <pre>{plain_html}</pre>
+      <h2>\u6a21\u578b\u56de\u6e2c\u8207\u6539\u5584\u898f\u5283</h2>
+      <p>\u56de\u6e2c\u6a23\u672c\u5df2\u64f4\u5927\uff1a\u6838\u5fc3\u7d9c\u5408\u56de\u6e2c\u63d0\u9ad8\u5230 720 \u671f\uff0c\u5f37\u724c\u6cbb\u7406\u8207\u81ea\u52d5\u6b0a\u91cd\u6821\u6e96\u63d0\u9ad8\u5230 360 \u671f\uff0c\u9032\u968e\u6a21\u578b\u8207\u4f4e\u6a5f\u7387\u98a8\u63a7\u4e5f\u63d0\u9ad8\u5230 360 \u671f\u3002</p>
+      <table><thead><tr><th>\u6539\u5584\u9805\u76ee</th><th>\u76ee\u7684</th><th>\u72c0\u614b</th></tr></thead><tbody>
+        <tr><td>\u81ea\u9069\u61c9\u6b0a\u91cd\u6821\u6e96</td><td>\u7528\u8fd1\u671f\u5be6\u6230\u56de\u6e2c\u81ea\u52d5\u5347\u964d\u6b0a\uff0c\u907f\u514d\u56fa\u5b9a\u6b0a\u91cd\u8ddf\u4e0d\u4e0a\u958b\u734e\u578b\u614b</td><td>\u5df2\u5be6\u88dd</td></tr>
+        <tr><td>\u5f37\u724c\u591a\u7248\u672c\u7af6\u8cfd</td><td>\u6bcf\u65e5\u6bd4\u8f03\u5c08\u7528\u6a21\u578b\u3001\u7e3d\u5206\u6392\u540d\u3001\u7a69\u5b9a\u5171\u8b58\uff0c\u9078\u8fd1\u671f\u8868\u73fe\u6700\u597d\u8005\u51fa\u724c</td><td>\u5df2\u5be6\u88dd</td></tr>
+        <tr><td>\u8ca0\u5411\u865f\u78bc\u98a8\u63a7</td><td>\u540c\u6642\u7814\u7a76\u4f4e\u6a5f\u7387\u865f\uff0c\u964d\u4f4e 5 \u9846\u8207 9 \u9846\u7d44\u5408\u88ab\u4f4e\u52e2\u865f\u6c61\u67d3</td><td>\u5df2\u5be6\u88dd</td></tr>
+        <tr><td>\u8c9d\u6c0f\u6a5f\u7387\u6821\u6e96</td><td>\u5c07\u5404\u6a21\u578b\u5206\u6578\u8f49\u6210\u53ef\u6bd4\u8f03\u7684\u4fdd\u5b88\u6a5f\u7387\uff0c\u964d\u4f4e\u865b\u9ad8\u5206</td><td>\u4e0b\u4e00\u968e\u6bb5</td></tr>
+        <tr><td>\u578b\u614b\u5207\u63db\u6a21\u578b</td><td>\u5340\u5206\u71b1\u865f\u76e4\u3001\u51b7\u865f\u56de\u88dc\u76e4\u3001\u9023\u865f\u76e4\u3001\u5206\u6563\u76e4\uff0c\u4e0d\u540c\u76e4\u52e2\u4f7f\u7528\u4e0d\u540c\u6b0a\u91cd</td><td>\u898f\u5283\u4e2d</td></tr>
+        <tr><td>\u96c6\u6210\u5b78\u7fd2\u6a21\u578b</td><td>\u589e\u52a0\u6a39\u72c0\u6a21\u578b / \u6392\u540d\u5b78\u7fd2\uff0c\u5c08\u9580\u4fee\u6b63 Top11-15 \u624d\u547d\u4e2d\u7684\u554f\u984c</td><td>\u898f\u5283\u4e2d</td></tr>
+      </tbody></table>
     </section>
   </main>
+  <script>
+    (() => {{
+      const main = document.querySelector("main");
+      const panels = {{
+        prediction: document.getElementById("prediction"),
+        review: document.getElementById("review"),
+        models: document.getElementById("models")
+      }};
+      const tabbar = document.querySelector(".tabbar");
+      const classify = (element) => {{
+        if (element === tabbar || element.classList.contains("tab-panel")) return null;
+        const title = (element.querySelector("h2")?.textContent || "").trim();
+        if (element.classList.contains("grid")) return "prediction";
+        if (/上期|檢討|KPI|校準|滾動|歷史對比/.test(title)) return "review";
+        if (/模型|回測|航太|版路|穩定共識|8區|連動|輪組/.test(title)) return "models";
+        if (/下期|候選|低機率|發布|日期基準|本期/.test(title)) return "prediction";
+        return "prediction";
+      }};
+      Array.from(main.children).forEach((element) => {{
+        const target = classify(element);
+        if (target) panels[target].appendChild(element);
+      }});
+      document.querySelectorAll(".tabbar button").forEach((button) => {{
+        button.addEventListener("click", () => {{
+          document.querySelectorAll(".tabbar button").forEach((item) => item.classList.remove("active"));
+          Object.values(panels).forEach((panel) => panel.classList.remove("active"));
+          button.classList.add("active");
+          panels[button.dataset.tab].classList.add("active");
+          window.scrollTo({{ top: 0, behavior: "smooth" }});
+        }});
+      }});
+      const compactPanel = (panel, keepPattern, detailTitle) => {{
+        const details = document.createElement("details");
+        details.className = "advanced";
+        const summary = document.createElement("summary");
+        summary.textContent = detailTitle;
+        details.appendChild(summary);
+        Array.from(panel.children).forEach((element) => {{
+          if (element.classList.contains("grid")) return;
+          const title = (element.querySelector("h2")?.textContent || "").trim();
+          if (!keepPattern.test(title)) details.appendChild(element);
+        }});
+        if (details.children.length > 1) panel.appendChild(details);
+      }};
+      compactPanel(
+        panels.prediction,
+        /重要日期|本期發布|日期基準|下期預測專區|精準度治理器|候選 Top 15|低機率/,
+        "進階預測細節"
+      );
+      compactPanel(
+        panels.review,
+        /上期命中檢討摘要|上期命中檢討專區|每日檢討後滾動調整|研究命中 KPI/,
+        "進階檢討細節"
+      );
+      compactPanel(
+        panels.models,
+        /模型回測與改善規劃|自動權重校準|近期穩定度回測|進階預測模型/,
+        "進階模型細節"
+      );
+    }})();
+  </script>
 </body>
 </html>"""
 
@@ -1606,11 +1866,11 @@ def save_battle_reports(report=None):
     history = prediction_history()
     save_prediction_history(history)
     history_html = build_history_html(history)
-    BATTLE_MD.write_text(report, encoding="utf-8")
-    BATTLE_TXT.write_text(report, encoding="utf-8")
-    BATTLE_HTML.write_text(html, encoding="utf-8")
-    ENHANCED_BATTLE_HTML.write_text(html, encoding="utf-8")
-    HISTORY_HTML.write_text(history_html, encoding="utf-8")
+    atomic_write_text(BATTLE_MD, report)
+    atomic_write_text(BATTLE_TXT, report)
+    atomic_write_text(BATTLE_HTML, html)
+    atomic_write_text(ENHANCED_BATTLE_HTML, html)
+    atomic_write_text(HISTORY_HTML, history_html)
     return ENHANCED_BATTLE_HTML
 
 

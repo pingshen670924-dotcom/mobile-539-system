@@ -4,6 +4,7 @@ import csv
 import io
 import json
 import logging
+import os
 import shutil
 import sqlite3
 import ssl
@@ -24,6 +25,7 @@ from battle_report import ENHANCED_BATTLE_HTML, build_report, save_battle_report
 from dashboard import DASHBOARD_HTML, save_dashboard
 from health_check import build_health, save_health
 from model_competition import run_competition, save_competition
+from pages_build import build as build_mobile_site
 from research_kpi import evaluate_research_kpis
 
 
@@ -33,6 +35,7 @@ LOG_DIR = BASE_DIR / "logs"
 BACKUP_DIR = BASE_DIR / "backups"
 DB_PATH = DATA_DIR / "539.sqlite"
 CSV_PATH = DATA_DIR / "539.csv"
+RUN_LOCK_PATH = BASE_DIR / "logs" / "539_update.lock"
 
 API_BASE = "https://api.taiwanlottery.com/TLCAPIWeB"
 DOWNLOAD_API = f"{API_BASE}/Lottery/ResultDownload"
@@ -160,6 +163,29 @@ def http_get_bytes_via_powershell(url):
             temp_path.unlink(missing_ok=True)
         except Exception:
             pass
+
+
+def acquire_run_lock(max_age_minutes=180):
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    if RUN_LOCK_PATH.exists():
+        age_seconds = time.time() - RUN_LOCK_PATH.stat().st_mtime
+        if age_seconds < max_age_minutes * 60:
+            raise RuntimeError("another update is already running; blocked to protect the database")
+        RUN_LOCK_PATH.unlink(missing_ok=True)
+    flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY
+    fd = os.open(str(RUN_LOCK_PATH), flags)
+    with os.fdopen(fd, "w", encoding="utf-8") as handle:
+        handle.write(json.dumps({
+            "pid": os.getpid(),
+            "started_at": taipei_now().isoformat(timespec="seconds"),
+        }, ensure_ascii=False))
+
+
+def release_run_lock():
+    try:
+        RUN_LOCK_PATH.unlink(missing_ok=True)
+    except OSError:
+        logging.warning("Run lock could not be removed: %s", RUN_LOCK_PATH)
 
 
 def http_get_bytes_via_curl(url):
@@ -775,6 +801,64 @@ def archive_existing_prediction(conn, prediction_id, reason):
     )
 
 
+def current_prediction_numbers(analysis, limit=15):
+    return [
+        item["number"] for item in analysis.get("official_candidates", analysis.get("candidates", []))[:limit]
+        if isinstance(item, dict) and "number" in item
+    ]
+
+
+def latest_settled_prediction_numbers(conn, limit=15):
+    row = conn.execute(
+        """
+        SELECT candidates_json, strong_packs_json, based_on_period, actual_period
+        FROM predictions_539
+        WHERE status='settled'
+        ORDER BY actual_period DESC, id DESC
+        LIMIT 1
+        """
+    ).fetchone()
+    if not row:
+        return None
+    candidates = json.loads(row[0] or "[]")
+    packs = json.loads(row[1] or "{}")
+    return {
+        "top_numbers": [
+            item["number"] for item in candidates[:limit]
+            if isinstance(item, dict) and "number" in item
+        ],
+        "pack_numbers": {
+            key: list(value.get("numbers") or [])
+            for key, value in packs.items()
+            if isinstance(value, dict)
+        },
+        "based_on_period": row[2],
+        "actual_period": row[3],
+    }
+
+
+def previous_copy_block_reason(conn, analysis):
+    previous = latest_settled_prediction_numbers(conn)
+    if not previous:
+        return None
+    current_top = current_prediction_numbers(analysis, limit=15)
+    previous_top = previous["top_numbers"]
+    if current_top and previous_top and current_top == previous_top:
+        return "blocked_previous_top15_exact_copy"
+    current_packs = analysis.get("strong_prediction_packs") or {}
+    copied_packs = []
+    for key, pack in current_packs.items():
+        if not isinstance(pack, dict):
+            continue
+        current_numbers = list(pack.get("numbers") or [])
+        previous_numbers = previous["pack_numbers"].get(key)
+        if current_numbers and previous_numbers and current_numbers == previous_numbers:
+            copied_packs.append(key)
+    if copied_packs and len(copied_packs) == len(current_packs):
+        return "blocked_previous_strong_packs_exact_copy"
+    return None
+
+
 def store_prediction(conn, analysis):
     latest = analysis["latest_draw"]
     new_candidates_json = json.dumps(analysis.get("official_candidates", analysis["candidates"]), ensure_ascii=False)
@@ -793,13 +877,12 @@ def store_prediction(conn, analysis):
     ).fetchone()
     if exists:
         previous_guard = analysis.get("industrial_engine", {}).get("previous_prediction_guard", {})
-        restored_mode = analysis.get("prediction_mode") == "restored_20260604_hit4_v31"
         existing_top15 = {
             item["number"] for item in json.loads(exists[2] or "[]")[:15]
         }
         previous_top15 = set(previous_guard.get("previous_top15", []))
         requires_guard_correction = bool(existing_top15 & previous_top15)
-        if exists[1] == "pending" and not restored_mode and previous_guard and requires_guard_correction and not previous_guard.get("current_top15_overlap"):
+        if exists[1] == "pending" and previous_guard and requires_guard_correction and not previous_guard.get("current_top15_overlap"):
             archive_existing_prediction(conn, exists[0], "official_prediction_before_previous_prediction_guard_correction")
             conn.execute(
                 """
@@ -853,6 +936,11 @@ def store_prediction(conn, analysis):
         store_prediction_snapshot(conn, analysis, "rerun_preserved_official_prediction")
         conn.commit()
         return "recalculated_same_as_official" if exists[1] == "pending" else "preserved_settled"
+    copy_reason = previous_copy_block_reason(conn, analysis)
+    if copy_reason:
+        store_prediction_snapshot(conn, analysis, copy_reason)
+        conn.commit()
+        return copy_reason
     conn.execute(
         """
         INSERT INTO predictions_539 (
@@ -922,6 +1010,14 @@ def prediction_performance(conn):
 
 def main():
     setup_logging()
+    acquire_run_lock()
+    try:
+        run_main()
+    finally:
+        release_run_lock()
+
+
+def run_main():
     parser = argparse.ArgumentParser(description="\u4eca\u5f69539\u6b77\u53f2\u8207\u6700\u65b0\u958b\u734e\u8cc7\u6599\u66f4\u65b0")
     parser.add_argument("--all", action="store_true", help="\u532f\u5165\u6c11\u570b96\u5e74\u81f3\u4eca\u5e74\u7684\u5b98\u65b9\u5e74\u5ea6\u6a94，\u4e26\u66f4\u65b0\u6700\u65b0\u4e00\u671f")
     parser.add_argument("--latest", action="store_true", help="\u53ea\u66f4\u65b0\u5b98\u65b9\u6700\u65b0\u4e00\u671f")
@@ -1055,6 +1151,11 @@ def main():
     logging.info("Battle report: %s", ENHANCED_BATTLE_HTML)
     save_dashboard()
     logging.info("Dashboard: %s", DASHBOARD_HTML)
+    try:
+        build_mobile_site()
+        logging.info("Mobile site rebuilt: %s", BASE_DIR / "site" / "index.html")
+    except Exception as exc:
+        logging.warning("Mobile site rebuild failed: %s", exc)
 
     logging.info("\u8cc7\u6599\u5eab：%s", DB_PATH)
     logging.info("CSV：%s", CSV_PATH)

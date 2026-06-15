@@ -473,7 +473,7 @@ def strategy_rankings(draws, model_weights=None):
     return rankings
 
 
-def backtest(draws, rounds=360, top_sizes=(5, 10, 15)):
+def backtest(draws, rounds=720, top_sizes=(5, 10, 15)):
     if len(draws) < 130:
         return {"rounds": 0, "strategies": {}, "note": "\u8cc7\u6599\u4e0d\u8db3，\u7565\u904e\u56de\u6e2c。"}
 
@@ -549,10 +549,66 @@ def latest_settled_prediction(db_path=DB_PATH):
     }
 
 
+def rolling_failure_profile(db_path=DB_PATH, limit=30):
+    try:
+        with sqlite3.connect(db_path) as conn:
+            rows = conn.execute(
+                """
+                SELECT candidates_json, actual_numbers_json
+                FROM predictions_539
+                WHERE status='settled'
+                ORDER BY actual_period DESC
+                LIMIT ?
+                """,
+                (limit,),
+            ).fetchall()
+    except sqlite3.OperationalError:
+        return {"sample_size": 0, "penalized_reasons": [], "boosted_reasons": [], "repeated_failed_numbers": [], "late_hit_numbers": []}
+
+    reason_stats = defaultdict(lambda: {"hit": 0, "miss": 0})
+    number_misses = Counter()
+    late_hit_reasons = Counter()
+    late_hit_numbers = Counter()
+    for candidates_json, actual_json in rows:
+        candidates = json.loads(candidates_json or "[]")
+        actual = set(json.loads(actual_json or "[]"))
+        for rank, item in enumerate(candidates[:15], 1):
+            number = int(item.get("number"))
+            hit = number in actual
+            reasons = item.get("reasons") or ["綜合模型"]
+            if not hit:
+                number_misses[number] += 1
+            for reason in reasons:
+                reason_stats[reason]["hit" if hit else "miss"] += 1
+                if hit and 11 <= rank <= 15:
+                    late_hit_reasons[reason] += 1
+                    late_hit_numbers[number] += 1
+
+    penalized = []
+    boosted = []
+    for reason, stats in reason_stats.items():
+        total = stats["hit"] + stats["miss"]
+        hit_rate = stats["hit"] / total if total else 0
+        if stats["miss"] >= 5 and hit_rate <= 0.18:
+            penalized.append({"reason": reason, "hit": stats["hit"], "miss": stats["miss"], "hit_rate": round(hit_rate, 3)})
+        if late_hit_reasons.get(reason, 0) >= 2 or (stats["hit"] >= 2 and hit_rate >= 0.45):
+            boosted.append({"reason": reason, "hit": stats["hit"], "miss": stats["miss"], "late_hit_count": late_hit_reasons.get(reason, 0), "hit_rate": round(hit_rate, 3)})
+
+    return {
+        "sample_size": len(rows),
+        "policy": "daily_miss_review_rolls_into_next_prediction",
+        "penalized_reasons": sorted(penalized, key=lambda item: (item["miss"], -item["hit"]), reverse=True)[:12],
+        "boosted_reasons": sorted(boosted, key=lambda item: (item.get("late_hit_count", 0), item["hit"]), reverse=True)[:12],
+        "repeated_failed_numbers": [{"number": n, "miss_count": c} for n, c in number_misses.most_common() if c >= 3][:12],
+        "late_hit_numbers": [{"number": n, "late_hit_count": c} for n, c in late_hit_numbers.most_common()][:12],
+    }
+
+
 def failure_review(db_path=DB_PATH):
     settled = latest_settled_prediction(db_path)
     if not settled:
         return {"has_review": False, "severity": "none", "actions": []}
+    rolling_adjustment = rolling_failure_profile(db_path)
     severity = "normal"
     actions = []
     if settled["top10_hits"] == 0:
@@ -573,6 +629,7 @@ def failure_review(db_path=DB_PATH):
         "severity": severity,
         "actions": actions,
         "last_settled": settled,
+        "rolling_adjustment": rolling_adjustment,
     }
 
 
@@ -726,7 +783,7 @@ def build_two_stage_group_model(candidates):
     }
 
 
-def backtest_two_stage_group_model(draws, windows=(60, 120, 360)):
+def backtest_two_stage_group_model(draws, windows=(120, 360, 720)):
     results = {}
     release_allowed = True
     for window in windows:
@@ -986,7 +1043,7 @@ def analyze(db_path=DB_PATH):
         industrial.setdefault("release_gate", {})["aerospace_status"] = "watch_only"
     analysis = {
         "generated_at": taipei_now().isoformat(timespec="seconds"),
-        "prediction_mode": "restored_20260604_hit4_v31",
+        "prediction_mode": "current_precision_stability_v35",
         "latest_draw": draws[-1],
         "windows": [window_summary(draws, size) for size in WINDOWS],
         "relationships": relationship_analysis(draws),
@@ -1014,8 +1071,14 @@ def analyze(db_path=DB_PATH):
 
 def save_analysis(analysis):
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
-    LATEST_JSON.write_text(json.dumps(analysis, ensure_ascii=False, indent=2), encoding="utf-8")
-    LATEST_MD.write_text(render_markdown(analysis), encoding="utf-8")
+    atomic_write_text(LATEST_JSON, json.dumps(analysis, ensure_ascii=False, indent=2))
+    atomic_write_text(LATEST_MD, render_markdown(analysis))
+
+
+def atomic_write_text(path, text):
+    temp_path = path.with_name(path.name + ".tmp")
+    temp_path.write_text(text, encoding="utf-8")
+    temp_path.replace(path)
 
 
 def main():

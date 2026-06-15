@@ -1,9 +1,10 @@
 # 539 檔案讀取與編碼檢查
 
-- 產生時間：2026-06-12T10:09:30
-- 狀態：ok
-- 檢查檔案：100
+- 產生時間：2026-06-15T12:23:05
+- 狀態：warning
+- 檢查檔案：106
 - 失敗：0
-- 警告：0
+- 警告：2
 
-所有文字檔均可以 UTF-8 正常讀取，程式檔未發現直接中文殘留。
+- warning: analyze_539.py / direct_cjk_found_in_code
+- warning: 清理主程式垃圾.ps1 / direct_cjk_found_in_code

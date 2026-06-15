@@ -326,8 +326,8 @@ def repeat_guard(draws, window=720):
             "repeat_rate": round(rate, 4),
             "baseline": round(baseline, 4),
             "historical_support": historical_support,
-            "passed": False,
-            "decision": "watch_only_not_main",
+            "passed": historical_support,
+            "decision": "qualified_repeat_allowed" if historical_support else "repeat_gate_failed",
         }
     return guard
 
@@ -376,15 +376,94 @@ def previous_prediction_guard(number, values, review):
     }
 
 
+def cycle_timing_scores(omissions):
+    values = {}
+    for number, gap in omissions.items():
+        distance = abs(gap - EXPECTED_GAP) / max(EXPECTED_GAP, 1)
+        moderate_overdue = 0.16 if EXPECTED_GAP * 0.9 <= gap <= EXPECTED_GAP * 2.8 else 0.0
+        extreme_penalty = 0.18 if gap > EXPECTED_GAP * 5 else 0.0
+        values[number] = max(0.0, math.exp(-distance) + moderate_overdue - extreme_penalty)
+    return normalize(values)
+
+
+def trend_alignment_scores(ewma_fast, ewma_slow, time_series_score):
+    values = {}
+    for number in range(NUMBER_MIN, NUMBER_MAX + 1):
+        balanced_trend = min(ewma_fast[number], ewma_slow[number])
+        values[number] = balanced_trend * 0.52 + time_series_score[number] * 0.48
+    return normalize(values)
+
+
+def cross_model_consensus_scores(model_scores):
+    votes = {number: 0.0 for number in range(NUMBER_MIN, NUMBER_MAX + 1)}
+    for scores in model_scores:
+        ranked = rank_values(scores)
+        for rank, number in enumerate(ranked[:18], 1):
+            if rank <= 5:
+                votes[number] += 1.0
+            elif rank <= 10:
+                votes[number] += 0.64
+            else:
+                votes[number] += 0.34
+            votes[number] += max(0.0, scores.get(number, 0.0)) * 0.18
+    return normalize(votes)
+
+
+def bayesian_posterior_scores(draws, window=720):
+    subset = draws[-window:] if len(draws) > window else draws
+    counts = frequency(subset)
+    draws_count = max(len(subset), 1)
+    prior_strength = 24
+    prior_hits = BASE_PROBABILITY * prior_strength
+    posterior = {}
+    for number in range(NUMBER_MIN, NUMBER_MAX + 1):
+        mean = (counts.get(number, 0) + prior_hits) / (draws_count + prior_strength)
+        shrink = mean / BASE_PROBABILITY if BASE_PROBABILITY else 0
+        posterior[number] = max(0.0, min(2.0, shrink))
+    return normalize(posterior)
+
+
+def monte_carlo_stability_scores(model_scores, simulations=240):
+    ranked_models = [rank_values(scores)[:15] for scores in model_scores]
+    votes = Counter()
+    for step in range(simulations):
+        for index, ranked in enumerate(ranked_models):
+            rotation = (step + index * 3) % max(len(ranked), 1)
+            pool = ranked[rotation:] + ranked[:rotation]
+            for rank, number in enumerate(pool[:9], 1):
+                votes[number] += max(0.05, 1.0 - rank * 0.085)
+    return normalize({number: votes.get(number, 0.0) for number in range(NUMBER_MIN, NUMBER_MAX + 1)})
+
+
+def distribution_balance_scores(draws):
+    recent = draws[-120:] if len(draws) >= 120 else draws
+    zone_counts = Counter()
+    tail_counts = Counter()
+    for draw in recent:
+        for number in draw["numbers"]:
+            zone_counts[zone_label(number)] += 1
+            tail_counts[number % 10] += 1
+    zone_norm = normalize({label: zone_counts.get(label, 0) for label in ["01-10", "11-20", "21-30", "31-39"]})
+    tail_norm = normalize({tail: tail_counts.get(tail, 0) for tail in range(10)})
+    values = {}
+    for number in range(NUMBER_MIN, NUMBER_MAX + 1):
+        zone_pressure = 1 - zone_norm[zone_label(number)]
+        tail_pressure = 1 - tail_norm[number % 10]
+        values[number] = zone_pressure * 0.54 + tail_pressure * 0.46
+    return normalize(values)
+
+
 def build_feature_matrix(draws, review=None, include_dependency=True):
     windows = [5, 10, 20, 50, 100, 300]
     feature_scores = {n: defaultdict(float) for n in range(NUMBER_MIN, NUMBER_MAX + 1)}
+    window_scores = {}
 
     for window in windows:
         subset = draws[-window:] if len(draws) >= window else draws
         freq = frequency(subset)
         zscores = {n: binomial_zscore(freq.get(n, 0), len(subset)) for n in range(NUMBER_MIN, NUMBER_MAX + 1)}
         normalized = normalize(zscores)
+        window_scores[window] = normalized
         for number, value in normalized.items():
             feature_scores[number][f"freq_{window}"] = value
 
@@ -399,6 +478,36 @@ def build_feature_matrix(draws, review=None, include_dependency=True):
     neural_score = neural_network_scores(draws)
     pair_score = pair_scores(draws)
     tail_zone = tail_zone_scores(draws)
+    cycle_timing = cycle_timing_scores(omissions)
+    trend_alignment = trend_alignment_scores(ewma_fast, ewma_slow, time_series_score)
+    bayesian_posterior = bayesian_posterior_scores(draws)
+    distribution_balance = distribution_balance_scores(draws)
+    cross_consensus = cross_model_consensus_scores([
+        window_scores[20],
+        window_scores[50],
+        window_scores[100],
+        omission_score,
+        transition_score,
+        dependency_score,
+        markov_score,
+        time_series_score,
+        neural_score,
+        pair_score,
+        tail_zone,
+        cycle_timing,
+        trend_alignment,
+        bayesian_posterior,
+        distribution_balance,
+    ])
+    monte_carlo_stability = monte_carlo_stability_scores([
+        cross_consensus,
+        markov_score,
+        time_series_score,
+        neural_score,
+        pair_score,
+        bayesian_posterior,
+        distribution_balance,
+    ])
     next_date = next_draw_date(draws[-1]["draw_date"])
     date_set = set(date_numbers(next_date))
     date_score = {n: (1.0 if n in date_set else 0.0) for n in range(NUMBER_MIN, NUMBER_MAX + 1)}
@@ -415,6 +524,12 @@ def build_feature_matrix(draws, review=None, include_dependency=True):
         feature_scores[number]["neural_network"] = neural_score[number]
         feature_scores[number]["pair"] = pair_score[number]
         feature_scores[number]["tail_zone"] = tail_zone[number]
+        feature_scores[number]["cycle_timing"] = cycle_timing[number]
+        feature_scores[number]["trend_alignment"] = trend_alignment[number]
+        feature_scores[number]["cross_consensus"] = cross_consensus[number]
+        feature_scores[number]["bayesian_posterior"] = bayesian_posterior[number]
+        feature_scores[number]["monte_carlo_stability"] = monte_carlo_stability[number]
+        feature_scores[number]["distribution_balance"] = distribution_balance[number]
         feature_scores[number]["date"] = date_score[number]
         feature_scores[number]["repeat"] = 1.0 if number in latest_set else 0.0
         feature_scores[number]["neighbor"] = 1.0 if any(abs(number - anchor) == 1 for anchor in latest_set) else 0.0
@@ -426,20 +541,26 @@ def industrial_weights(review=None):
     weights = {
         "freq_5": 0.025,
         "freq_10": 0.045,
-        "freq_20": 0.085,
-        "freq_50": 0.125,
-        "freq_100": 0.13,
+        "freq_20": 0.078,
+        "freq_50": 0.112,
+        "freq_100": 0.118,
         "freq_300": 0.055,
-        "ewma_fast": 0.06,
-        "ewma_slow": 0.08,
-        "omission": 0.13,
-        "transition": 0.07,
-        "validated_dependency": 0.065,
+        "ewma_fast": 0.052,
+        "ewma_slow": 0.072,
+        "omission": 0.112,
+        "transition": 0.064,
+        "validated_dependency": 0.062,
         "markov_chain": 0.055,
-        "time_series": 0.05,
-        "neural_network": 0.06,
-        "pair": 0.09,
-        "tail_zone": 0.09,
+        "time_series": 0.044,
+        "neural_network": 0.052,
+        "pair": 0.082,
+        "tail_zone": 0.078,
+        "cycle_timing": 0.052,
+        "trend_alignment": 0.058,
+        "cross_consensus": 0.098,
+        "bayesian_posterior": 0.052,
+        "monte_carlo_stability": 0.064,
+        "distribution_balance": 0.046,
         "date": 0.025,
         "repeat": 0.015,
         "neighbor": 0.025,
@@ -454,6 +575,12 @@ def industrial_weights(review=None):
                 "markov_chain": 0.04,
                 "time_series": 0.04,
                 "neural_network": 0.045,
+                "cross_consensus": 0.135,
+                "cycle_timing": 0.066,
+                "trend_alignment": 0.07,
+                "bayesian_posterior": 0.064,
+                "monte_carlo_stability": 0.078,
+                "distribution_balance": 0.055,
                 "repeat": 0.005,
                 "neighbor": 0.01,
                 "freq_50": 0.15,
@@ -467,10 +594,163 @@ def industrial_weights(review=None):
     return {key: value / total for key, value in weights.items()}
 
 
-def score_numbers(draws, review=None, include_dependency=True):
+MODEL_SOURCE_LABELS = {
+    "freq_5": "\u8fd15\u671f\u71b1\u5ea6",
+    "freq_10": "\u8fd110\u671f\u71b1\u5ea6",
+    "freq_20": "\u8fd120\u671f\u71b1\u5ea6",
+    "freq_50": "\u8fd150\u671f\u71b1\u5ea6",
+    "freq_100": "\u8fd1100\u671f\u71b1\u5ea6",
+    "freq_300": "\u8fd1300\u671f\u7a69\u5b9a",
+    "ewma_fast": "\u5feb\u901f\u52a0\u6b0a\u8da8\u52e2",
+    "ewma_slow": "\u6162\u901f\u52a0\u6b0a\u8da8\u52e2",
+    "omission": "\u907a\u6f0f\u9031\u671f",
+    "transition": "\u62d6\u724c\u8f49\u79fb",
+    "validated_dependency": "\u6a23\u672c\u5916\u9023\u52d5",
+    "markov_chain": "\u99ac\u53ef\u592b",
+    "time_series": "\u6642\u9593\u5e8f\u5217",
+    "neural_network": "\u795e\u7d93\u7db2\u8def",
+    "pair": "\u5171\u73fe\u914d\u5c0d",
+    "tail_zone": "\u5c3e\u6578\u5340\u9593",
+    "cycle_timing": "\u9031\u671f\u4f4d\u7f6e",
+    "trend_alignment": "\u5feb\u6162\u8da8\u52e2\u4e00\u81f4",
+    "cross_consensus": "\u591a\u6a21\u578b\u5171\u8b58",
+    "bayesian_posterior": "\u8c9d\u6c0f\u4fdd\u5b88\u6821\u6e96",
+    "monte_carlo_stability": "\u8499\u5730\u5361\u7f85\u7a69\u5b9a",
+    "distribution_balance": "\u5206\u5e03\u5e73\u8861",
+    "date": "\u65e5\u671f\u724c",
+    "repeat": "\u9023\u838a\u56de\u6e2c",
+    "neighbor": "\u9130\u865f\u9023\u52d5",
+}
+
+
+def conservative_probability_percent(score):
+    baseline_percent = BASE_PROBABILITY * 100
+    calibrated = baseline_percent * (0.72 + max(0.0, min(score, 1.0)) * 0.74)
+    return round(max(0.0, min(38.0, calibrated)), 2)
+
+
+def number_model_sources(values, weights, limit=8):
+    rows = []
+    for name, weight in weights.items():
+        value = values.get(name, 0.0)
+        contribution = value * weight
+        if value >= 0.42 or contribution >= 0.018:
+            rows.append({
+                "model": name,
+                "label": MODEL_SOURCE_LABELS.get(name, name),
+                "signal": round(value, 4),
+                "weight": round(weight, 5),
+                "contribution": round(contribution, 5),
+            })
+    rows.sort(key=lambda item: (item["contribution"], item["signal"]), reverse=True)
+    return rows[:limit]
+
+
+def number_cross_validation(values):
+    checks = [
+        ("multi_model_consensus", "\u591a\u6a21\u578b\u5171\u8b58", values.get("cross_consensus", 0) >= 0.58),
+        ("monte_carlo_stability", "\u8499\u5730\u5361\u7f85\u7a69\u5b9a", values.get("monte_carlo_stability", 0) >= 0.58),
+        ("bayesian_calibration", "\u8c9d\u6c0f\u6821\u6e96", values.get("bayesian_posterior", 0) >= 0.52),
+        ("trend_alignment", "\u8da8\u52e2\u4e00\u81f4", values.get("trend_alignment", 0) >= 0.52),
+        ("cycle_timing", "\u9031\u671f\u4f4d\u7f6e", values.get("cycle_timing", 0) >= 0.52),
+        ("distribution_balance", "\u5206\u5e03\u5e73\u8861", values.get("distribution_balance", 0) >= 0.52),
+    ]
+    passed = [{"key": key, "label": label} for key, label, ok in checks if ok]
+    failed = [{"key": key, "label": label} for key, label, ok in checks if not ok]
+    return {
+        "passed_count": len(passed),
+        "total_count": len(checks),
+        "passed": passed,
+        "failed": failed,
+        "status": "passed" if len(passed) >= 3 else "watch",
+    }
+
+
+def adaptive_feature_weights(draws, review=None, rounds=360):
+    base_weights = industrial_weights(review)
+    if len(draws) < 160:
+        return base_weights, {
+            "status": "insufficient_data",
+            "rounds": 0,
+            "method": "fallback_base_weights",
+        }
+    feature_names = list(base_weights)
+    stats = {
+        name: {"rounds": 0, "top5_hits": 0, "top10_hits": 0, "top15_hits": 0}
+        for name in feature_names
+    }
+    start = max(120, len(draws) - rounds - 1)
+    for idx in range(start, len(draws) - 1):
+        train = draws[: idx + 1]
+        actual = set(draws[idx + 1]["numbers"])
+        features = build_feature_matrix(train, review=None, include_dependency=False)
+        for name in feature_names:
+            ranked = sorted(
+                range(NUMBER_MIN, NUMBER_MAX + 1),
+                key=lambda number: (features[number].get(name, 0.0), -number),
+                reverse=True,
+            )
+            stats[name]["rounds"] += 1
+            stats[name]["top5_hits"] += len(set(ranked[:5]) & actual)
+            stats[name]["top10_hits"] += len(set(ranked[:10]) & actual)
+            stats[name]["top15_hits"] += len(set(ranked[:15]) & actual)
+
+    baseline = {
+        5: DRAW_SIZE * 5 / NUMBER_MAX,
+        10: DRAW_SIZE * 10 / NUMBER_MAX,
+        15: DRAW_SIZE * 15 / NUMBER_MAX,
+    }
+    multipliers = {}
+    feature_report = {}
+    for name, item in stats.items():
+        rounds_done = item["rounds"] or 1
+        top5_avg = item["top5_hits"] / rounds_done
+        top10_avg = item["top10_hits"] / rounds_done
+        top15_avg = item["top15_hits"] / rounds_done
+        edge = (
+            (top5_avg - baseline[5]) * 0.48
+            + (top10_avg - baseline[10]) * 0.34
+            + (top15_avg - baseline[15]) * 0.18
+        )
+        multiplier = max(0.55, min(1.45, 1 + edge * 0.42))
+        multipliers[name] = multiplier
+        feature_report[name] = {
+            "rounds": item["rounds"],
+            "top5_avg_hits": round(top5_avg, 3),
+            "top10_avg_hits": round(top10_avg, 3),
+            "top15_avg_hits": round(top15_avg, 3),
+            "weighted_edge": round(edge, 4),
+            "multiplier": round(multiplier, 3),
+        }
+    adjusted = {name: base_weights[name] * multipliers[name] for name in feature_names}
+    total = sum(adjusted.values()) or 1
+    calibrated = {name: adjusted[name] / total for name in feature_names}
+    ranked_features = sorted(feature_report.items(), key=lambda pair: pair[1]["weighted_edge"], reverse=True)
+    return calibrated, {
+        "status": "evaluated",
+        "method": "recent_walk_forward_feature_weight_calibration",
+        "rounds": max((item["rounds"] for item in stats.values()), default=0),
+        "top_boosted_features": [
+            {"feature": name, **report}
+            for name, report in ranked_features[:6]
+        ],
+        "top_penalized_features": [
+            {"feature": name, **report}
+            for name, report in ranked_features[-6:]
+        ],
+        "base_weights": {name: round(value, 5) for name, value in base_weights.items()},
+        "calibrated_weights": {name: round(value, 5) for name, value in calibrated.items()},
+    }
+
+
+def score_numbers(draws, review=None, include_dependency=True, weights_override=None):
     features = build_feature_matrix(draws, review, include_dependency=include_dependency)
-    weights = industrial_weights(review)
+    weights = weights_override or industrial_weights(review)
     failed = failed_number_set(review)
+    rolling = (review or {}).get("rolling_adjustment", {})
+    penalized_reasons = {item.get("reason") for item in rolling.get("penalized_reasons", [])}
+    boosted_reasons = {item.get("reason") for item in rolling.get("boosted_reasons", [])}
+    repeated_failed_numbers = {int(item.get("number")) for item in rolling.get("repeated_failed_numbers", []) if item.get("number")}
     latest_set = set(draws[-1]["numbers"])
     repeat_policy = repeat_guard(draws)
     score = {}
@@ -501,32 +781,62 @@ def score_numbers(draws, review=None, include_dependency=True):
             reasons[number].append("\u795e\u7d93\u7db2\u8def\u7d9c\u5408")
         if values["tail_zone"] >= 0.7:
             reasons[number].append("\u5c3e\u6578\u5340\u9593")
+        if values["cross_consensus"] >= 0.7:
+            reasons[number].append("\u591a\u6a21\u578b\u5171\u8b58")
+        if values["cycle_timing"] >= 0.7:
+            reasons[number].append("\u9031\u671f\u4f4d\u7f6e")
+        if values["trend_alignment"] >= 0.7:
+            reasons[number].append("\u5feb\u6162\u8da8\u52e2\u4e00\u81f4")
+        if values["bayesian_posterior"] >= 0.7:
+            reasons[number].append("\u8c9d\u6c0f\u4fdd\u5b88\u6821\u6e96")
+        if values["monte_carlo_stability"] >= 0.7:
+            reasons[number].append("\u8499\u5730\u5361\u7f85\u7a69\u5b9a")
+        if values["distribution_balance"] >= 0.7:
+            reasons[number].append("\u5206\u5e03\u5e73\u8861\u98a8\u63a7")
         if values["freq_50"] >= 0.7 or values["freq_100"] >= 0.7:
             reasons[number].append("\u4e2d\u671f\u7a69\u5b9a")
         if values["date"] > 0:
             reasons[number].append("\u65e5\u671f\u724c")
         if number in latest_set:
             policy = repeat_policy.get(number, {})
-            raw *= 0.05
-            if policy.get("historical_support"):
-                reasons[number].append("\u9023\u838a\u89c0\u5bdf\u4e0d\u4e3b\u63a8")
+            if policy.get("passed"):
+                raw *= 0.78
+                reasons[number].append("\u9023\u838a\u5408\u683c\u9a57\u7b97")
             else:
+                raw *= 0.05
                 reasons[number].append("\u9023\u838a\u5b88\u9580\u672a\u901a\u904e")
+        reason_set = set(reasons[number])
+        if number in repeated_failed_numbers:
+            raw *= 0.72
+            reasons[number].append("\u6efe\u52d5\u6aa2\u8a0e\u9023\u7e8c\u672a\u547d\u4e2d\u964d\u6b0a")
+        if reason_set & penalized_reasons:
+            raw *= 0.84
+            reasons[number].append("\u6efe\u52d5\u6aa2\u8a0e\u672a\u547d\u4e2d\u4f86\u6e90\u964d\u6b0a")
+        if reason_set & boosted_reasons:
+            raw *= 1.12
+            reasons[number].append("\u6efe\u52d5\u6aa2\u8a0e\u547d\u4e2d\u4f86\u6e90\u5347\u6b0a")
         score[number] = raw
 
     normalized_score = normalize(score)
     omissions = omission(draws)
     ranked = rank_values(normalized_score)
     candidates = []
-    for number in ranked:
+    for rank, number in enumerate(ranked, 1):
+        model_sources = number_model_sources(features[number], weights)
+        cross_validation = number_cross_validation(features[number])
         candidates.append(
             {
                 "number": number,
+                "rank": rank,
                 "score": round(normalized_score[number], 4),
                 "confidence_index": round(50 + normalized_score[number] * 49, 1),
+                "model_probability_percent": conservative_probability_percent(normalized_score[number]),
                 "omission": omissions[number],
                 "repeat_guard": repeat_policy.get(number),
                 "previous_prediction_guard": previous_prediction_guard(number, features[number], review),
+                "model_sources": model_sources,
+                "source_model_count": len(model_sources),
+                "cross_validation": cross_validation,
                 "reasons": reasons[number][:4] or ["\u5de5\u696d\u7d1a\u7d9c\u5408\u5206\u6578"],
             }
         )
@@ -559,6 +869,202 @@ def optimized_group(candidates, size, review=None):
     return sorted(selected)
 
 
+def strong_single_group(candidates, review=None):
+    rolling = (review or {}).get("rolling_adjustment", {})
+    boosted_reasons = {item.get("reason") for item in rolling.get("boosted_reasons", [])}
+    repeated_failed_numbers = {int(item.get("number")) for item in rolling.get("repeated_failed_numbers", []) if item.get("number")}
+    for item in candidates[:12]:
+        number = item["number"]
+        reasons = set(item.get("reasons", []))
+        if number in repeated_failed_numbers:
+            continue
+        guard = item.get("previous_prediction_guard")
+        if guard and not guard.get("passed"):
+            continue
+        score = item.get("score", 0)
+        confidence = item.get("confidence_index", 0)
+        stability = item.get("stability_count", 0)
+        boosted = bool(reasons & boosted_reasons)
+        if score >= 0.9 and confidence >= 94:
+            return [number]
+        if score >= 0.84 and confidence >= 90 and (stability >= 3 or boosted):
+            return [number]
+    return []
+
+
+def single_precision_group(candidates, review=None):
+    failed = failed_number_set(review)
+    rolling = (review or {}).get("rolling_adjustment", {})
+    boosted_reasons = {item.get("reason") for item in rolling.get("boosted_reasons", [])}
+    late_hit_numbers = {int(item.get("number")) for item in rolling.get("late_hit_numbers", []) if item.get("number")}
+    repeated_failed_numbers = {int(item.get("number")) for item in rolling.get("repeated_failed_numbers", []) if item.get("number")}
+    ranked = []
+    for item in candidates[:18]:
+        number = item["number"]
+        if number in failed or number in repeated_failed_numbers:
+            continue
+        guard = item.get("previous_prediction_guard")
+        if guard and not guard.get("passed"):
+            continue
+        reasons = set(item.get("reasons", []))
+        precision_score = (
+            item.get("score", 0) * 0.58
+            + ((item.get("confidence_index", 50) - 50) / 49) * 0.22
+            + min(item.get("stability_count", 0), 5) * 0.028
+            + (0.045 if reasons & boosted_reasons else 0)
+            + (0.035 if number in late_hit_numbers else 0)
+        )
+        ranked.append((precision_score, item))
+    ranked.sort(key=lambda pair: (pair[0], pair[1].get("score", 0), pair[1].get("confidence_index", 0), -pair[1]["number"]), reverse=True)
+    return [ranked[0][1]["number"]] if ranked else []
+
+
+def five_hit_two_group(candidates, review=None):
+    failed = failed_number_set(review)
+    selected = []
+    pool = [
+        item for item in candidates[:18]
+        if item["number"] not in failed
+        and not (item.get("previous_prediction_guard") and not item["previous_prediction_guard"].get("passed"))
+    ]
+    for item in pool:
+        if len(selected) >= 5:
+            break
+        number = item["number"]
+        if sum(1 for selected_number in selected if zone_label(selected_number) == zone_label(number)) >= 2:
+            continue
+        if sum(1 for selected_number in selected if selected_number % 10 == number % 10) >= 2:
+            continue
+        selected.append(number)
+    if len(selected) < 5:
+        for item in pool:
+            if item["number"] not in selected:
+                selected.append(item["number"])
+            if len(selected) >= 5:
+                break
+    return sorted(selected[:5])
+
+
+def nine_hit_three_group(candidates, review=None):
+    failed = failed_number_set(review)
+    rolling = (review or {}).get("rolling_adjustment", {})
+    late_hit_numbers = {int(item.get("number")) for item in rolling.get("late_hit_numbers", []) if item.get("number")}
+    score_map = {item["number"]: item["score"] for item in candidates}
+    pool = [
+        item["number"] for item in candidates[:24]
+        if item["number"] not in failed
+        and not (item.get("previous_prediction_guard") and not item["previous_prediction_guard"].get("passed"))
+    ]
+    selected = []
+    while len(selected) < 9 and pool:
+        best = max(
+            pool,
+            key=lambda number: (
+                score_map[number]
+                + (0.08 if number in late_hit_numbers else 0)
+                - diversity_penalty(selected, number) * 1.35
+                - (0.08 if sum(1 for n in selected if zone_label(n) == zone_label(number)) >= 3 else 0)
+            ),
+        )
+        selected.append(best)
+        pool.remove(best)
+    return sorted(selected[:9])
+
+
+def top_rank_group(candidates, size, review=None):
+    failed = failed_number_set(review)
+    selected = []
+    for item in candidates:
+        number = item["number"]
+        if number in failed:
+            continue
+        guard = item.get("previous_prediction_guard")
+        if guard and not guard.get("passed"):
+            continue
+        selected.append(number)
+        if len(selected) >= size:
+            break
+    return sorted(selected)
+
+
+def stability_group(candidates, size, review=None):
+    failed = failed_number_set(review)
+    ranked = sorted(
+        candidates[:24],
+        key=lambda item: (
+            item.get("stability_count", 0),
+            item.get("score", 0),
+            item.get("confidence_index", 0),
+            -item["number"],
+        ),
+        reverse=True,
+    )
+    selected = []
+    for item in ranked:
+        number = item["number"]
+        if number in failed:
+            continue
+        guard = item.get("previous_prediction_guard")
+        if guard and not guard.get("passed"):
+            continue
+        selected.append(number)
+        if len(selected) >= size:
+            break
+    return sorted(selected)
+
+
+def group_by_variant(key, candidates, review=None, variant=None):
+    if key == "strong_single":
+        if variant == "single_precision":
+            return single_precision_group(candidates, review)
+        if variant == "top_rank":
+            return top_rank_group(candidates, 1, review)
+        if variant == "stability":
+            return stability_group(candidates, 1, review)
+        return strong_single_group(candidates, review)
+    if key == "five_hit_two":
+        if variant == "top_rank":
+            return top_rank_group(candidates, 5, review)
+        if variant == "stability":
+            return stability_group(candidates, 5, review)
+        return five_hit_two_group(candidates, review)
+    if key == "nine_hit_three":
+        if variant == "top_rank":
+            return top_rank_group(candidates, 9, review)
+        if variant == "stability":
+            return stability_group(candidates, 9, review)
+        return nine_hit_three_group(candidates, review)
+    size_by_key = {"two_hit_one": 2, "three_hit_one": 3}
+    return optimized_group(candidates, size_by_key.get(key, 5), review)
+
+
+def top10_promotion_audit(candidates, review=None):
+    rolling = (review or {}).get("rolling_adjustment", {})
+    boosted_reasons = {item.get("reason") for item in rolling.get("boosted_reasons", [])}
+    late_hit_numbers = {int(item.get("number")) for item in rolling.get("late_hit_numbers", []) if item.get("number")}
+    promotions = []
+    for rank, item in enumerate(candidates[10:15], 11):
+        reasons = set(item.get("reasons", []))
+        should_promote = bool(reasons & boosted_reasons) or item["number"] in late_hit_numbers or item.get("stability_count", 0) >= 4
+        if should_promote:
+            promotions.append(
+                {
+                    "number": item["number"],
+                    "current_rank": rank,
+                    "score": item.get("score"),
+                    "confidence_index": item.get("confidence_index"),
+                    "stability_count": item.get("stability_count", 0),
+                    "reasons": item.get("reasons", []),
+                    "action": "promote_watch_to_top10_boundary",
+                }
+            )
+    return {
+        "policy": "promote_11_to_15_when_late_hit_or_boosted_reason_is_detected",
+        "promotion_candidates": promotions,
+        "promotion_count": len(promotions),
+    }
+
+
 def empty_pack(name, goal, reason):
     return {
         "name": name,
@@ -574,7 +1080,28 @@ def empty_pack(name, goal, reason):
     }
 
 
-def pack_recent_governance(draws, rounds=120):
+def watch_pack(name, goal, numbers, score_map, reason):
+    if not numbers:
+        return empty_pack(name, goal, reason)
+    probability = pack_probability(len(numbers), goal)
+    return {
+        "name": name,
+        "hit_goal": goal,
+        "numbers": sorted(numbers),
+        "score_sum": round(sum(score_map[n] for n in numbers), 4),
+        "avg_score": round(sum(score_map[n] for n in numbers) / len(numbers), 4),
+        "status": "research_prediction",
+        "official_release": False,
+        "withheld_reason": reason,
+        "release_note": "daily research prediction is always provided, but official confidence gate did not pass",
+        "theoretical_probability": probability,
+        "zones": Counter(zone_label(n) for n in numbers),
+        "tails": Counter(n % 10 for n in numbers),
+        "governance": {},
+    }
+
+
+def pack_recent_governance(draws, rounds=360):
     if len(draws) < 150:
         return {
             "status": "insufficient_data",
@@ -591,9 +1118,17 @@ def pack_recent_governance(draws, rounds=120):
         "five_hit_two": {"size": 5, "goal": 2, "min_pass_rate": 0.14, "min_avg_hits": 0.72},
         "nine_hit_three": {"size": 9, "goal": 3, "min_pass_rate": 0.12, "min_avg_hits": 1.16},
     }
+    pack_variants = {
+        "strong_single": ["single_precision", "dedicated", "top_rank", "stability"],
+        "five_hit_two": ["dedicated", "top_rank", "stability"],
+        "nine_hit_three": ["dedicated", "top_rank", "stability"],
+    }
     start = max(120, len(draws) - rounds - 1)
     stats = {
-        key: {"rounds": 0, "passes": 0, "hits": 0, "zero_hits": 0}
+        key: {
+            variant: {"rounds": 0, "passes": 0, "hits": 0, "zero_hits": 0}
+            for variant in pack_variants.get(key, ["dedicated"])
+        }
         for key in pack_specs
     }
 
@@ -602,42 +1137,60 @@ def pack_recent_governance(draws, rounds=120):
         actual = set(draws[idx + 1]["numbers"])
         historical_candidates, _ = score_numbers(train, None, include_dependency=False)
         for key, spec in pack_specs.items():
-            numbers = optimized_group(historical_candidates, spec["size"], None)
-            hits = len(set(numbers) & actual)
-            stats[key]["rounds"] += 1
-            stats[key]["hits"] += hits
-            stats[key]["passes"] += 1 if hits >= spec["goal"] else 0
-            stats[key]["zero_hits"] += 1 if hits == 0 else 0
+            for variant in stats[key]:
+                numbers = group_by_variant(key, historical_candidates, None, variant)
+                hits = len(set(numbers) & actual)
+                stats[key][variant]["rounds"] += 1
+                stats[key][variant]["hits"] += hits
+                stats[key][variant]["passes"] += 1 if hits >= spec["goal"] else 0
+                stats[key][variant]["zero_hits"] += 1 if hits == 0 else 0
 
     pack_stats = {}
     allowed_count = 0
     for key, spec in pack_specs.items():
-        item = stats[key]
-        rounds_done = item["rounds"] or 1
-        pass_rate = item["passes"] / rounds_done
-        avg_hits = item["hits"] / rounds_done
-        zero_rate = item["zero_hits"] / rounds_done
+        variant_results = {}
+        for variant, item in stats[key].items():
+            rounds_done = item["rounds"] or 1
+            pass_rate = item["passes"] / rounds_done
+            avg_hits = item["hits"] / rounds_done
+            zero_rate = item["zero_hits"] / rounds_done
+            variant_results[variant] = {
+                "rounds": item["rounds"],
+                "pass_rate": round(pass_rate, 3),
+                "avg_hits": round(avg_hits, 3),
+                "zero_hit_rate": round(zero_rate, 3),
+            }
+        best_variant, best_result = max(
+            variant_results.items(),
+            key=lambda pair: (pair[1]["pass_rate"], pair[1]["avg_hits"], -pair[1]["zero_hit_rate"]),
+        )
+        pass_rate = best_result["pass_rate"]
+        avg_hits = best_result["avg_hits"]
+        zero_rate = best_result["zero_hit_rate"]
         passed = pass_rate >= spec["min_pass_rate"] and avg_hits >= spec["min_avg_hits"]
         allowed_count += 1 if passed else 0
         pack_stats[key] = {
-            "rounds": item["rounds"],
+            "rounds": best_result["rounds"],
             "goal": spec["goal"],
-            "pass_rate": round(pass_rate, 3),
-            "avg_hits": round(avg_hits, 3),
-            "zero_hit_rate": round(zero_rate, 3),
+            "pass_rate": pass_rate,
+            "avg_hits": avg_hits,
+            "zero_hit_rate": zero_rate,
             "min_pass_rate": spec["min_pass_rate"],
             "min_avg_hits": spec["min_avg_hits"],
             "passed": passed,
+            "best_variant": best_variant,
+            "variant_results": variant_results,
         }
 
     release_light = "green" if allowed_count >= 4 else "yellow" if allowed_count >= 2 else "red"
+    governance_rounds = max((item.get("rounds", 0) for item in pack_stats.values()), default=0)
     return {
         "status": "evaluated",
-        "rounds": next(iter(stats.values()))["rounds"],
+        "rounds": governance_rounds,
         "release_light": release_light,
         "allowed_pack_count": allowed_count,
         "pack_stats": pack_stats,
-        "message": "strict walk-forward pack governance; packs below threshold are withheld",
+        "message": "strict walk-forward governance with daily variant tournament; lower confidence packs are still output as research predictions",
     }
 
 
@@ -670,6 +1223,7 @@ def strong_packs(candidates, review=None, governance=None):
             "score_sum": round(sum(score_map[n] for n in numbers), 4),
             "avg_score": round(avg_score, 4),
             "status": "released",
+            "official_release": True,
             "theoretical_probability": probability,
             "zones": Counter(zone_label(n) for n in numbers),
             "tails": Counter(n % 10 for n in numbers),
@@ -677,7 +1231,7 @@ def strong_packs(candidates, review=None, governance=None):
         }
 
     specs = {
-        "strong_single": ("\u6700\u5f37\u55ae\u652f", 1, 1, 0.82, 2),
+        "strong_single": ("\u6700\u5f37\u55ae\u652f", 1, 1, 0.78, 1),
         "two_hit_one": ("\u6700\u5f372\u4e2d1", 1, 2, 0.76, 2),
         "three_hit_one": ("\u6700\u5f373\u4e2d1", 1, 3, 0.72, 1),
         "five_hit_two": ("\u6700\u5f375\u4e2d2", 2, 5, 0.68, 1),
@@ -685,6 +1239,8 @@ def strong_packs(candidates, review=None, governance=None):
     }
     packs = {}
     for key, (name, goal, size, min_avg_score, min_stability) in specs.items():
+        recent_stat = pack_stats.get(key, {})
+        variant = recent_stat.get("best_variant", "dedicated")
         allowed_pool = [
             item for item in candidates[:30]
             if item["number"] in qualified_numbers or (
@@ -692,22 +1248,27 @@ def strong_packs(candidates, review=None, governance=None):
             )
         ]
         if len(allowed_pool) < size:
-            packs[key] = empty_pack(name, goal, "strict confidence pool has fewer qualified numbers than pack size")
-            packs[key]["governance"] = pack_stats.get(key, {})
+            fallback_pool = candidates[: max(size, 12)]
+            fallback_numbers = group_by_variant(key, fallback_pool, review, variant)
+            if len(fallback_numbers) < size and fallback_pool:
+                fallback_numbers = top_rank_group(fallback_pool, size, review)
+            packs[key] = watch_pack(name, goal, fallback_numbers, score_map, "strict confidence pool failed; output as daily research prediction")
+            packs[key]["governance"] = recent_stat
             continue
-        numbers = optimized_group(allowed_pool, size, review)
+        numbers = group_by_variant(key, allowed_pool, review, variant)
+        if not numbers and allowed_pool:
+            numbers = [allowed_pool[0]["number"]] if size == 1 else optimized_group(allowed_pool, size, review)
         avg_score = sum(score_map[n] for n in numbers) / len(numbers) if numbers else 0
         weak_numbers = [
             n for n in numbers
             if candidate_map[n].get("previous_prediction_guard") and not candidate_map[n]["previous_prediction_guard"].get("passed")
         ]
-        recent_stat = pack_stats.get(key, {})
         if recent_stat and not recent_stat.get("passed"):
-            packs[key] = empty_pack(name, goal, "recent walk-forward pack performance did not pass")
+            packs[key] = watch_pack(name, goal, numbers, score_map, "recent walk-forward pack performance did not pass official gate; output as daily research prediction")
         elif avg_score < min_avg_score:
-            packs[key] = empty_pack(name, goal, "average score is below strict release threshold")
+            packs[key] = watch_pack(name, goal, numbers, score_map, "average score is below strict release threshold; output as daily research prediction")
         elif weak_numbers:
-            packs[key] = empty_pack(name, goal, "contains previous prediction re-entry numbers that failed the strict gate")
+            packs[key] = watch_pack(name, goal, numbers, score_map, "contains previous prediction re-entry numbers that failed the strict gate; output as daily research prediction")
         else:
             packs[key] = pack(name, goal, sorted(numbers))
         packs[key]["governance"] = recent_stat
@@ -847,7 +1408,7 @@ def balanced_ticket_score(ticket):
     return span / NUMBER_MAX - zone_penalty * 0.2 - tail_penalty * 0.1
 
 
-def industrial_backtest(draws, rounds=360):
+def industrial_backtest(draws, rounds=720):
     if len(draws) < 140:
         return {"rounds": 0, "top10_avg_hits": 0, "top15_avg_hits": 0}
     start = max(120, len(draws) - rounds - 1)
@@ -921,7 +1482,7 @@ def advanced_model_summary(draws):
     }
 
 
-def advanced_model_backtest(draws, rounds=180):
+def advanced_model_backtest(draws, rounds=360):
     if len(draws) < 140:
         return {"rounds": 0}
     model_names = ["markov_chain", "time_series", "neural_network"]
@@ -1035,10 +1596,11 @@ def unlikely_number_analysis(draws, candidates, stability, review=None, limit=12
             penalty += 0.25
             reasons.append("\u4e0a\u671f\u5931\u6557\u865f\u78bc\u9694\u96e2")
         if number in latest_set:
-            penalty += 0.28
             if repeat_policy.get(number, {}).get("historical_support"):
-                reasons.append("\u9023\u838a\u50c5\u89c0\u5bdf")
+                penalty += 0.08
+                reasons.append("\u9023\u838a\u5408\u683c\u4f46\u4fdd\u5b88\u98a8\u63a7")
             else:
+                penalty += 0.28
                 reasons.append("\u9023\u838a\u5b88\u9580\u672a\u901a\u904e")
         if stability_counts.get(number, 0) == 0:
             penalty += 0.16
@@ -1073,7 +1635,7 @@ def unlikely_number_analysis(draws, candidates, stability, review=None, limit=12
     }
 
 
-def unlikely_backtest(draws, rounds=120, avoid_size=10):
+def unlikely_backtest(draws, rounds=360, avoid_size=10):
     if len(draws) < 140:
         return {"rounds": 0}
     start = max(120, len(draws) - rounds - 1)
@@ -1103,7 +1665,8 @@ def unlikely_backtest(draws, rounds=120, avoid_size=10):
 
 
 def compute_industrial_analysis(draws, review=None):
-    base_candidates, weights = score_numbers(draws, review)
+    weights, weight_calibration = adaptive_feature_weights(draws, review)
+    base_candidates, weights = score_numbers(draws, review, weights_override=weights)
     candidates, stability = stability_consensus(draws, base_candidates, review)
     pack_governance = pack_recent_governance(draws)
     packs = strong_packs(candidates, review, pack_governance)
@@ -1131,6 +1694,7 @@ def compute_industrial_analysis(draws, review=None):
         if item.get("previous_prediction_guard") and item["previous_prediction_guard"].get("passed")
     )
     unlikely = unlikely_number_analysis(draws, candidates, stability, review)
+    promotion_audit = top10_promotion_audit(candidates, review)
     return {
         "engine_version": "industrial_v6_precision_governor_strict_release",
         "leakage_guard": True,
@@ -1145,6 +1709,8 @@ def compute_industrial_analysis(draws, review=None):
             "top15_overlap_rate": round(len(top15_overlap) / 15, 3),
         },
         "stability_consensus": stability,
+        "adaptive_weight_calibration": weight_calibration,
+        "top10_promotion_audit": promotion_audit,
         "dependency_analysis": {
             "method": "three_fold_conditional_lift_with_fdr",
             "validated_links": validated_links[:30],
