@@ -47,7 +47,7 @@ function Remove-GeneratedCaches {
 try {
   "==== 539 run started $(Get-Date -Format s) ====" | Out-File -FilePath $RunLog -Encoding utf8 -Append
   $Python = Find-Python
-  Run-Step "Compile check" @("-m", "py_compile", ".\update_539.py", ".\analyze_539.py", ".\battle_report.py", ".\health_check.py", ".\dashboard.py", ".\pages_build.py", ".\industrial_engine.py", ".\aerospace_engine.py", ".\research_kpi.py", ".\daily_integrity_audit.py")
+  Run-Step "Compile check" @("-m", "py_compile", ".\update_539.py", ".\analyze_539.py", ".\battle_report.py", ".\health_check.py", ".\dashboard.py", ".\pages_build.py", ".\industrial_engine.py", ".\aerospace_engine.py", ".\research_kpi.py", ".\daily_integrity_audit.py", ".\line_push.py")
   $Updated = $false
   for ($Attempt = 1; $Attempt -le 4; $Attempt++) {
     "Update attempt $Attempt/4" | Out-File -FilePath $RunLog -Encoding utf8 -Append
@@ -69,6 +69,7 @@ try {
   Run-Step "Daily integrity audit" @(".\daily_integrity_audit.py")
   Run-Step "Rebuild battle report after audit" @(".\battle_report.py")
   Run-Step "Build phone site files" @(".\pages_build.py") $false
+  Run-Step "Push LINE report" @(".\line_push.py") $false
   Run-Step "File encoding check" @(".\system_file_check.py") $false
   Remove-GeneratedCaches
   $EnhancedName = "539" + [char]0x6700 + [char]0x65B0 + [char]0x5F37 + [char]0x5316 + [char]0x6230 + [char]0x5831 + ".html"

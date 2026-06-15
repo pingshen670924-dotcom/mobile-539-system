@@ -1,4 +1,5 @@
 import argparse
+import base64
 import csv
 import io
 import json
@@ -6,6 +7,7 @@ import logging
 import shutil
 import sqlite3
 import ssl
+import subprocess
 import sys
 import time
 import urllib.parse
@@ -14,6 +16,7 @@ import zipfile
 from collections import defaultdict
 from datetime import datetime, time as clock_time, timedelta
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 from zoneinfo import ZoneInfo
 
 from analyze_539 import analyze, save_analysis
@@ -108,7 +111,133 @@ def http_get_bytes(url, retries=3, retry_delay=2):
             logging.warning("\u4e0b\u8f09\u5931\u6557，\u7b2c %s/%s \u6b21：%s", attempt, retries, url)
             if attempt < retries:
                 time.sleep(retry_delay * attempt)
-    raise RuntimeError(f"\u4e0b\u8f09\u5931\u6557：{url} ({last_error})")
+    logging.warning("Python download failed; trying PowerShell fallback: %s", url)
+    try:
+        return http_get_bytes_via_powershell(url)
+    except Exception as fallback_error:
+        raise RuntimeError(f"\u4e0b\u8f09\u5931\u6557：{url} ({last_error}); powershell_fallback={fallback_error}")
+
+
+def powershell_quote(value):
+    return "'" + str(value).replace("'", "''") + "'"
+
+
+def http_get_bytes_via_powershell(url):
+    with NamedTemporaryFile(delete=False, suffix=".download") as temp_file:
+        temp_path = Path(temp_file.name)
+    script = (
+        "$ErrorActionPreference='Stop';"
+        "$ProgressPreference='SilentlyContinue';"
+        f"Invoke-WebRequest -Uri {powershell_quote(url)} "
+        f"-UseBasicParsing -TimeoutSec 60 -OutFile {powershell_quote(str(temp_path))};"
+    )
+    command = base64.b64encode(script.encode("utf-16le")).decode("ascii")
+    try:
+        completed = subprocess.run(
+            [
+                "powershell.exe",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-EncodedCommand",
+                command,
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=90,
+        )
+        if completed.returncode != 0:
+            detail = (completed.stderr or completed.stdout or "").strip()
+            raise RuntimeError(detail or "PowerShell download failed.")
+        data = temp_path.read_bytes()
+        if not data:
+            raise RuntimeError("PowerShell download returned empty response.")
+        return data
+    finally:
+        try:
+            temp_path.unlink(missing_ok=True)
+        except Exception:
+            pass
+
+
+def http_get_bytes_via_curl(url):
+    with NamedTemporaryFile(delete=False, suffix=".download") as temp_file:
+        temp_path = Path(temp_file.name)
+    try:
+        completed = subprocess.run(
+            [
+                "curl.exe",
+                "-L",
+                "--fail",
+                "--silent",
+                "--show-error",
+                "--connect-timeout",
+                "20",
+                "--max-time",
+                "90",
+                "-A",
+                "Mozilla/5.0 539-data-system/1.0",
+                "-o",
+                str(temp_path),
+                url,
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=100,
+        )
+        if completed.returncode != 0:
+            detail = (completed.stderr or completed.stdout or "").strip()
+            raise RuntimeError(detail or "curl download failed.")
+        data = temp_path.read_bytes()
+        if not data:
+            raise RuntimeError("curl download returned empty response.")
+        return data
+    finally:
+        try:
+            temp_path.unlink(missing_ok=True)
+        except Exception:
+            pass
+
+
+def http_get_bytes(url, retries=3, retry_delay=2):
+    req = urllib.request.Request(
+        url,
+        headers={
+            "User-Agent": "Mozilla/5.0 539-data-system/1.0",
+            "Accept": "*/*",
+        },
+    )
+    context = ssl._create_unverified_context()
+    errors = []
+    for attempt in range(1, retries + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=60, context=context) as response:
+                data = response.read()
+                if not data:
+                    raise RuntimeError("empty response")
+                return data
+        except Exception as exc:
+            errors.append(f"python attempt {attempt}/{retries}: {exc}")
+            logging.warning("Python download failed, attempt %s/%s: %s", attempt, retries, url)
+            if attempt < retries:
+                time.sleep(retry_delay * attempt)
+
+    for label, downloader in (
+        ("powershell", http_get_bytes_via_powershell),
+        ("curl", http_get_bytes_via_curl),
+    ):
+        try:
+            logging.warning("Trying %s download fallback: %s", label, url)
+            return downloader(url)
+        except Exception as exc:
+            errors.append(f"{label}: {exc}")
+            logging.warning("%s download fallback failed: %s", label, url)
+
+    raise RuntimeError("download failed: " + " | ".join(errors))
 
 
 def http_get_json(url, params=None):

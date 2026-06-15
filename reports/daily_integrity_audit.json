@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-11T09:14:06",
+  "generated_at": "2026-06-12T10:09:29",
   "status": "passed",
   "failed_count": 0,
   "checks": [
@@ -7,19 +7,19 @@
       "name": "draw_count_minimum",
       "passed": true,
       "detail": {
-        "count": 5885,
+        "count": 5886,
         "min_period": 96000001,
-        "max_period": 115000141,
+        "max_period": 115000142,
         "min_date": "2007-01-01",
-        "max_date": "2026-06-10"
+        "max_date": "2026-06-11"
       }
     },
     {
       "name": "latest_date_fresh",
       "passed": true,
       "detail": {
-        "latest": "2026-06-10",
-        "expected": "2026-06-10"
+        "latest": "2026-06-11",
+        "expected": "2026-06-11"
       }
     },
     {
@@ -46,14 +46,6 @@
       "name": "recent_predictions_settled",
       "passed": true,
       "detail": [
-        {
-          "target_period": 115000136,
-          "status": "settled",
-          "actual_period": 115000136,
-          "top5_hits": 1,
-          "top10_hits": 1,
-          "top15_hits": 3
-        },
         {
           "target_period": 115000137,
           "status": "settled",
@@ -93,6 +85,14 @@
           "top5_hits": 0,
           "top10_hits": 0,
           "top15_hits": 0
+        },
+        {
+          "target_period": 115000142,
+          "status": "settled",
+          "actual_period": 115000142,
+          "top5_hits": 1,
+          "top10_hits": 2,
+          "top15_hits": 3
         }
       ]
     },
@@ -100,17 +100,17 @@
       "name": "analysis_matches_database",
       "passed": true,
       "detail": {
-        "analysis": 115000141,
-        "database": 115000141
+        "analysis": 115000142,
+        "database": 115000142
       }
     },
     {
       "name": "health_sync_passed",
       "passed": true,
       "detail": {
-        "database_latest_period": 115000141,
-        "analysis_latest_period": 115000141,
-        "prediction_based_on_period": 115000141,
+        "database_latest_period": 115000142,
+        "analysis_latest_period": 115000142,
+        "prediction_based_on_period": 115000142,
         "status": "synced"
       }
     },
@@ -118,15 +118,15 @@
       "name": "history_has_latest_pending_or_settled",
       "passed": true,
       "detail": {
-        "expected_target": 115000142
+        "expected_target": 115000143
       }
     },
     {
       "name": "battle_report_mentions_latest",
       "passed": true,
       "detail": {
-        "period": 115000141,
-        "draw_date": "2026-06-10"
+        "period": 115000142,
+        "draw_date": "2026-06-11"
       }
     },
     {
@@ -146,13 +146,13 @@
     }
   ],
   "latest": {
-    "period": 115000141,
-    "draw_date": "2026-06-10",
-    "n1": 1,
-    "n2": 4,
-    "n3": 32,
-    "n4": 35,
-    "n5": 39
+    "period": 115000142,
+    "draw_date": "2026-06-11",
+    "n1": 8,
+    "n2": 15,
+    "n3": 20,
+    "n4": 29,
+    "n5": 31
   },
-  "expected_date": "2026-06-10"
+  "expected_date": "2026-06-11"
 }

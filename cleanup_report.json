@@ -1,0 +1,20 @@
+﻿{
+    "cleaned_at":  "2026-06-15T09:46:36",
+    "root":  "C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem",
+    "archive":  "C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\cleanup_archive_20260615_094636",
+    "moved_folders":  [
+                          "__pycache__",
+                          "封包輸出"
+                      ],
+    "removed_generated_cache":  [
+
+                                ],
+    "kept_runtime_folders":  [
+                                 "data",
+                                 "reports",
+                                 "site",
+                                 "backups",
+                                 "logs"
+                             ],
+    "note":  "Old package/output folders were isolated. No database, report history, mobile site, or startup file was deleted. Archive folder uses ASCII name to avoid Windows path encoding errors."
+}

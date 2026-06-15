@@ -6,8 +6,8 @@ TARGET_PASS_RATE = 1.0
 
 KPI_DEFINITIONS = {
     "top15": {"label": "15\u9846\u4e2d3\u81f35\u9846", "minimum_hits": 3, "maximum_hits": 5},
-    "nine_hit_three": {"label": "9\u9846\u4e2d2\u81f34\u9846", "minimum_hits": 2, "maximum_hits": 4},
-    "five_hit_two": {"label": "5\u9846\u4e2d1\u81f33\u9846", "minimum_hits": 1, "maximum_hits": 3},
+    "nine_hit_three": {"label": "9\u9846\u4e2d3\u81f35\u9846", "minimum_hits": 3, "maximum_hits": 5},
+    "five_hit_two": {"label": "5\u9846\u4e2d2\u81f35\u9846", "minimum_hits": 2, "maximum_hits": 5},
     "three_hit_one": {"label": "3\u9846\u4e2d1\u81f33\u9846", "minimum_hits": 1, "maximum_hits": 3},
     "two_hit_one": {"label": "2\u9846\u4e2d1\u81f32\u9846", "minimum_hits": 1, "maximum_hits": 2},
     "strong_single": {"label": "1\u9846\u4e2d1\u9846", "minimum_hits": 1, "maximum_hits": 1},
@@ -36,12 +36,16 @@ def evaluate_research_kpis(records):
             else:
                 value = int((record.get("strong_pack_hits") or {}).get(key, {}).get("hits") or 0)
             hits.append(value)
-        successes = sum(1 for value in hits if value >= minimum)
+        target_band_successes = sum(1 for value in hits if minimum <= value <= definition["maximum_hits"])
+        over_target_successes = sum(1 for value in hits if value > definition["maximum_hits"])
+        successes = target_band_successes + over_target_successes
         pass_rate = successes / total if total else 0.0
         results[key] = {
             **definition,
             "settled_samples": total,
             "successes": successes,
+            "target_band_successes": target_band_successes,
+            "over_target_successes": over_target_successes,
             "failures": total - successes,
             "pass_rate": round(pass_rate, 4),
             "wilson_lower_95": round(wilson_lower_bound(successes, total), 4),

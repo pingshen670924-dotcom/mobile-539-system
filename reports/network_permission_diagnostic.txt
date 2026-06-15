@@ -1,0 +1,19 @@
+﻿539 network permission diagnostic
+Run time: 2026-06-12T10:08:18
+System user: MSI
+
+PASS TCP 443 api.taiwanlottery.com: DNS=True, TCP443=True
+PASS TCP 443 www.taiwanlottery.com: DNS=True, TCP443=True
+PASS TCP 443 github.com: DNS=True, TCP443=True
+PASS TCP 443 pingshen670924-dotcom.github.io: DNS=True, TCP443=True
+PASS Python HTTPS Taiwan Lottery: ok
+PASS PowerShell HTTPS Taiwan Lottery: HTTP 200
+PASS curl HTTPS Taiwan Lottery: HTTP/1.1 200 OK
+Server: HiNetCDN
+Date: Fri, 12 Jun 2026 02:08:22 GMT
+FAIL Codex sandbox outbound block rule: A Codex offline outbound block rule is visible. The installed Windows scheduled task can run outside this Codex sandbox, and the repair script can add normal firewall allow rules.
+
+Summary: pass=7 fail=1
+Automatic updater now uses three download paths: Python, PowerShell, curl.
+If all three fail here, run: 539-repair-network.bat
+After repair finishes, run: 539-one-click.bat

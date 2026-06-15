@@ -631,6 +631,161 @@ def build_sets(candidates):
     return unique_sets
 
 
+def build_two_stage_group_model(candidates):
+    group_ranges = [
+        ("1-5", 1, 5),
+        ("6-10", 6, 10),
+        ("11-15", 11, 15),
+        ("16-20", 16, 20),
+        ("21-25", 21, 25),
+        ("26-30", 26, 30),
+        ("31-35", 31, 35),
+        ("36-39", 36, 39),
+    ]
+    min_probability = 85.0
+    min_score = 90.0
+    ranked = []
+    for rank, item in enumerate(candidates, 1):
+        score = float(item.get("score", 0) or 0)
+        score_percent = score if score > 2 else score * 100
+        probability = float(item.get("confidence_index", 0) or 0)
+        number = int(item.get("number"))
+        stability_count = int(item.get("stability_count", 0) or 0)
+        if probability >= 92 and score_percent >= 94 and stability_count >= 3:
+            risk = "low"
+        elif probability >= 88 and score_percent >= 92:
+            risk = "medium"
+        else:
+            risk = "watch"
+        ranked.append(
+            {
+                "number": number,
+                "rank": rank,
+                "score_percent": round(score_percent, 1),
+                "model_probability_percent": round(probability, 1),
+                "omission": item.get("omission"),
+                "stability_count": stability_count,
+                "risk_level": risk,
+                "reasons": item.get("reasons", [])[:5],
+                "qualified": probability >= min_probability and score_percent >= min_score,
+            }
+        )
+
+    first_round = []
+    first_selected = []
+    for label, start, end in group_ranges:
+        group_items = [
+            item for item in ranked
+            if start <= item["number"] <= end and item["qualified"]
+        ][:2]
+        first_round.append(
+            {
+                "group": label,
+                "range": [start, end],
+                "max_output": 2,
+                "status": "released" if group_items else "withheld_low_score",
+                "numbers": group_items,
+            }
+        )
+        first_selected.extend(group_items)
+
+    first_selected = sorted(first_selected, key=lambda item: item["rank"])
+    second_round = []
+    final_numbers = []
+    for idx in range(4):
+        source = first_selected[idx * 4:(idx + 1) * 4]
+        selected = [item for item in source if item["qualified"]][:4]
+        second_round.append(
+            {
+                "group": f"R2-{idx + 1}",
+                "source_numbers": [item["number"] for item in source],
+                "max_output": 4,
+                "status": "released" if selected else "withheld_low_score",
+                "numbers": selected,
+            }
+        )
+        final_numbers.extend(selected)
+
+    final_numbers = sorted(final_numbers, key=lambda item: item["rank"])
+    return {
+        "model_name": "two_stage_8_zone_research_model",
+        "purpose": "research_only_not_official_prediction",
+        "thresholds": {
+            "minimum_model_probability_percent": min_probability,
+            "minimum_score_percent": min_score,
+            "first_round_max_per_zone": 2,
+            "second_round_group_count": 4,
+            "second_round_max_per_group": 4,
+        },
+        "zone_ranges": [item[0] for item in group_ranges],
+        "first_round": first_round,
+        "second_round": second_round,
+        "final_numbers": final_numbers,
+        "final_count": len(final_numbers),
+        "status": "released" if final_numbers else "withheld_no_number_reached_threshold",
+    }
+
+
+def backtest_two_stage_group_model(draws, windows=(60, 120, 360)):
+    results = {}
+    release_allowed = True
+    for window in windows:
+        if len(draws) < 130:
+            results[str(window)] = {"rounds": 0, "status": "insufficient_data"}
+            release_allowed = False
+            continue
+        start = max(100, len(draws) - window - 1)
+        rounds = 0
+        total_hits = 0
+        zero_hits = 0
+        total_output_count = 0
+        for idx in range(start, len(draws) - 1):
+            train = draws[:idx + 1]
+            actual = set(draws[idx + 1]["numbers"])
+            candidates = score_numbers(train)
+            model = build_two_stage_group_model(candidates)
+            numbers = [item["number"] for item in model.get("final_numbers", [])]
+            if not numbers:
+                continue
+            hits = len(set(numbers) & actual)
+            rounds += 1
+            total_hits += hits
+            total_output_count += len(numbers)
+            if hits == 0:
+                zero_hits += 1
+        if rounds == 0:
+            results[str(window)] = {
+                "rounds": 0,
+                "status": "no_released_samples",
+                "passed": False,
+            }
+            release_allowed = False
+            continue
+        avg_hits = total_hits / rounds
+        avg_output_count = total_output_count / rounds
+        random_expectation = 5 * avg_output_count / 39
+        edge = avg_hits - random_expectation
+        zero_hit_rate = zero_hits / rounds
+        passed = edge >= 0.03 and zero_hit_rate <= 0.58 and avg_output_count >= 1
+        if not passed:
+            release_allowed = False
+        results[str(window)] = {
+            "rounds": rounds,
+            "avg_hits": round(avg_hits, 3),
+            "avg_output_count": round(avg_output_count, 3),
+            "random_expectation": round(random_expectation, 3),
+            "edge_vs_random": round(edge, 3),
+            "zero_hit_rate": round(zero_hit_rate, 3),
+            "passed": passed,
+            "status": "passed" if passed else "failed",
+        }
+    return {
+        "windows": results,
+        "release_allowed": release_allowed,
+        "policy": "release only if 60/120/360 windows beat random expectation and zero-hit risk gate",
+    }
+
+
 def diversity_penalty(selected, candidate):
     if not selected:
         return 0
@@ -845,6 +1000,15 @@ def analyze(db_path=DB_PATH):
     }
     analysis["suggested_sets"] = build_sets(analysis["official_candidates"]) if len(analysis["official_candidates"]) >= 18 else []
     analysis["strong_prediction_packs"] = industrial["strong_prediction_packs"]
+    two_stage_model = build_two_stage_group_model(analysis["official_candidates"])
+    two_stage_backtest = backtest_two_stage_group_model(draws)
+    two_stage_model["validation_backtest"] = two_stage_backtest
+    if not two_stage_backtest.get("release_allowed"):
+        two_stage_model["blocked_final_numbers"] = two_stage_model.get("final_numbers", [])
+        two_stage_model["final_numbers"] = []
+        two_stage_model["final_count"] = 0
+        two_stage_model["status"] = "withheld_backtest_not_passed"
+    analysis["two_stage_group_model"] = two_stage_model
     return analysis
 
 

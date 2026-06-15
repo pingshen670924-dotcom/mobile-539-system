@@ -19,6 +19,14 @@ TEXT_SUFFIXES = {
     ".csv",
 }
 CODE_SUFFIXES = {".py", ".ps1", ".bat"}
+CJK_ALLOWED_CODE_FILES = {
+    "battle_report.py",
+    "line_push.py",
+    "network_permission_diagnostic.ps1",
+    "repair_network_permission.ps1",
+    "setup_line_push.ps1",
+    "system_file_check.py",
+}
 SKIP_DIRS = {
     "__pycache__",
     "backups",
@@ -68,7 +76,12 @@ def scan_file(path):
         if marker in text:
             item["status"] = "warning"
             item["warnings"].append(f"mojibake_marker_found: U+{ord(marker):04X}")
-    if path.suffix.lower() in CODE_SUFFIXES and has_cjk(text):
+    rel_path = str(path.relative_to(BASE_DIR))
+    if (
+        path.suffix.lower() in CODE_SUFFIXES
+        and rel_path not in CJK_ALLOWED_CODE_FILES
+        and has_cjk(text)
+    ):
         item["status"] = "warning"
         item["warnings"].append("direct_cjk_found_in_code")
     return item

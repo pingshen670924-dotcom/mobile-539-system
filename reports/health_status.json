@@ -1,12 +1,14 @@
 {
-  "generated_at": "2026-06-13T17:43:15",
+  "generated_at": "2026-06-15T09:46:14",
   "database_exists": true,
-  "backup_count": 1,
-  "latest_backup": "/home/runner/work/mobile-539-system/mobile-539-system/backups/539_20260613_174221.sqlite",
+  "backup_count": 10,
+  "latest_backup": "C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\backups\\539_20260615_094445.sqlite",
   "log_exists": true,
   "latest_analysis_exists": true,
-  "status": "ok",
-  "warnings": [],
+  "status": "warning",
+  "warnings": [
+    "external network was blocked, but local data is fresh"
+  ],
   "draw_count": 5888,
   "period_range": [
     96000001,
@@ -27,59 +29,59 @@
       36
     ],
     "source": "taiwanlottery_latest_result",
-    "fetched_at": "2026-06-13T17:42:24"
+    "fetched_at": "2026-06-15T09:22:23"
   },
   "data_freshness": {
     "status": "fresh",
     "latest_date": "2026-06-13",
-    "expected_latest_date": "2026-06-12"
+    "expected_latest_date": "2026-06-13"
   },
   "last_run": {
     "run_type": "latest",
-    "started_at": "2026-06-13T17:42:21",
-    "finished_at": "2026-06-13T17:42:24",
-    "status": "success",
-    "message": "{\"rows\": 5888, \"invalid_periods\": [], \"duplicate_periods\": [], \"latest_period\": 115000144, \"latest_date\": \"2026-06-13\"}"
+    "started_at": "2026-06-15T09:44:45",
+    "finished_at": "2026-06-15T09:44:59",
+    "status": "warning",
+    "message": "{\"rows\": 5888, \"invalid_periods\": [], \"duplicate_periods\": [], \"latest_period\": 115000144, \"latest_date\": \"2026-06-13\", \"warnings\": [\"recent_month_download: download failed: python attempt 1/3: <urlopen error [WinError 10013] 嘗試存取通訊端被拒絕，因為存取權限不足。> | python attempt 2/3: <urlopen error [WinError 10013] 嘗試存取通訊端被拒絕，因為存取權限不足。> | python attempt 3/3: <urlopen error [WinError 10013] 嘗試存取通訊端被拒絕，因為存取權限不足。> | powershell: #< CLIXML\\n<Objs Version=\\\"1.1.0.1\\\" xmlns=\\\"http://schemas.microsoft.com/powershell/2004/04\\\"><S S=\\\"Error\\\">Invoke-WebRequest : 無法連接至遠端伺服器_x000D__x000A_</S><S S=\\\"Error\\\">At line:1 char:70_x000D__x000A_</S><S S=\\\"Error\\\">+ ... lyContinue';Invoke-WebRequest -Uri 'https://api.taiwanlottery.com/TLC ..._x000D__x000A_</S><S S=\\\"Error\\\">+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~_x000D__x000A_</S><S S=\\\"Error\\\">    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-WebRequest], WebExc _x000D__x000A_</S><S S=\\"
   },
   "pending_predictions": 1,
-  "settled_predictions": 12,
-  "prediction_snapshots": 66,
+  "settled_predictions": 11,
+  "prediction_snapshots": 74,
   "prediction_performance": {
-    "settled": 12,
-    "top5_avg_hits": 0.917,
-    "top10_avg_hits": 1.25,
-    "top15_avg_hits": 1.833,
-    "set_avg_hits": 0.644,
+    "settled": 11,
+    "top5_avg_hits": 1.0,
+    "top10_avg_hits": 1.364,
+    "top15_avg_hits": 1.818,
+    "set_avg_hits": 0.675,
     "strong_pack_stats": {
       "strong_single": {
-        "rounds": 12,
-        "pass_rate": 0.167,
-        "avg_hits": 0.167
+        "rounds": 11,
+        "pass_rate": 0.182,
+        "avg_hits": 0.182
       },
       "two_hit_one": {
-        "rounds": 12,
-        "pass_rate": 0.333,
-        "avg_hits": 0.333
+        "rounds": 11,
+        "pass_rate": 0.364,
+        "avg_hits": 0.364
       },
       "three_hit_one": {
-        "rounds": 12,
-        "pass_rate": 0.417,
-        "avg_hits": 0.583
+        "rounds": 11,
+        "pass_rate": 0.455,
+        "avg_hits": 0.636
       },
       "five_hit_two": {
-        "rounds": 12,
-        "pass_rate": 0.25,
-        "avg_hits": 0.917
+        "rounds": 11,
+        "pass_rate": 0.273,
+        "avg_hits": 1.0
       },
       "nine_hit_three": {
-        "rounds": 12,
-        "pass_rate": 0.25,
-        "avg_hits": 1.25
+        "rounds": 11,
+        "pass_rate": 0.273,
+        "avg_hits": 1.364
       }
     },
     "research_kpi": {
       "status": "insufficient_samples",
-      "settled_samples": 12,
+      "settled_samples": 11,
       "minimum_settled_samples": 30,
       "target_pass_rate": 1.0,
       "all_observed_pass": false,
@@ -90,72 +92,84 @@
           "label": "15顆中3至5顆",
           "minimum_hits": 3,
           "maximum_hits": 5,
-          "settled_samples": 12,
+          "settled_samples": 11,
           "successes": 4,
-          "failures": 8,
-          "pass_rate": 0.3333,
-          "wilson_lower_95": 0.1381,
-          "average_hits": 1.8333,
+          "target_band_successes": 4,
+          "over_target_successes": 0,
+          "failures": 7,
+          "pass_rate": 0.3636,
+          "wilson_lower_95": 0.1517,
+          "average_hits": 1.8182,
           "met_in_observed_samples": false
         },
         "nine_hit_three": {
-          "label": "9顆中2至4顆",
-          "minimum_hits": 2,
-          "maximum_hits": 4,
-          "settled_samples": 12,
-          "successes": 5,
-          "failures": 7,
-          "pass_rate": 0.4167,
-          "wilson_lower_95": 0.1933,
-          "average_hits": 1.25,
+          "label": "9顆中3至5顆",
+          "minimum_hits": 3,
+          "maximum_hits": 5,
+          "settled_samples": 11,
+          "successes": 3,
+          "target_band_successes": 3,
+          "over_target_successes": 0,
+          "failures": 8,
+          "pass_rate": 0.2727,
+          "wilson_lower_95": 0.0975,
+          "average_hits": 1.3636,
           "met_in_observed_samples": false
         },
         "five_hit_two": {
-          "label": "5顆中1至3顆",
-          "minimum_hits": 1,
-          "maximum_hits": 3,
-          "settled_samples": 12,
-          "successes": 7,
-          "failures": 5,
-          "pass_rate": 0.5833,
-          "wilson_lower_95": 0.3195,
-          "average_hits": 0.9167,
+          "label": "5顆中2至5顆",
+          "minimum_hits": 2,
+          "maximum_hits": 5,
+          "settled_samples": 11,
+          "successes": 3,
+          "target_band_successes": 3,
+          "over_target_successes": 0,
+          "failures": 8,
+          "pass_rate": 0.2727,
+          "wilson_lower_95": 0.0975,
+          "average_hits": 1.0,
           "met_in_observed_samples": false
         },
         "three_hit_one": {
           "label": "3顆中1至3顆",
           "minimum_hits": 1,
           "maximum_hits": 3,
-          "settled_samples": 12,
+          "settled_samples": 11,
           "successes": 5,
-          "failures": 7,
-          "pass_rate": 0.4167,
-          "wilson_lower_95": 0.1933,
-          "average_hits": 0.5833,
+          "target_band_successes": 5,
+          "over_target_successes": 0,
+          "failures": 6,
+          "pass_rate": 0.4545,
+          "wilson_lower_95": 0.2127,
+          "average_hits": 0.6364,
           "met_in_observed_samples": false
         },
         "two_hit_one": {
           "label": "2顆中1至2顆",
           "minimum_hits": 1,
           "maximum_hits": 2,
-          "settled_samples": 12,
+          "settled_samples": 11,
           "successes": 4,
-          "failures": 8,
-          "pass_rate": 0.3333,
-          "wilson_lower_95": 0.1381,
-          "average_hits": 0.3333,
+          "target_band_successes": 4,
+          "over_target_successes": 0,
+          "failures": 7,
+          "pass_rate": 0.3636,
+          "wilson_lower_95": 0.1517,
+          "average_hits": 0.3636,
           "met_in_observed_samples": false
         },
         "strong_single": {
           "label": "1顆中1顆",
           "minimum_hits": 1,
           "maximum_hits": 1,
-          "settled_samples": 12,
+          "settled_samples": 11,
           "successes": 2,
-          "failures": 10,
-          "pass_rate": 0.1667,
-          "wilson_lower_95": 0.047,
-          "average_hits": 0.1667,
+          "target_band_successes": 2,
+          "over_target_successes": 0,
+          "failures": 9,
+          "pass_rate": 0.1818,
+          "wilson_lower_95": 0.0514,
+          "average_hits": 0.1818,
           "met_in_observed_samples": false
         }
       }
@@ -167,5 +181,6 @@
     "analysis_latest_period": 115000144,
     "prediction_based_on_period": 115000144,
     "status": "synced"
-  }
+  },
+  "external_risk": "network_permission_blocked_but_local_data_is_fresh"
 }

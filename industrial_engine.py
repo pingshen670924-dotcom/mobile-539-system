@@ -559,30 +559,160 @@ def optimized_group(candidates, size, review=None):
     return sorted(selected)
 
 
-def strong_packs(candidates, review=None):
+def empty_pack(name, goal, reason):
+    return {
+        "name": name,
+        "hit_goal": goal,
+        "numbers": [],
+        "score_sum": 0,
+        "avg_score": 0,
+        "status": "withheld",
+        "withheld_reason": reason,
+        "theoretical_probability": pack_probability(0, goal),
+        "zones": {},
+        "tails": {},
+    }
+
+
+def pack_recent_governance(draws, rounds=120):
+    if len(draws) < 150:
+        return {
+            "status": "insufficient_data",
+            "rounds": 0,
+            "release_light": "red",
+            "message": "historical sample is not enough for strict pack release",
+            "pack_stats": {},
+        }
+
+    pack_specs = {
+        "strong_single": {"size": 1, "goal": 1, "min_pass_rate": 0.14, "min_avg_hits": 0.14},
+        "two_hit_one": {"size": 2, "goal": 1, "min_pass_rate": 0.25, "min_avg_hits": 0.25},
+        "three_hit_one": {"size": 3, "goal": 1, "min_pass_rate": 0.34, "min_avg_hits": 0.34},
+        "five_hit_two": {"size": 5, "goal": 2, "min_pass_rate": 0.14, "min_avg_hits": 0.72},
+        "nine_hit_three": {"size": 9, "goal": 3, "min_pass_rate": 0.12, "min_avg_hits": 1.16},
+    }
+    start = max(120, len(draws) - rounds - 1)
+    stats = {
+        key: {"rounds": 0, "passes": 0, "hits": 0, "zero_hits": 0}
+        for key in pack_specs
+    }
+
+    for idx in range(start, len(draws) - 1):
+        train = draws[: idx + 1]
+        actual = set(draws[idx + 1]["numbers"])
+        historical_candidates, _ = score_numbers(train, None, include_dependency=False)
+        for key, spec in pack_specs.items():
+            numbers = optimized_group(historical_candidates, spec["size"], None)
+            hits = len(set(numbers) & actual)
+            stats[key]["rounds"] += 1
+            stats[key]["hits"] += hits
+            stats[key]["passes"] += 1 if hits >= spec["goal"] else 0
+            stats[key]["zero_hits"] += 1 if hits == 0 else 0
+
+    pack_stats = {}
+    allowed_count = 0
+    for key, spec in pack_specs.items():
+        item = stats[key]
+        rounds_done = item["rounds"] or 1
+        pass_rate = item["passes"] / rounds_done
+        avg_hits = item["hits"] / rounds_done
+        zero_rate = item["zero_hits"] / rounds_done
+        passed = pass_rate >= spec["min_pass_rate"] and avg_hits >= spec["min_avg_hits"]
+        allowed_count += 1 if passed else 0
+        pack_stats[key] = {
+            "rounds": item["rounds"],
+            "goal": spec["goal"],
+            "pass_rate": round(pass_rate, 3),
+            "avg_hits": round(avg_hits, 3),
+            "zero_hit_rate": round(zero_rate, 3),
+            "min_pass_rate": spec["min_pass_rate"],
+            "min_avg_hits": spec["min_avg_hits"],
+            "passed": passed,
+        }
+
+    release_light = "green" if allowed_count >= 4 else "yellow" if allowed_count >= 2 else "red"
+    return {
+        "status": "evaluated",
+        "rounds": next(iter(stats.values()))["rounds"],
+        "release_light": release_light,
+        "allowed_pack_count": allowed_count,
+        "pack_stats": pack_stats,
+        "message": "strict walk-forward pack governance; packs below threshold are withheld",
+    }
+
+
+def strict_candidate_pool(candidates, min_score=0.64, min_confidence=81.0, min_stability=1):
+    return [
+        item for item in candidates
+        if item.get("score", 0) >= min_score
+        and item.get("confidence_index", 0) >= min_confidence
+        and item.get("stability_count", 0) >= min_stability
+    ]
+
+
+def strong_packs(candidates, review=None, governance=None):
     score_map = {item["number"]: item["score"] for item in candidates}
+    candidate_map = {item["number"]: item for item in candidates}
+    strict_pool = strict_candidate_pool(candidates)
+    qualified_numbers = {item["number"] for item in strict_pool}
+    governance = governance or {"pack_stats": {}}
+    pack_stats = governance.get("pack_stats", {})
 
     def pack(name, goal, numbers):
+        if not numbers:
+            return empty_pack(name, goal, "no candidate passed strict confidence gate")
         probability = pack_probability(len(numbers), goal)
+        avg_score = sum(score_map[n] for n in numbers) / len(numbers)
         return {
             "name": name,
             "hit_goal": goal,
             "numbers": numbers,
             "score_sum": round(sum(score_map[n] for n in numbers), 4),
-            "avg_score": round(sum(score_map[n] for n in numbers) / len(numbers), 4),
+            "avg_score": round(avg_score, 4),
+            "status": "released",
             "theoretical_probability": probability,
             "zones": Counter(zone_label(n) for n in numbers),
             "tails": Counter(n % 10 for n in numbers),
+            "governance": {},
         }
 
-    packs = {
-        "strong_single": pack("\u6700\u5f37\u55ae\u652f", 1, optimized_group(candidates, 1, review)),
-        "two_hit_one": pack("\u6700\u5f372\u4e2d1", 1, optimized_group(candidates, 2, review)),
-        "three_hit_one": pack("\u6700\u5f373\u4e2d1", 1, optimized_group(candidates, 3, review)),
-        "five_hit_two": pack("\u6700\u5f375\u4e2d2", 2, optimized_group(candidates, 5, review)),
-        "nine_hit_three": pack("\u6700\u5f379\u4e2d3", 3, optimized_group(candidates, 9, review)),
+    specs = {
+        "strong_single": ("\u6700\u5f37\u55ae\u652f", 1, 1, 0.82, 2),
+        "two_hit_one": ("\u6700\u5f372\u4e2d1", 1, 2, 0.76, 2),
+        "three_hit_one": ("\u6700\u5f373\u4e2d1", 1, 3, 0.72, 1),
+        "five_hit_two": ("\u6700\u5f375\u4e2d2", 2, 5, 0.68, 1),
+        "nine_hit_three": ("\u6700\u5f379\u4e2d3", 3, 9, 0.62, 0),
     }
-    wheel = build_covering_wheel(packs["nine_hit_three"]["numbers"], ticket_size=5, cover_size=3, max_tickets=12)
+    packs = {}
+    for key, (name, goal, size, min_avg_score, min_stability) in specs.items():
+        allowed_pool = [
+            item for item in candidates[:30]
+            if item["number"] in qualified_numbers or (
+                item.get("score", 0) >= min_avg_score and item.get("stability_count", 0) >= min_stability
+            )
+        ]
+        if len(allowed_pool) < size:
+            packs[key] = empty_pack(name, goal, "strict confidence pool has fewer qualified numbers than pack size")
+            packs[key]["governance"] = pack_stats.get(key, {})
+            continue
+        numbers = optimized_group(allowed_pool, size, review)
+        avg_score = sum(score_map[n] for n in numbers) / len(numbers) if numbers else 0
+        weak_numbers = [
+            n for n in numbers
+            if candidate_map[n].get("previous_prediction_guard") and not candidate_map[n]["previous_prediction_guard"].get("passed")
+        ]
+        recent_stat = pack_stats.get(key, {})
+        if recent_stat and not recent_stat.get("passed"):
+            packs[key] = empty_pack(name, goal, "recent walk-forward pack performance did not pass")
+        elif avg_score < min_avg_score:
+            packs[key] = empty_pack(name, goal, "average score is below strict release threshold")
+        elif weak_numbers:
+            packs[key] = empty_pack(name, goal, "contains previous prediction re-entry numbers that failed the strict gate")
+        else:
+            packs[key] = pack(name, goal, sorted(numbers))
+        packs[key]["governance"] = recent_stat
+
+    wheel = build_covering_wheel(packs["nine_hit_three"].get("numbers", []), ticket_size=5, cover_size=3, max_tickets=12)
     packs["nine_hit_three"]["wheel_tickets"] = wheel["tickets"]
     packs["nine_hit_three"]["wheel_coverage"] = wheel["coverage"]
     return packs
@@ -841,7 +971,7 @@ def stability_consensus(draws, base_candidates, review=None):
     latest_set = set(draws[-1]["numbers"])
     denominator = max(len(snapshots), 1)
     combined = {
-        number: base_score[number] * 0.72 + (counts.get(number, 0) / denominator) * 0.28
+        number: base_score[number] * 0.62 + (counts.get(number, 0) / denominator) * 0.38
         for number in range(NUMBER_MIN, NUMBER_MAX + 1)
     }
     previous_blocked = {
@@ -975,7 +1105,8 @@ def unlikely_backtest(draws, rounds=120, avoid_size=10):
 def compute_industrial_analysis(draws, review=None):
     base_candidates, weights = score_numbers(draws, review)
     candidates, stability = stability_consensus(draws, base_candidates, review)
-    packs = strong_packs(candidates, review)
+    pack_governance = pack_recent_governance(draws)
+    packs = strong_packs(candidates, review, pack_governance)
     audit = industrial_backtest(draws)
     advanced_models = advanced_model_summary(draws)
     advanced_backtest = advanced_model_backtest(draws)
@@ -985,7 +1116,13 @@ def compute_industrial_analysis(draws, review=None):
     rolling = audit.get("rolling_windows", {})
     recent_edges = [rolling.get(str(window), {}).get("top10_edge_vs_random", -1) for window in [60, 120]]
     recent_passed = all(value >= 0 for value in recent_edges)
-    release_status = "official" if stability["top10_retention"] >= 0.6 and edge >= 0 and recent_passed else "watch_only"
+    pack_stats = pack_governance.get("pack_stats", {})
+    main_target_passed = (
+        pack_stats.get("five_hit_two", {}).get("passed", False)
+        and pack_stats.get("nine_hit_three", {}).get("passed", False)
+    )
+    pack_release_passed = pack_governance.get("release_light") in {"green", "yellow"} and main_target_passed
+    release_status = "official" if stability["top10_retention"] >= 0.6 and edge >= 0 and recent_passed and pack_release_passed else "watch_only"
     previous = previous_prediction_set(review)
     top10_overlap = sorted(previous & {item["number"] for item in candidates[:10]})
     top15_overlap = sorted(previous & {item["number"] for item in candidates[:15]})
@@ -995,7 +1132,7 @@ def compute_industrial_analysis(draws, review=None):
     )
     unlikely = unlikely_number_analysis(draws, candidates, stability, review)
     return {
-        "engine_version": "industrial_v5_unlikely_number_risk_filter",
+        "engine_version": "industrial_v6_precision_governor_strict_release",
         "leakage_guard": True,
         "repeat_guard": repeat_guard(draws),
         "previous_prediction_guard": {
@@ -1017,6 +1154,10 @@ def compute_industrial_analysis(draws, review=None):
         },
         "release_gate": {
             "status": release_status,
+            "precision_governor_release_light": pack_governance.get("release_light"),
+            "precision_governor_allowed_pack_count": pack_governance.get("allowed_pack_count"),
+            "main_targets_required": ["five_hit_two", "nine_hit_three"],
+            "main_targets_passed": main_target_passed,
             "top10_retention_required": 0.6,
             "backtest_edge_required": 0,
             "actual_backtest_edge": round(edge, 4),
@@ -1030,6 +1171,7 @@ def compute_industrial_analysis(draws, review=None):
         "advanced_model_backtest": advanced_backtest,
         "unlikely_number_analysis": unlikely,
         "unlikely_backtest": unlikely_backtest(draws),
+        "precision_governor": pack_governance,
         "model_audit": model_audit(audit, review),
         "regime_analysis": regime_analysis(draws),
         "candidates": candidates,

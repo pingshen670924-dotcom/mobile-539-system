@@ -11,5 +11,7 @@
 5. 外部網站、Facebook、社群與直播推薦資訊已從正式主流程與戰報移除。
 6. 手機同步：雙擊「點我手機版一鍵上線.bat」，系統會使用主程式內現有的發布腳本更新手機網站。
 7. 自動排程：雙擊「點我安裝每日開獎後與開機自動更新.bat」，即使資料夾名稱含空格或括號也能安裝。
+8. LINE 自動轉發：雙擊「點我設定LINE推送.bat」。建議選 broadcast，並把你自己的 LINE 加入該 LINE 官方帳號好友；或在 GitHub Secrets 設定 LINE_CHANNEL_ACCESS_TOKEN、LINE_DELIVERY_MODE、LINE_TO_ID。
+   注意：「@開頭的官方帳號 ID」不是 Channel access token。Channel access token 是 LINE Developers Console 的 Messaging API 頁面產生的一長串授權字串。
 
 注意：歷史命中不代表未來必然命中。本系統只提供統計研究與逐期真實結算。

@@ -57,7 +57,7 @@ function Remove-GeneratedCaches {
 try {
   "==== main one click started $(Get-Date -Format s) ====" | Out-File -FilePath $RunLog -Encoding utf8 -Append
   $Python = Find-Python
-  Run-Step "Compile check" @("-m", "py_compile", ".\update_539.py", ".\analyze_539.py", ".\battle_report.py", ".\health_check.py", ".\dashboard.py", ".\pages_build.py", ".\industrial_engine.py", ".\aerospace_engine.py", ".\research_kpi.py", ".\daily_integrity_audit.py")
+  Run-Step "Compile check" @("-m", "py_compile", ".\update_539.py", ".\analyze_539.py", ".\battle_report.py", ".\health_check.py", ".\dashboard.py", ".\pages_build.py", ".\industrial_engine.py", ".\aerospace_engine.py", ".\research_kpi.py", ".\daily_integrity_audit.py", ".\line_push.py")
   Run-Step "Update latest draw" @(".\update_539.py", "--latest")
   Run-Step "Rebuild battle report" @(".\battle_report.py")
   Run-Step "Rebuild dashboard" @(".\dashboard.py") $false
@@ -65,6 +65,7 @@ try {
   Run-Step "Daily integrity audit" @(".\daily_integrity_audit.py")
   Run-Step "Rebuild battle report after audit" @(".\battle_report.py")
   Run-Step "Build phone site files" @(".\pages_build.py") $false
+  Run-Step "Push LINE report" @(".\line_push.py") $false
   Run-Step "File encoding check" @(".\system_file_check.py") $false
   Remove-GeneratedCaches
 

@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 from pathlib import Path
+from datetime import datetime
 
 
 ROOT = Path(__file__).resolve().parent
@@ -19,11 +20,24 @@ def repository_url(path=""):
 def build():
     SITE.mkdir(parents=True, exist_ok=True)
     html = REPORT.read_text(encoding="utf-8")
+    analysis = {}
+    analysis_path = REPORTS / "latest_analysis.json"
+    if analysis_path.exists():
+        try:
+            analysis = json.loads(analysis_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            analysis = {}
+    generated_at = analysis.get("generated_at") or datetime.now().isoformat(timespec="seconds")
+    latest_draw = analysis.get("latest_draw", {})
+    version = datetime.now().strftime("%Y%m%d%H%M%S")
     controls = f"""
     <section class="band">
       <h2>\u624b\u6a5f\u7368\u7acb\u64cd\u4f5c</h2>
+      <p><strong>\u624b\u6a5f\u7248\u6700\u5f8c\u5efa\u7acb\uff1a{generated_at}</strong></p>
+      <p>\u6700\u65b0\u8cc7\u6599\uff1a{latest_draw.get('period', '-')}\u671f / {latest_draw.get('draw_date', '-')} / \u7248\u672c {version}</p>
       <p><a class="mobile-action history" href="prediction-history.html">\u67e5\u770b\u6bcf\u671f\u9810\u6e2c\u5c0d\u6bd4</a></p>
       <p><a class="mobile-action" href="{repository_url('actions/workflows/daily-update.yml')}">\u767b\u5165 GitHub \u5f8c\u7acb\u5373\u66f4\u65b0</a></p>
+      <p><button class="mobile-action refresh" type="button" onclick="forceRefresh()">\u5f37\u5236\u91cd\u65b0\u8f09\u5165\u6700\u65b0\u624b\u6a5f\u6210\u679c</button></p>
       <p>\u514d\u8cbb\u624b\u6a5f\u7248\u6703\u81ea\u52d5\u66f4\u65b0\uff1a\u53f0\u5317\u6642\u9593 20:50 \u9810\u5099\u6aa2\u67e5\uff0c21:00-23:50 \u6bcf10\u5206\u9418\u91cd\u8a66\uff0c00:10 \u6700\u5f8c\u6aa2\u67e5\u3002\u624b\u52d5\u7acb\u5373\u66f4\u65b0\u9700\u767b\u5165 GitHub\u3002</p>
       <p>\u624b\u6a5f\u7248\u8207\u96fb\u8166\u7248\u53ef\u540c\u6642\u5b58\u5728\uff1a\u96fb\u8166\u7248\u5728\u672c\u6a5f\u8f38\u51fa\u5b8c\u6574\u6230\u5831\uff0c\u624b\u6a5f\u7248\u5728 GitHub \u96f2\u7aef\u7368\u7acb\u66f4\u65b0\uff0c\u4e92\u4e0d\u8986\u84cb\u3002</p>
     </section>
@@ -33,6 +47,7 @@ def build():
       .mobile-action{display:block;text-align:center;padding:14px;background:#166534;color:#fff!important;text-decoration:none;border-radius:6px;font-weight:800}
       .mobile-action.secondary{background:#0f766e}
       .mobile-action.history{background:#1d4ed8}
+      .mobile-action.refresh{border:0;width:100%;font-size:16px;cursor:pointer;background:#b91c1c}
       .band{overflow-x:auto}
       table{min-width:720px}
       @media (max-width:640px){
@@ -51,7 +66,36 @@ def build():
     """
     html = html.replace("</head>", style + "</head>")
     html = html.replace("<main>", "<main>" + controls, 1)
-    html = html.replace("</body>", '<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("service-worker.js");</script></body>')
+    script = f'''
+    <script>
+      window.MOBILE_BUILD_VERSION="{version}";
+      async function forceRefresh(){{
+        try{{
+          if("serviceWorker" in navigator){{
+            const regs=await navigator.serviceWorker.getRegistrations();
+            for(const reg of regs) await reg.unregister();
+          }}
+          if(window.caches){{
+            const keys=await caches.keys();
+            await Promise.all(keys.map(k=>caches.delete(k)));
+          }}
+        }}catch(e){{}}
+        location.href=location.pathname+"?v="+Date.now();
+      }}
+      async function checkMobileVersion(){{
+        try{{
+          const r=await fetch("version.json?v="+Date.now(),{{cache:"no-store"}});
+          const data=await r.json();
+          if(data.version && data.version!==window.MOBILE_BUILD_VERSION){{
+            location.href=location.pathname+"?v="+Date.now();
+          }}
+        }}catch(e){{}}
+      }}
+      if("serviceWorker" in navigator)navigator.serviceWorker.register("service-worker.js?v={version}");
+      setInterval(checkMobileVersion, 120000);
+      checkMobileVersion();
+    </script>'''
+    html = html.replace("</body>", script + "</body>")
     (SITE / "index.html").write_text(html, encoding="utf-8")
     for name in ["latest_analysis.json", "health_status.json", "model_competition.json", "prediction_history.json"]:
         source = REPORTS / name
@@ -69,8 +113,28 @@ def build():
         "icons": [{"src": "icon.svg", "sizes": "any", "type": "image/svg+xml"}],
     }
     (SITE / "manifest.webmanifest").write_text(json.dumps(manifest, ensure_ascii=False), encoding="utf-8")
+    version_payload = {
+        "version": version,
+        "generated_at": generated_at,
+        "latest_period": latest_draw.get("period"),
+        "latest_draw_date": latest_draw.get("draw_date"),
+        "cache_policy": "network_first_no_store",
+    }
+    (SITE / "version.json").write_text(json.dumps(version_payload, ensure_ascii=False, indent=2), encoding="utf-8")
     (SITE / "service-worker.js").write_text(
-        'const CACHE="539-v31-restored-20260611";self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(["./","index.html","prediction-history.html"]))));self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))));self.addEventListener("fetch",e=>e.respondWith(fetch(e.request).catch(()=>caches.match(e.request))));',
+        f'''const CACHE="539-mobile-{version}";
+self.addEventListener("install",event=>{{self.skipWaiting();event.waitUntil(caches.open(CACHE));}});
+self.addEventListener("activate",event=>{{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()));}});
+self.addEventListener("fetch",event=>{{
+  const req=event.request;
+  if(req.method!=="GET") return;
+  const url=new URL(req.url);
+  if(url.pathname.endsWith("/")||url.pathname.endsWith("index.html")||url.pathname.endsWith(".json")||url.pathname.endsWith("prediction-history.html")){{
+    event.respondWith(fetch(req,{{cache:"no-store"}}).catch(()=>caches.match(req)));
+    return;
+  }}
+  event.respondWith(fetch(req).catch(()=>caches.match(req)));
+}});''',
         encoding="utf-8",
     )
     (SITE / "icon.svg").write_text(
