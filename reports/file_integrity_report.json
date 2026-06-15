@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-06-15T12:23:05",
+  "generated_at": "2026-06-16T07:28:02",
   "status": "warning",
-  "checked_files": 106,
+  "checked_files": 107,
   "failed_count": 0,
   "warning_count": 2,
   "files": [
@@ -319,7 +319,7 @@
       "path": "data\\539.csv",
       "status": "ok",
       "warnings": [],
-      "size": 710360
+      "size": 710508
     },
     {
       "path": "data\\mobile_access_token.txt",
@@ -343,13 +343,13 @@
       "path": "reports\\539最新強化戰報.html",
       "status": "ok",
       "warnings": [],
-      "size": 64222
+      "size": 65954
     },
     {
       "path": "reports\\539每期預測對比.html",
       "status": "ok",
       "warnings": [],
-      "size": 4651
+      "size": 4937
     },
     {
       "path": "reports\\crowd_consensus.json",
@@ -361,7 +361,7 @@
       "path": "reports\\daily_integrity_audit.json",
       "status": "ok",
       "warnings": [],
-      "size": 3483
+      "size": 3486
     },
     {
       "path": "reports\\daily_integrity_audit.md",
@@ -373,7 +373,7 @@
       "path": "reports\\dashboard.html",
       "status": "ok",
       "warnings": [],
-      "size": 4984
+      "size": 5093
     },
     {
       "path": "reports\\file_integrity_report.json",
@@ -391,7 +391,7 @@
       "path": "reports\\health_status.json",
       "status": "ok",
       "warnings": [],
-      "size": 5276
+      "size": 5280
     },
     {
       "path": "reports\\health_status.md",
@@ -403,31 +403,31 @@
       "path": "reports\\latest_analysis.json",
       "status": "ok",
       "warnings": [],
-      "size": 445637
+      "size": 449793
     },
     {
       "path": "reports\\latest_analysis.md",
       "status": "ok",
       "warnings": [],
-      "size": 6192
+      "size": 6139
     },
     {
       "path": "reports\\latest_battle_report.html",
       "status": "ok",
       "warnings": [],
-      "size": 64222
+      "size": 65954
     },
     {
       "path": "reports\\latest_battle_report.md",
       "status": "ok",
       "warnings": [],
-      "size": 20845
+      "size": 21688
     },
     {
       "path": "reports\\latest_battle_report.txt",
       "status": "ok",
       "warnings": [],
-      "size": 20845
+      "size": 21688
     },
     {
       "path": "reports\\line_push_status.json",
@@ -439,13 +439,13 @@
       "path": "reports\\model_competition.json",
       "status": "ok",
       "warnings": [],
-      "size": 28675
+      "size": 28697
     },
     {
       "path": "reports\\model_competition.md",
       "status": "ok",
       "warnings": [],
-      "size": 3119
+      "size": 3129
     },
     {
       "path": "reports\\network_permission_diagnostic.json",
@@ -463,7 +463,7 @@
       "path": "reports\\prediction_history.json",
       "status": "ok",
       "warnings": [],
-      "size": 26432
+      "size": 28813
     },
     {
       "path": "site\\crowd_consensus.json",
@@ -475,37 +475,37 @@
       "path": "site\\health_status.json",
       "status": "ok",
       "warnings": [],
-      "size": 5276
+      "size": 5280
     },
     {
       "path": "site\\index.html",
       "status": "ok",
       "warnings": [],
-      "size": 67215
+      "size": 68947
     },
     {
       "path": "site\\latest_analysis.json",
       "status": "ok",
       "warnings": [],
-      "size": 445637
+      "size": 449793
     },
     {
       "path": "site\\model_competition.json",
       "status": "ok",
       "warnings": [],
-      "size": 28675
+      "size": 28697
     },
     {
       "path": "site\\prediction-history.html",
       "status": "ok",
       "warnings": [],
-      "size": 4651
+      "size": 4937
     },
     {
       "path": "site\\prediction_history.json",
       "status": "ok",
       "warnings": [],
-      "size": 26432
+      "size": 28813
     },
     {
       "path": "site\\version.json",
@@ -643,7 +643,13 @@
       "path": "reports\\history\\period_115000145.json",
       "status": "ok",
       "warnings": [],
-      "size": 773
+      "size": 1889
+    },
+    {
+      "path": "reports\\history\\period_115000146.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 766
     }
   ]
 }

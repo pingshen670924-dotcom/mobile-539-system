@@ -453,6 +453,94 @@ def distribution_balance_scores(draws):
     return normalize(values)
 
 
+def draw_profile(numbers):
+    ordered = sorted(numbers)
+    zones = Counter(zone_label(number) for number in ordered)
+    return {
+        "odd": sum(number % 2 for number in ordered),
+        "big": sum(1 for number in ordered if number >= 20),
+        "zones": [zones.get(label, 0) for label in ["01-10", "11-20", "21-30", "31-39"]],
+        "sum_bucket": sum(ordered) // 12,
+        "span_bucket": (ordered[-1] - ordered[0]) // 5,
+        "tail_diversity": len({number % 10 for number in ordered}),
+    }
+
+
+def profile_similarity(left, right):
+    zone_gap = sum(abs(a - b) for a, b in zip(left["zones"], right["zones"])) / 10
+    gap = (
+        abs(left["odd"] - right["odd"]) / 5 * 0.20
+        + abs(left["big"] - right["big"]) / 5 * 0.18
+        + zone_gap * 0.26
+        + abs(left["sum_bucket"] - right["sum_bucket"]) / 16 * 0.18
+        + abs(left["span_bucket"] - right["span_bucket"]) / 8 * 0.12
+        + abs(left["tail_diversity"] - right["tail_diversity"]) / 5 * 0.06
+    )
+    return max(0.0, 1.0 - gap)
+
+
+def shape_follow_scores(draws, lookback=1500):
+    if len(draws) < 80:
+        return {n: 0.0 for n in range(NUMBER_MIN, NUMBER_MAX + 1)}
+    latest_profile = draw_profile(draws[-1]["numbers"])
+    values = Counter()
+    start = max(0, len(draws) - lookback - 1)
+    for idx in range(start, len(draws) - 1):
+        similarity = profile_similarity(draw_profile(draws[idx]["numbers"]), latest_profile)
+        if similarity < 0.52:
+            continue
+        weight = similarity ** 2
+        for number in draws[idx + 1]["numbers"]:
+            values[number] += weight
+    return normalize({n: values.get(n, 0.0) for n in range(NUMBER_MIN, NUMBER_MAX + 1)})
+
+
+def zone_parity_pressure_scores(draws, lookback=720):
+    if len(draws) < 80:
+        return {n: 0.0 for n in range(NUMBER_MIN, NUMBER_MAX + 1)}
+    latest_profile = draw_profile(draws[-1]["numbers"])
+    zone_votes = Counter()
+    parity_votes = Counter()
+    start = max(0, len(draws) - lookback - 1)
+    for idx in range(start, len(draws) - 1):
+        similarity = profile_similarity(draw_profile(draws[idx]["numbers"]), latest_profile)
+        if similarity < 0.48:
+            continue
+        for number in draws[idx + 1]["numbers"]:
+            zone_votes[zone_label(number)] += similarity
+            parity_votes[number % 2] += similarity
+    zone_norm = normalize({label: zone_votes.get(label, 0.0) for label in ["01-10", "11-20", "21-30", "31-39"]})
+    parity_norm = normalize({parity: parity_votes.get(parity, 0.0) for parity in [0, 1]})
+    return normalize({
+        number: zone_norm[zone_label(number)] * 0.58 + parity_norm[number % 2] * 0.42
+        for number in range(NUMBER_MIN, NUMBER_MAX + 1)
+    })
+
+
+def missed_hit_recovery_scores(review):
+    if not review or not review.get("has_review"):
+        return {n: 0.0 for n in range(NUMBER_MIN, NUMBER_MAX + 1)}
+    settled = review.get("last_settled", {})
+    actual = set(settled.get("actual_numbers") or [])
+    predicted = set((settled.get("candidate_numbers") or [])[:15])
+    missed_actual = {n for n in actual - predicted if NUMBER_MIN <= n <= NUMBER_MAX}
+    if not missed_actual:
+        return {n: 0.0 for n in range(NUMBER_MIN, NUMBER_MAX + 1)}
+    values = {}
+    missed_tails = {n % 10 for n in missed_actual}
+    missed_zones = {zone_label(n) for n in missed_actual}
+    for number in range(NUMBER_MIN, NUMBER_MAX + 1):
+        score = 0.0
+        if number % 10 in missed_tails:
+            score += 0.42
+        if zone_label(number) in missed_zones:
+            score += 0.34
+        if any(1 <= abs(number - anchor) <= 2 for anchor in missed_actual):
+            score += 0.24
+        values[number] = score
+    return normalize(values)
+
+
 def build_feature_matrix(draws, review=None, include_dependency=True):
     windows = [5, 10, 20, 50, 100, 300]
     feature_scores = {n: defaultdict(float) for n in range(NUMBER_MIN, NUMBER_MAX + 1)}
@@ -482,6 +570,9 @@ def build_feature_matrix(draws, review=None, include_dependency=True):
     trend_alignment = trend_alignment_scores(ewma_fast, ewma_slow, time_series_score)
     bayesian_posterior = bayesian_posterior_scores(draws)
     distribution_balance = distribution_balance_scores(draws)
+    shape_follow = shape_follow_scores(draws)
+    zone_parity_pressure = zone_parity_pressure_scores(draws)
+    missed_hit_recovery = missed_hit_recovery_scores(review)
     cross_consensus = cross_model_consensus_scores([
         window_scores[20],
         window_scores[50],
@@ -498,6 +589,9 @@ def build_feature_matrix(draws, review=None, include_dependency=True):
         trend_alignment,
         bayesian_posterior,
         distribution_balance,
+        shape_follow,
+        zone_parity_pressure,
+        missed_hit_recovery,
     ])
     monte_carlo_stability = monte_carlo_stability_scores([
         cross_consensus,
@@ -507,6 +601,8 @@ def build_feature_matrix(draws, review=None, include_dependency=True):
         pair_score,
         bayesian_posterior,
         distribution_balance,
+        shape_follow,
+        zone_parity_pressure,
     ])
     next_date = next_draw_date(draws[-1]["draw_date"])
     date_set = set(date_numbers(next_date))
@@ -530,6 +626,9 @@ def build_feature_matrix(draws, review=None, include_dependency=True):
         feature_scores[number]["bayesian_posterior"] = bayesian_posterior[number]
         feature_scores[number]["monte_carlo_stability"] = monte_carlo_stability[number]
         feature_scores[number]["distribution_balance"] = distribution_balance[number]
+        feature_scores[number]["shape_follow"] = shape_follow[number]
+        feature_scores[number]["zone_parity_pressure"] = zone_parity_pressure[number]
+        feature_scores[number]["missed_hit_recovery"] = missed_hit_recovery[number]
         feature_scores[number]["date"] = date_score[number]
         feature_scores[number]["repeat"] = 1.0 if number in latest_set else 0.0
         feature_scores[number]["neighbor"] = 1.0 if any(abs(number - anchor) == 1 for anchor in latest_set) else 0.0
@@ -561,6 +660,9 @@ def industrial_weights(review=None):
         "bayesian_posterior": 0.052,
         "monte_carlo_stability": 0.064,
         "distribution_balance": 0.046,
+        "shape_follow": 0.072,
+        "zone_parity_pressure": 0.062,
+        "missed_hit_recovery": 0.054,
         "date": 0.025,
         "repeat": 0.015,
         "neighbor": 0.025,
@@ -581,6 +683,9 @@ def industrial_weights(review=None):
                 "bayesian_posterior": 0.064,
                 "monte_carlo_stability": 0.078,
                 "distribution_balance": 0.055,
+                "shape_follow": 0.096,
+                "zone_parity_pressure": 0.082,
+                "missed_hit_recovery": 0.074,
                 "repeat": 0.005,
                 "neighbor": 0.01,
                 "freq_50": 0.15,
@@ -617,6 +722,9 @@ MODEL_SOURCE_LABELS = {
     "bayesian_posterior": "\u8c9d\u6c0f\u4fdd\u5b88\u6821\u6e96",
     "monte_carlo_stability": "\u8499\u5730\u5361\u7f85\u7a69\u5b9a",
     "distribution_balance": "\u5206\u5e03\u5e73\u8861",
+    "shape_follow": "\u724c\u578b\u76f8\u4f3c\u8ddf\u96a8",
+    "zone_parity_pressure": "\u5340\u9593\u5947\u5076\u58d3\u529b",
+    "missed_hit_recovery": "\u6f0f\u547d\u4e2d\u56de\u6536",
     "date": "\u65e5\u671f\u724c",
     "repeat": "\u9023\u838a\u56de\u6e2c",
     "neighbor": "\u9130\u865f\u9023\u52d5",
@@ -654,6 +762,9 @@ def number_cross_validation(values):
         ("trend_alignment", "\u8da8\u52e2\u4e00\u81f4", values.get("trend_alignment", 0) >= 0.52),
         ("cycle_timing", "\u9031\u671f\u4f4d\u7f6e", values.get("cycle_timing", 0) >= 0.52),
         ("distribution_balance", "\u5206\u5e03\u5e73\u8861", values.get("distribution_balance", 0) >= 0.52),
+        ("shape_follow", "\u724c\u578b\u76f8\u4f3c\u8ddf\u96a8", values.get("shape_follow", 0) >= 0.52),
+        ("zone_parity_pressure", "\u5340\u9593\u5947\u5076\u58d3\u529b", values.get("zone_parity_pressure", 0) >= 0.52),
+        ("missed_hit_recovery", "\u6f0f\u547d\u4e2d\u56de\u6536", values.get("missed_hit_recovery", 0) >= 0.52),
     ]
     passed = [{"key": key, "label": label} for key, label, ok in checks if ok]
     failed = [{"key": key, "label": label} for key, label, ok in checks if not ok]
@@ -662,7 +773,7 @@ def number_cross_validation(values):
         "total_count": len(checks),
         "passed": passed,
         "failed": failed,
-        "status": "passed" if len(passed) >= 3 else "watch",
+        "status": "passed" if len(passed) >= 4 else "watch",
     }
 
 
@@ -793,6 +904,12 @@ def score_numbers(draws, review=None, include_dependency=True, weights_override=
             reasons[number].append("\u8499\u5730\u5361\u7f85\u7a69\u5b9a")
         if values["distribution_balance"] >= 0.7:
             reasons[number].append("\u5206\u5e03\u5e73\u8861\u98a8\u63a7")
+        if values["shape_follow"] >= 0.7:
+            reasons[number].append("\u724c\u578b\u76f8\u4f3c\u8ddf\u96a8")
+        if values["zone_parity_pressure"] >= 0.7:
+            reasons[number].append("\u5340\u9593\u5947\u5076\u58d3\u529b")
+        if values["missed_hit_recovery"] >= 0.7:
+            reasons[number].append("\u6f0f\u547d\u4e2d\u56de\u6536")
         if values["freq_50"] >= 0.7 or values["freq_100"] >= 0.7:
             reasons[number].append("\u4e2d\u671f\u7a69\u5b9a")
         if values["date"] > 0:
