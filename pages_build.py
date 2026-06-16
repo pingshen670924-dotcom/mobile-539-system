@@ -28,12 +28,13 @@ def build():
         except json.JSONDecodeError:
             analysis = {}
     generated_at = analysis.get("generated_at") or datetime.now().isoformat(timespec="seconds")
+    mobile_built_at = datetime.now().isoformat(timespec="seconds")
     latest_draw = analysis.get("latest_draw", {})
     version = datetime.now().strftime("%Y%m%d%H%M%S")
     controls = f"""
     <section class="band">
       <h2>\u624b\u6a5f\u7368\u7acb\u64cd\u4f5c</h2>
-      <p><strong>\u624b\u6a5f\u7248\u6700\u5f8c\u5efa\u7acb\uff1a{generated_at}</strong></p>
+      <p><strong>\u624b\u6a5f\u7248\u6700\u5f8c\u5efa\u7acb\uff1a{mobile_built_at}</strong></p>
       <p>\u6700\u65b0\u8cc7\u6599\uff1a{latest_draw.get('period', '-')}\u671f / {latest_draw.get('draw_date', '-')} / \u7248\u672c {version}</p>
       <p><a class="mobile-action history" href="prediction-history.html">\u67e5\u770b\u6bcf\u671f\u9810\u6e2c\u5c0d\u6bd4</a></p>
       <p><a class="mobile-action" href="{repository_url('actions/workflows/daily-update.yml')}">\u767b\u5165 GitHub \u5f8c\u7acb\u5373\u66f4\u65b0</a></p>
@@ -63,6 +64,9 @@ def build():
     </style>
     <link rel="manifest" href="manifest.webmanifest">
     <meta name="theme-color" content="#111827">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     """
     html = html.replace("</head>", style + "</head>")
     html = html.replace("<main>", "<main>" + controls, 1)
@@ -116,11 +120,33 @@ def build():
     version_payload = {
         "version": version,
         "generated_at": generated_at,
+        "mobile_built_at": mobile_built_at,
         "latest_period": latest_draw.get("period"),
         "latest_draw_date": latest_draw.get("draw_date"),
         "cache_policy": "network_first_no_store",
     }
     (SITE / "version.json").write_text(json.dumps(version_payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    latest_entry = ROOT / "\u6253\u958b\u6700\u65b0\u624b\u6a5f\u7248.html"
+    latest_entry.write_text(
+        f"""<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>打開最新手機版</title>
+  <meta http-equiv="refresh" content="0; url=site/index.html?v={version}">
+</head>
+<body>
+  <p>正在打開最新手機版...</p>
+  <p><a href="site/index.html?v={version}">若沒有自動跳轉，請點這裡</a></p>
+</body>
+</html>
+""",
+        encoding="utf-8",
+    )
     (SITE / "service-worker.js").write_text(
         f'''const CACHE="539-mobile-{version}";
 self.addEventListener("install",event=>{{self.skipWaiting();event.waitUntil(caches.open(CACHE));}});

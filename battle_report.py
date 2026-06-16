@@ -1063,13 +1063,126 @@ def build_html_report(markdown_text):
             "</tr>"
         )
 
+    high_probability_items = []
+    for item in candidates[:15]:
+        cv = item.get("cross_validation", {})
+        score = float(item.get("score") or 0)
+        confidence = float(item.get("confidence_index") or 0)
+        probability = float(item.get("model_probability_percent") or 0)
+        passed_count = int(cv.get("passed_count") or 0)
+        source_count = int(item.get("source_model_count") or len(item.get("model_sources", [])))
+        is_high_probability = (
+            score >= 0.88
+            and confidence >= 93
+            and probability >= 17
+            and (passed_count >= 5 or source_count >= 6)
+        )
+        is_watch_high = (
+            not is_high_probability
+            and score >= 0.82
+            and confidence >= 90
+            and probability >= 16
+            and passed_count >= 3
+        )
+        if is_high_probability or is_watch_high:
+            high_probability_items.append({
+                "item": item,
+                "level": "\u9ad8\u6a5f\u7387\u4e3b\u6a19" if is_high_probability else "\u9ad8\u6a5f\u7387\u89c0\u5bdf",
+                "class": "hot-main" if is_high_probability else "hot-watch",
+            })
+
+    high_probability_rows = ""
+    for row in high_probability_items:
+        item = row["item"]
+        cv = item.get("cross_validation", {})
+        sources = "、".join(src.get("label") for src in item.get("model_sources", [])[:6]) or "-"
+        reasons = "、".join(item.get("reasons", [])[:5]) or "-"
+        high_probability_rows += (
+            f"<tr class=\"{row['class']}\">"
+            f"<td><span class=\"hot-number\">{item.get('number'):02d}</span></td>"
+            f"<td>{row['level']}</td>"
+            f"<td>{item.get('rank', '-')}</td>"
+            f"<td>{item.get('model_probability_percent', '-')}%</td>"
+            f"<td>{item.get('score', '-')}</td>"
+            f"<td>{item.get('confidence_index', '-')}</td>"
+            f"<td>{cv.get('passed_count', 0)}/{cv.get('total_count', 0)} {cv.get('status', '-')}</td>"
+            f"<td>{sources}</td>"
+            f"<td>{reasons}</td>"
+            "</tr>"
+        )
+    if not high_probability_rows:
+        high_probability_rows = (
+            "<tr><td colspan=\"9\">\u672c\u671f\u6c92\u6709\u865f\u78bc\u540c\u6642\u9054\u5230\u9ad8\u6a5f\u7387\u986f\u793a\u9580\u6abb\uff0c"
+            "\u4e0d\u786c\u6a19\u793a\u9ad8\u6a5f\u7387\u3002</td></tr>"
+        )
+
+    single_pack = packs.get("strong_single", {})
+    single_numbers = single_pack.get("numbers", [])
+    single_item = candidate_by_number.get(single_numbers[0]) if single_numbers else None
+    single_special_html = ""
+    if single_item:
+        single_cv = single_item.get("cross_validation", {})
+        single_gov = single_pack.get("governance", {})
+        single_sources = "、".join(src.get("label") for src in single_item.get("model_sources", [])[:8]) or "-"
+        single_reasons = "、".join(single_item.get("reasons", [])[:6]) or "-"
+        single_score = float(single_item.get("score") or 0)
+        single_confidence = float(single_item.get("confidence_index") or 0)
+        single_probability = float(single_item.get("model_probability_percent") or 0)
+        single_source_count = int(single_item.get("source_model_count") or len(single_item.get("model_sources", [])))
+        single_high = (
+            single_pack.get("status") == "released"
+            and single_gov.get("passed")
+            and single_score >= 0.95
+            and single_confidence >= 96
+            and single_probability >= 18
+            and single_source_count >= 6
+        )
+        single_level = "\u7368\u96bb\u7279\u5225\u4fe1\u5fc3" if single_high else "\u7368\u96bb\u89c0\u5bdf"
+        single_class = "single-strong" if single_high else "single-watch"
+        single_note = (
+            "\u7368\u96bb\u9054\u5230\u7279\u5225\u4fe1\u5fc3\u9580\u6abb\uff0c\u4f46\u4ecd\u9700\u4f9d\u958b\u734e\u5f8c\u5be6\u969b\u7d50\u679c\u6aa2\u8a0e\u3002"
+            if single_high
+            else "\u7368\u96bb\u6709\u8f38\u51fa\uff0c\u4f46\u5c1a\u672a\u540c\u6642\u9054\u5230\u7279\u5225\u4fe1\u5fc3\u9580\u6abb\uff0c\u4ee5\u89c0\u5bdf\u986f\u793a\u3002"
+        )
+        single_special_html = f"""
+    <section class="band singlebox {single_class}">
+      <h2>\u6700\u5f37\u7368\u96bb\u7279\u5225\u4fe1\u5fc3\u63d0\u793a\uff08\u76ee\u6a19 {pending_target_date}\uff09</h2>
+      <div class="single-layout">
+        <div class="single-number-wrap">
+          <div class="single-number-label">\u672c\u65e5\u9ad8\u6a5f\u7387</div>
+          <div class="single-number">{single_item.get('number'):02d}</div>
+        </div>
+        <div>
+          <p><span class="status">{single_level}</span> <span class="status fresh">\u72c0\u614b {single_pack.get('status', '-')}</span></p>
+          <p>\u6392\u540d {single_item.get('rank', '-')} / \u4fdd\u5b88\u6a5f\u7387 {single_item.get('model_probability_percent', '-')}% / \u5206\u6578 {single_item.get('score', '-')} / \u4fe1\u5fc3 {single_item.get('confidence_index', '-')}</p>
+          <p>\u7368\u96bb\u56de\u6e2c\uff1a\u6a23\u672c {single_gov.get('rounds', '-')} / \u9054\u6a19\u7387 {single_gov.get('pass_rate', '-')} / \u96f6\u547d\u4e2d\u7387 {single_gov.get('zero_hit_rate', '-')} / \u5224\u5b9a {'\u901a\u904e' if single_gov.get('passed') else '\u672a\u901a\u904e'}</p>
+          <p>\u4ea4\u53c9\u9a57\u8b49\uff1a{single_cv.get('passed_count', 0)}/{single_cv.get('total_count', 0)} {single_cv.get('status', '-')}</p>
+          <p>\u4e3b\u8981\u4f86\u6e90\uff1a{single_sources}</p>
+          <p>\u539f\u56e0 / \u98a8\u63a7\uff1a{single_reasons}。{single_note}</p>
+        </div>
+      </div>
+    </section>
+"""
+    else:
+        single_special_html = f"""
+    <section class="band singlebox single-watch">
+      <h2>\u6700\u5f37\u7368\u96bb\u7279\u5225\u4fe1\u5fc3\u63d0\u793a\uff08\u76ee\u6a19 {pending_target_date}\uff09</h2>
+      <p>\u672c\u671f\u6c92\u6709\u7368\u96bb\u865f\u78bc\u9054\u5230\u8f38\u51fa\u689d\u4ef6\uff0c\u4e0d\u786c\u6a19\u793a\u3002</p>
+    </section>
+"""
+
     candidate_rows = ""
     for idx, item in enumerate(candidates[:15], 1):
         reason = "\u3001".join(item.get("reasons", []))
         sources = "、".join(src.get("label") for src in item.get("model_sources", [])[:4]) or "-"
         cv = item.get("cross_validation", {})
+        score = float(item.get("score") or 0)
+        confidence = float(item.get("confidence_index") or 0)
+        probability = float(item.get("model_probability_percent") or 0)
+        passed_count = int(cv.get("passed_count") or 0)
+        row_class = " class=\"hot-main\"" if score >= 0.88 and confidence >= 93 and probability >= 17 and passed_count >= 5 else ""
         candidate_rows += (
-            "<tr>"
+            f"<tr{row_class}>"
             f"<td>{idx}</td><td>{item['number']:02d}</td><td>{item.get('rank', idx)}</td>"
             f"<td>{item.get('score')}</td><td>{item.get('model_probability_percent')}%</td>"
             f"<td>{item['confidence_index']}</td><td>{item['omission']}</td>"
@@ -1476,6 +1589,18 @@ def build_html_report(markdown_text):
     .blocked {{ background:#fee2e2; color:#991b1b; }}
     .fresh {{ background:#dcfce7; color:#166534; }}
     .notice {{ border-left:5px solid #dc2626; background:#fff7f7; }}
+    .hotbox {{ border:2px solid #dc2626; background:#fff7ed; box-shadow:0 0 0 3px rgba(220,38,38,.08); }}
+    .hotbox h2 {{ color:#991b1b; }}
+    .hot-main {{ background:#fff1f2; font-weight:800; }}
+    .hot-watch {{ background:#fffbeb; }}
+    .hot-number {{ display:inline-flex; align-items:center; justify-content:center; min-width:34px; height:34px; border:3px solid #dc2626; border-radius:999px; color:#b91c1c; font-weight:900; background:#fff; }}
+    .singlebox {{ border:3px solid #991b1b; background:#fff1f2; box-shadow:0 0 0 4px rgba(153,27,27,.08); }}
+    .singlebox h2 {{ color:#7f1d1d; font-size:22px; }}
+    .single-layout {{ display:grid; grid-template-columns:140px 1fr; gap:18px; align-items:center; }}
+    .single-number-wrap {{ display:flex; flex-direction:column; align-items:center; gap:8px; }}
+    .single-number-label {{ display:inline-block; padding:5px 10px; border-radius:999px; background:#dc2626; color:white; font-size:13px; font-weight:900; }}
+    .single-number {{ display:flex; align-items:center; justify-content:center; width:112px; height:112px; border:6px solid #dc2626; border-radius:999px; color:#b91c1c; background:white; font-size:46px; font-weight:900; box-shadow:0 8px 20px rgba(220,38,38,.18); }}
+    .single-watch {{ border-color:#f59e0b; background:#fffbeb; }}
     .tabbar {{ position:sticky; top:0; z-index:5; display:flex; gap:8px; flex-wrap:wrap; background:#f6f7fb; padding:10px 0 14px; }}
     .tabbar button {{ border:1px solid #cbd5e1; background:white; color:#0f172a; border-radius:8px; padding:10px 14px; font-weight:800; cursor:pointer; }}
     .tabbar button.active {{ background:#0f172a; color:white; border-color:#0f172a; }}
@@ -1643,6 +1768,12 @@ def build_html_report(markdown_text):
       <h2>\u9810\u6e2c\u865f\u78bc\u9010\u865f\u7cbe\u7b97\u9a57\u8b49\uff08\u76ee\u6a19 {pending_target_date}\uff09</h2>
       <p>\u9435\u5f8b\uff1a\u6bcf\u4e00\u9846\u9810\u6e2c\u865f\u78bc\u90fd\u5fc5\u9808\u6709\u6392\u540d\u3001\u5206\u6578\u3001\u6a5f\u7387\u3001\u4f86\u6e90\u6a21\u578b\u3001\u4ea4\u53c9\u9a57\u8b49\u8207\u56de\u6e2c\u72c0\u614b\u3002</p>
       <table><thead><tr><th>\u865f\u78bc</th><th>\u6240\u5c6c\u9810\u6e2c</th><th>\u6392\u540d</th><th>\u5206\u6578</th><th>\u4fdd\u5b88\u6a5f\u7387</th><th>\u4fe1\u5fc3</th><th>\u4f86\u6e90\u6a21\u578b / \u8a0a\u865f / \u6b0a\u91cd</th><th>\u4ea4\u53c9\u9a57\u8b49</th><th>\u72c0\u614b</th></tr></thead><tbody>{predicted_audit_rows}</tbody></table>
+    </section>
+    {single_special_html}
+    <section class="band hotbox">
+      <h2>\u672c\u65e5\u9ad8\u6a5f\u7387\u91cd\u9ede\u63d0\u793a\uff08\u76ee\u6a19 {pending_target_date}\uff09</h2>
+      <p>\u53ea\u5728\u5206\u6578\u3001\u4fdd\u5b88\u6a5f\u7387\u3001\u4fe1\u5fc3\u3001\u4f86\u6e90\u6a21\u578b\u8207\u4ea4\u53c9\u9a57\u8b49\u540c\u6642\u9054\u6a19\u6642\u986f\u793a\uff1b\u672a\u9054\u6a19\u4e0d\u786c\u6a19\u793a\u9ad8\u6a5f\u7387\u3002</p>
+      <table><thead><tr><th>\u865f\u78bc</th><th>\u7b49\u7d1a</th><th>\u6392\u540d</th><th>\u4fdd\u5b88\u6a5f\u7387</th><th>\u5206\u6578</th><th>\u4fe1\u5fc3</th><th>\u4ea4\u53c9\u9a57\u8b49</th><th>\u4e3b\u8981\u4f86\u6e90\u6a21\u578b</th><th>\u4e3b\u8981\u539f\u56e0 / \u98a8\u63a7</th></tr></thead><tbody>{high_probability_rows}</tbody></table>
     </section>
     <section class="band">
       <h2>\u81ea\u52d5\u6b0a\u91cd\u6821\u6e96\uff1a\u8fd1\u671f\u5be6\u6230\u7279\u5fb5\u8abf\u6b0a\uff08\u76ee\u6a19 {pending_target_date}\uff09</h2>

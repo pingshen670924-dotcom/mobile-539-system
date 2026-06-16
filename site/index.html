@@ -28,6 +28,18 @@
     .blocked { background:#fee2e2; color:#991b1b; }
     .fresh { background:#dcfce7; color:#166534; }
     .notice { border-left:5px solid #dc2626; background:#fff7f7; }
+    .hotbox { border:2px solid #dc2626; background:#fff7ed; box-shadow:0 0 0 3px rgba(220,38,38,.08); }
+    .hotbox h2 { color:#991b1b; }
+    .hot-main { background:#fff1f2; font-weight:800; }
+    .hot-watch { background:#fffbeb; }
+    .hot-number { display:inline-flex; align-items:center; justify-content:center; min-width:34px; height:34px; border:3px solid #dc2626; border-radius:999px; color:#b91c1c; font-weight:900; background:#fff; }
+    .singlebox { border:3px solid #991b1b; background:#fff1f2; box-shadow:0 0 0 4px rgba(153,27,27,.08); }
+    .singlebox h2 { color:#7f1d1d; font-size:22px; }
+    .single-layout { display:grid; grid-template-columns:140px 1fr; gap:18px; align-items:center; }
+    .single-number-wrap { display:flex; flex-direction:column; align-items:center; gap:8px; }
+    .single-number-label { display:inline-block; padding:5px 10px; border-radius:999px; background:#dc2626; color:white; font-size:13px; font-weight:900; }
+    .single-number { display:flex; align-items:center; justify-content:center; width:112px; height:112px; border:6px solid #dc2626; border-radius:999px; color:#b91c1c; background:white; font-size:46px; font-weight:900; box-shadow:0 8px 20px rgba(220,38,38,.18); }
+    .single-watch { border-color:#f59e0b; background:#fffbeb; }
     .tabbar { position:sticky; top:0; z-index:5; display:flex; gap:8px; flex-wrap:wrap; background:#f6f7fb; padding:10px 0 14px; }
     .tabbar button { border:1px solid #cbd5e1; background:white; color:#0f172a; border-radius:8px; padding:10px 14px; font-weight:800; cursor:pointer; }
     .tabbar button.active { background:#0f172a; color:white; border-color:#0f172a; }
@@ -64,20 +76,23 @@
     </style>
     <link rel="manifest" href="manifest.webmanifest">
     <meta name="theme-color" content="#111827">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     </head>
 <body>
   <header>
     <h1>539 開獎預測戰報</h1>
-    <p>報表產生 2026-06-16T07:45:41 / 最新開獎日 2026-06-15 / 預測目標日 2026-06-16</p>
+    <p>報表產生 2026-06-16T07:41:14 / 最新開獎日 2026-06-15 / 預測目標日 2026-06-16</p>
     <p>最新期別 115000145 / 開獎 12 16 24 28 36</p>
   </header>
   <main>
     <section class="band">
       <h2>手機獨立操作</h2>
-      <p><strong>手機版最後建立：2026-06-16T07:45:41</strong></p>
-      <p>最新資料：115000145期 / 2026-06-15 / 版本 20260615234621</p>
+      <p><strong>手機版最後建立：2026-06-16T08:08:59</strong></p>
+      <p>最新資料：115000145期 / 2026-06-15 / 版本 20260616080859</p>
       <p><a class="mobile-action history" href="prediction-history.html">查看每期預測對比</a></p>
-      <p><a class="mobile-action" href="https://github.com/pingshen670924-dotcom/mobile-539-system/actions/workflows/daily-update.yml">登入 GitHub 後立即更新</a></p>
+      <p><a class="mobile-action" href="https://github.com/OWNER/REPOSITORY/actions/workflows/daily-update.yml">登入 GitHub 後立即更新</a></p>
       <p><button class="mobile-action refresh" type="button" onclick="forceRefresh()">強制重新載入最新手機成果</button></p>
       <p>免費手機版會自動更新：台北時間 20:50 預備檢查，21:00-23:50 每10分鐘重試，00:10 最後檢查。手動立即更新需登入 GitHub。</p>
       <p>手機版與電腦版可同時存在：電腦版在本機輸出完整戰報，手機版在 GitHub 雲端獨立更新，互不覆蓋。</p>
@@ -94,7 +109,7 @@
     <section class="band notice">
       <h2>重要日期儀表板</h2>
       <div class="dategrid">
-        <div class="dateitem"><strong>報表產生時間</strong><span>2026-06-16T07:45:41</span></div>
+        <div class="dateitem"><strong>報表產生時間</strong><span>2026-06-16T07:41:14</span></div>
         <div class="dateitem"><strong>資料最新開獎日</strong><span>2026-06-15</span></div>
         <div class="dateitem"><strong>本次預測依據日</strong><span>2026-06-15</span></div>
         <div class="dateitem"><strong>下期預測目標日</strong><span>2026-06-16</span></div>
@@ -107,9 +122,9 @@
       <span class="status blocked">僅供觀察，禁止正式主推</span></p>
       <p><strong>運算模式：目前正式模式</strong></p>
       <p>引擎：industrial_v6_precision_governor_strict_release / 最新資料：2026-06-15 / 應有資料：2026-06-15</p>
-      <p>外部連線風險：無</p>
+      <p>外部連線風險：network_permission_blocked_but_local_data_is_fresh</p>
       <p>每日鐵律稽核：passed / 失敗項目：無</p>
-      <p>正式預測狀態：未達發布門檻，重算後觀察記錄相同</p>
+      <p>正式預測狀態：未達發布門檻，已重算並更新觀察記錄</p>
       <p>目前待結算追蹤記錄：預測依據期 115000145 / 預測依據開獎日 2026-06-15 / 預測目標期 115000146 / 預計開獎日 2026-06-16 / 運算建立時間 2026-06-16T07:41:57</p>
       <p>發布判定：Top10 穩定共識 1.0 / 整體回測差值 -0.004 / 近期回測是否通過 False</p>
       <p>不硬湊政策：合格號碼 None 顆 / 門檻分數 None / 信心指數 None / 穩定共識 None</p>
@@ -117,7 +132,7 @@
     <section class="band">
       <h2>日期基準總表</h2>
       <table><tbody>
-        <tr><th>報表產生時間</th><td>2026-06-16T07:45:41</td></tr>
+        <tr><th>報表產生時間</th><td>2026-06-16T07:41:14</td></tr>
         <tr><th>台彩資料最新日</th><td>2026-06-15</td></tr>
         <tr><th>系統應有最新日</th><td>2026-06-15</td></tr>
         <tr><th>最新開獎期 / 日</th><td>115000145 / 2026-06-15</td></tr>
@@ -134,7 +149,7 @@
       <p>新政策：None / 最大軟降權 None / 禁止硬性排除。</p>
     </section>
     <section class="band notice">
-      <h2>研究命中 KPI 與禁止虛報門檻（產生 2026-06-16T07:45:41）</h2>
+      <h2>研究命中 KPI 與禁止虛報門檻（產生 2026-06-16T07:41:14）</h2>
       <p>狀態：insufficient_samples / 正式實績樣本 12 / 最低樣本 30</p>
       <p>這些是研究目標，不是樂透必中保證。任一級未達標或樣本不足，一律禁止正式主推。</p>
       <table><thead><tr><th>目標</th><th>達標期數</th><th>目標區間</th><th>超標命中</th><th>通過率</th><th>平均命中</th><th>95% 下限</th><th>判定</th></tr></thead><tbody><tr><td>15顆中3至5顆</td><td>4/12</td><td>4</td><td>0</td><td>0.3333</td><td>1.8333</td><td>0.1381</td><td>未通過</td></tr><tr><td>9顆中3至5顆</td><td>3/12</td><td>3</td><td>0</td><td>0.25</td><td>1.3333</td><td>0.0889</td><td>未通過</td></tr><tr><td>5顆中2至5顆</td><td>3/12</td><td>3</td><td>0</td><td>0.25</td><td>0.9167</td><td>0.0889</td><td>未通過</td></tr><tr><td>3顆中1至3顆</td><td>5/12</td><td>5</td><td>0</td><td>0.4167</td><td>0.5833</td><td>0.1933</td><td>未通過</td></tr><tr><td>2顆中1至2顆</td><td>4/12</td><td>4</td><td>0</td><td>0.3333</td><td>0.3333</td><td>0.1381</td><td>未通過</td></tr><tr><td>1顆中1顆</td><td>2/12</td><td>2</td><td>0</td><td>0.1667</td><td>0.1667</td><td>0.047</td><td>未通過</td></tr></tbody></table>
@@ -191,7 +206,7 @@
     <section class="band">
       <h2>全部正式預測歷史對比</h2>
       <p>每期正式預測、實際開獎、命中號碼與重跑快照數都永久保留。</p>
-      <table><thead><tr><th>目標期 / 預計開獎日</th><th>狀態</th><th>依據期 / 依據開獎日</th><th>實際期 / 實際開獎日</th><th>當期正式 Top10</th><th>實際開獎號</th><th>Top10 命中號</th><th>Top5</th><th>Top10</th><th>Top15</th><th>快照數</th><th>建立 / 結算</th></tr></thead><tbody><tr><td>115000146<br><span class="sub">預計開獎日 2026-06-16</span></td><td>待結算</td><td>115000145<br><span class="sub">依據開獎日 2026-06-15</span></td><td>-<br><span class="sub">實際開獎日 -</span></td><td>11 35 03 02 04 38 14 17 23 34</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>6</td><td>2026-06-16T07:41:57<br>-</td></tr><tr><td>115000145<br><span class="sub">預計開獎日 2026-06-15</span></td><td>已結算</td><td>115000144<br><span class="sub">依據開獎日 2026-06-13</span></td><td>115000145<br><span class="sub">實際開獎日 2026-06-15</span></td><td>08 37 25 27 20 12 22 28 26 15</td><td>12 16 24 28 36</td><td>12 28</td><td>0</td><td>2</td><td>2</td><td>38</td><td>2026-06-15T11:45:56<br>2026-06-16T07:10:34</td></tr><tr><td>115000143<br><span class="sub">預計開獎日 2026-06-12</span></td><td>已結算</td><td>115000142<br><span class="sub">依據開獎日 2026-06-11</span></td><td>115000143<br><span class="sub">實際開獎日 2026-06-12</span></td><td>02 06 21 38 36 04 16 24 35 14</td><td>06 08 18 29 31</td><td>06</td><td>1</td><td>1</td><td>1</td><td>5</td><td>2026-06-12T09:16:48<br>2026-06-15T09:05:48</td></tr><tr><td>115000142<br><span class="sub">預計開獎日 2026-06-11</span></td><td>已結算</td><td>115000141<br><span class="sub">依據開獎日 2026-06-10</span></td><td>115000142<br><span class="sub">實際開獎日 2026-06-11</span></td><td>12 07 25 11 15 09 31 05 22 27</td><td>08 15 20 29 31</td><td>15 31</td><td>1</td><td>2</td><td>3</td><td>9</td><td>2026-06-11T09:12:13<br>2026-06-12T09:15:11</td></tr><tr><td>115000141<br><span class="sub">預計開獎日 2026-06-10</span></td><td>已結算</td><td>115000140<br><span class="sub">依據開獎日 2026-06-09</span></td><td>115000141<br><span class="sub">實際開獎日 2026-06-10</span></td><td>08 02 21 36 06</td><td>01 04 32 35 39</td><td>-</td><td>0</td><td>0</td><td>0</td><td>2</td><td>2026-06-10T08:38:31<br>2026-06-11T08:40:07</td></tr><tr><td>115000140<br><span class="sub">預計開獎日 2026-06-09</span></td><td>已結算</td><td>115000139<br><span class="sub">依據開獎日 2026-06-08</span></td><td>115000140<br><span class="sub">實際開獎日 2026-06-09</span></td><td>02 08 06 25 20 07 12</td><td>10 17 20 25 28</td><td>20 25</td><td>2</td><td>2</td><td>2</td><td>2</td><td>2026-06-09T08:44:35<br>2026-06-10T08:36:31</td></tr><tr><td>115000139<br><span class="sub">預計開獎日 2026-06-08</span></td><td>已結算</td><td>115000138<br><span class="sub">依據開獎日 2026-06-06</span></td><td>115000139<br><span class="sub">實際開獎日 2026-06-08</span></td><td>06 08 02 12 04 25 07 11 36 21</td><td>08 14 17 18 28</td><td>08</td><td>1</td><td>1</td><td>1</td><td>14</td><td>2026-06-08T11:24:12<br>2026-06-09T08:42:24</td></tr><tr><td>115000138<br><span class="sub">預計開獎日 2026-06-06</span></td><td>已結算</td><td>115000137<br><span class="sub">依據開獎日 2026-06-05</span></td><td>115000138<br><span class="sub">實際開獎日 2026-06-06</span></td><td>08 02 20 18 09 28 05 23 22 32</td><td>13 27 30 37 38</td><td>-</td><td>0</td><td>0</td><td>0</td><td>4</td><td>2026-06-06T13:56:39<br>2026-06-08T10:11:11</td></tr><tr><td>115000137<br><span class="sub">預計開獎日 2026-06-05</span></td><td>已結算</td><td>115000136<br><span class="sub">依據開獎日 2026-06-04</span></td><td>115000137<br><span class="sub">實際開獎日 2026-06-05</span></td><td>06 04 25 36 21 11 07 31 12 37</td><td>07 21 26 27 31</td><td>07 21 31</td><td>1</td><td>3</td><td>4</td><td>15</td><td>2026-06-05T09:43:16<br>2026-06-06T13:54:41</td></tr><tr><td>115000136<br><span class="sub">預計開獎日 2026-06-04</span></td><td>已結算</td><td>115000135<br><span class="sub">依據開獎日 2026-06-03</span></td><td>115000136<br><span class="sub">實際開獎日 2026-06-04</span></td><td>20 18 16 09 35 03 22 32 05 23</td><td>02 08 24 29 35</td><td>35</td><td>1</td><td>1</td><td>3</td><td>8</td><td>2026-06-04T14:52:18<br>2026-06-05T08:17:50</td></tr><tr><td>115000135<br><span class="sub">預計開獎日 2026-06-03</span></td><td>已結算</td><td>115000134<br><span class="sub">依據開獎日 2026-06-02</span></td><td>115000135<br><span class="sub">實際開獎日 2026-06-03</span></td><td>08 06 02 04 21 11 12 25 36 07</td><td>02 08 17 25 38</td><td>02 08 25</td><td>2</td><td>3</td><td>3</td><td>5</td><td>2026-06-03T08:41:25<br>2026-06-04T10:08:30</td></tr><tr><td>115000134<br><span class="sub">預計開獎日 2026-06-02</span></td><td>已結算</td><td>115000133<br><span class="sub">依據開獎日 2026-06-01</span></td><td>115000134<br><span class="sub">實際開獎日 2026-06-02</span></td><td>07 18 22 27 20 16 23 29 28 09</td><td>07 12 22 26 30</td><td>07 22</td><td>2</td><td>2</td><td>2</td><td>0</td><td>2026-06-02T12:33:52<br>2026-06-03T08:40:47</td></tr><tr><td>115000133<br><span class="sub">預計開獎日 2026-06-01</span></td><td>已結算</td><td>115000132<br><span class="sub">依據開獎日 2026-05-30</span></td><td>115000133<br><span class="sub">實際開獎日 2026-06-01</span></td><td>02 12 06 08 04 21 36 03 01 15</td><td>05 14 19 20 28</td><td>-</td><td>0</td><td>0</td><td>1</td><td>0</td><td>2026-06-01T13:02:38<br>2026-06-02T08:41:03</td></tr></tbody></table>
+      <table><thead><tr><th>目標期 / 預計開獎日</th><th>狀態</th><th>依據期 / 依據開獎日</th><th>實際期 / 實際開獎日</th><th>當期正式 Top10</th><th>實際開獎號</th><th>Top10 命中號</th><th>Top5</th><th>Top10</th><th>Top15</th><th>快照數</th><th>建立 / 結算</th></tr></thead><tbody><tr><td>115000146<br><span class="sub">預計開獎日 2026-06-16</span></td><td>待結算</td><td>115000145<br><span class="sub">依據開獎日 2026-06-15</span></td><td>-<br><span class="sub">實際開獎日 -</span></td><td>11 35 03 02 04 38 14 17 23 34</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>5</td><td>2026-06-16T07:41:57<br>-</td></tr><tr><td>115000145<br><span class="sub">預計開獎日 2026-06-15</span></td><td>已結算</td><td>115000144<br><span class="sub">依據開獎日 2026-06-13</span></td><td>115000145<br><span class="sub">實際開獎日 2026-06-15</span></td><td>08 37 25 27 20 12 22 28 26 15</td><td>12 16 24 28 36</td><td>12 28</td><td>0</td><td>2</td><td>2</td><td>38</td><td>2026-06-15T11:45:56<br>2026-06-16T07:10:34</td></tr><tr><td>115000143<br><span class="sub">預計開獎日 2026-06-12</span></td><td>已結算</td><td>115000142<br><span class="sub">依據開獎日 2026-06-11</span></td><td>115000143<br><span class="sub">實際開獎日 2026-06-12</span></td><td>02 06 21 38 36 04 16 24 35 14</td><td>06 08 18 29 31</td><td>06</td><td>1</td><td>1</td><td>1</td><td>5</td><td>2026-06-12T09:16:48<br>2026-06-15T09:05:48</td></tr><tr><td>115000142<br><span class="sub">預計開獎日 2026-06-11</span></td><td>已結算</td><td>115000141<br><span class="sub">依據開獎日 2026-06-10</span></td><td>115000142<br><span class="sub">實際開獎日 2026-06-11</span></td><td>12 07 25 11 15 09 31 05 22 27</td><td>08 15 20 29 31</td><td>15 31</td><td>1</td><td>2</td><td>3</td><td>9</td><td>2026-06-11T09:12:13<br>2026-06-12T09:15:11</td></tr><tr><td>115000141<br><span class="sub">預計開獎日 2026-06-10</span></td><td>已結算</td><td>115000140<br><span class="sub">依據開獎日 2026-06-09</span></td><td>115000141<br><span class="sub">實際開獎日 2026-06-10</span></td><td>08 02 21 36 06</td><td>01 04 32 35 39</td><td>-</td><td>0</td><td>0</td><td>0</td><td>2</td><td>2026-06-10T08:38:31<br>2026-06-11T08:40:07</td></tr><tr><td>115000140<br><span class="sub">預計開獎日 2026-06-09</span></td><td>已結算</td><td>115000139<br><span class="sub">依據開獎日 2026-06-08</span></td><td>115000140<br><span class="sub">實際開獎日 2026-06-09</span></td><td>02 08 06 25 20 07 12</td><td>10 17 20 25 28</td><td>20 25</td><td>2</td><td>2</td><td>2</td><td>2</td><td>2026-06-09T08:44:35<br>2026-06-10T08:36:31</td></tr><tr><td>115000139<br><span class="sub">預計開獎日 2026-06-08</span></td><td>已結算</td><td>115000138<br><span class="sub">依據開獎日 2026-06-06</span></td><td>115000139<br><span class="sub">實際開獎日 2026-06-08</span></td><td>06 08 02 12 04 25 07 11 36 21</td><td>08 14 17 18 28</td><td>08</td><td>1</td><td>1</td><td>1</td><td>14</td><td>2026-06-08T11:24:12<br>2026-06-09T08:42:24</td></tr><tr><td>115000138<br><span class="sub">預計開獎日 2026-06-06</span></td><td>已結算</td><td>115000137<br><span class="sub">依據開獎日 2026-06-05</span></td><td>115000138<br><span class="sub">實際開獎日 2026-06-06</span></td><td>08 02 20 18 09 28 05 23 22 32</td><td>13 27 30 37 38</td><td>-</td><td>0</td><td>0</td><td>0</td><td>4</td><td>2026-06-06T13:56:39<br>2026-06-08T10:11:11</td></tr><tr><td>115000137<br><span class="sub">預計開獎日 2026-06-05</span></td><td>已結算</td><td>115000136<br><span class="sub">依據開獎日 2026-06-04</span></td><td>115000137<br><span class="sub">實際開獎日 2026-06-05</span></td><td>06 04 25 36 21 11 07 31 12 37</td><td>07 21 26 27 31</td><td>07 21 31</td><td>1</td><td>3</td><td>4</td><td>15</td><td>2026-06-05T09:43:16<br>2026-06-06T13:54:41</td></tr><tr><td>115000136<br><span class="sub">預計開獎日 2026-06-04</span></td><td>已結算</td><td>115000135<br><span class="sub">依據開獎日 2026-06-03</span></td><td>115000136<br><span class="sub">實際開獎日 2026-06-04</span></td><td>20 18 16 09 35 03 22 32 05 23</td><td>02 08 24 29 35</td><td>35</td><td>1</td><td>1</td><td>3</td><td>8</td><td>2026-06-04T14:52:18<br>2026-06-05T08:17:50</td></tr><tr><td>115000135<br><span class="sub">預計開獎日 2026-06-03</span></td><td>已結算</td><td>115000134<br><span class="sub">依據開獎日 2026-06-02</span></td><td>115000135<br><span class="sub">實際開獎日 2026-06-03</span></td><td>08 06 02 04 21 11 12 25 36 07</td><td>02 08 17 25 38</td><td>02 08 25</td><td>2</td><td>3</td><td>3</td><td>5</td><td>2026-06-03T08:41:25<br>2026-06-04T10:08:30</td></tr><tr><td>115000134<br><span class="sub">預計開獎日 2026-06-02</span></td><td>已結算</td><td>115000133<br><span class="sub">依據開獎日 2026-06-01</span></td><td>115000134<br><span class="sub">實際開獎日 2026-06-02</span></td><td>07 18 22 27 20 16 23 29 28 09</td><td>07 12 22 26 30</td><td>07 22</td><td>2</td><td>2</td><td>2</td><td>0</td><td>2026-06-02T12:33:52<br>2026-06-03T08:40:47</td></tr><tr><td>115000133<br><span class="sub">預計開獎日 2026-06-01</span></td><td>已結算</td><td>115000132<br><span class="sub">依據開獎日 2026-05-30</span></td><td>115000133<br><span class="sub">實際開獎日 2026-06-01</span></td><td>02 12 06 08 04 21 36 03 01 15</td><td>05 14 19 20 28</td><td>-</td><td>0</td><td>0</td><td>1</td><td>0</td><td>2026-06-01T13:02:38<br>2026-06-02T08:41:03</td></tr></tbody></table>
     </section>
     <section class="band">
       <h2>航太級運算保證審核</h2>
@@ -218,7 +233,7 @@
       <section class="card"><h2>最強單支</h2><div class="value">11</div><p class="sub">狀態 正式主推 / 理論機率 0.128205 / 1中7.8</p></section><section class="card"><h2>最強2中1</h2><div class="value">11 35</div><p class="sub">狀態 正式主推 / 理論機率 0.242915 / 1中4.12</p></section><section class="card"><h2>最強3中1</h2><div class="value">03 11 35</div><p class="sub">狀態 正式主推 / 理論機率 0.345224 / 1中2.9</p></section><section class="card"><h2>最強5中2</h2><div class="value">02 03 11 35 38</div><p class="sub">狀態 今日作戰預測（研究級） / 理論機率 0.113973 / 1中8.77</p></section><section class="card"><h2>最強9中3</h2><div class="value">02 03 04 11 14 17 23 35 38</div><p class="sub">狀態 今日作戰預測（研究級） / 理論機率 0.070248 / 1中14.24</p></section>
     </div>
     <section class="band">
-      <h2>精準度治理器 v34：強牌發布審核（產生 2026-06-16T07:45:41）</h2>
+      <h2>精準度治理器 v34：強牌發布審核（產生 2026-06-16T07:41:14）</h2>
       <p>燈號：yellow / 通過包數：3 / 回測樣本：360 / 說明：strict walk-forward governance with daily variant tournament; lower confidence packs are still output as research predictions</p>
       <p>鐵律：每日必產出今日作戰預測，但正式主推須通過近期 walk-forward 回測。系統會每日比較專用模型、總分排名、穩定共識三種版本，用近期表現最好的版本產出今日號碼。</p>
       <table><thead><tr><th>強牌級別</th><th>狀態</th><th>號碼</th><th>採用模型</th><th>回測樣本</th><th>達標率</th><th>平均命中</th><th>零命中率</th><th>回測判定</th><th>發布原因 / 風險原因</th></tr></thead><tbody><tr><td>最強單支</td><td>正式主推</td><td>11</td><td>single_precision</td><td>360</td><td>0.142</td><td>0.142</td><td>0.858</td><td>通過</td><td>達到發布門檻</td></tr><tr><td>最強2中1</td><td>正式主推</td><td>11 35</td><td>專用模型</td><td>360</td><td>0.269</td><td>0.283</td><td>0.731</td><td>通過</td><td>達到發布門檻</td></tr><tr><td>最強3中1</td><td>正式主推</td><td>03 11 35</td><td>專用模型</td><td>360</td><td>0.347</td><td>0.4</td><td>0.653</td><td>通過</td><td>達到發布門檻</td></tr><tr><td>最強5中2</td><td>今日作戰預測（研究級）</td><td>02 03 11 35 38</td><td>專用模型</td><td>360</td><td>0.147</td><td>0.692</td><td>0.458</td><td>未通過</td><td>recent walk-forward pack performance did not pass official gate; output as daily research prediction</td></tr><tr><td>最強9中3</td><td>今日作戰預測（研究級）</td><td>02 03 04 11 14 17 23 35 38</td><td>總分排名</td><td>360</td><td>0.078</td><td>1.142</td><td>0.258</td><td>未通過</td><td>recent walk-forward pack performance did not pass official gate; output as daily research prediction</td></tr></tbody></table>
@@ -227,6 +242,30 @@
       <h2>預測號碼逐號精算驗證（目標 2026-06-16）</h2>
       <p>鐵律：每一顆預測號碼都必須有排名、分數、機率、來源模型、交叉驗證與回測狀態。</p>
       <table><thead><tr><th>號碼</th><th>所屬預測</th><th>排名</th><th>分數</th><th>保守機率</th><th>信心</th><th>來源模型 / 訊號 / 權重</th><th>交叉驗證</th><th>狀態</th></tr></thead><tbody><tr><td>11</td><td>最強單支、最強2中1、最強3中1、最強5中2、最強9中3</td><td>1</td><td>1.0</td><td>18.72%</td><td>99.0</td><td>遺漏週期 0.8979 / 權重 0.06455<br>牌型相似跟隨 1.0 / 權重 0.04154<br>區間奇偶壓力 0.894 / 權重 0.03471<br>貝氏保守校準 1.0 / 權重 0.0306<br>尾數區間 0.6323 / 權重 0.04556<br>多模型共識 0.4722 / 權重 0.05696</td><td>3/9：貝氏校準、牌型相似跟隨、區間奇偶壓力</td><td>watch</td></tr><tr><td>04</td><td>最強9中3</td><td>2</td><td>0.8874</td><td>18.16%</td><td>93.5</td><td>多模型共識 0.7825 / 權重 0.05696<br>近100期熱度 0.5 / 權重 0.06804<br>尾數區間 0.7381 / 權重 0.04556<br>近50期熱度 0.5 / 權重 0.06532<br>蒙地卡羅穩定 0.8571 / 權重 0.03718<br>牌型相似跟隨 0.6814 / 權重 0.04154</td><td>6/9：多模型共識、蒙地卡羅穩定、貝氏校準、趨勢一致、牌型相似跟隨、區間奇偶壓力</td><td>passed</td></tr><tr><td>35</td><td>最強2中1、最強3中1、最強5中2、最強9中3</td><td>3</td><td>0.9595</td><td>18.1%</td><td>97.0</td><td>多模型共識 0.625 / 權重 0.05696<br>近100期熱度 0.5 / 權重 0.06804<br>遺漏週期 0.5 / 權重 0.06455<br>蒙地卡羅穩定 0.8571 / 權重 0.03718<br>牌型相似跟隨 0.7615 / 權重 0.04154<br>拖牌轉移 0.7963 / 權重 0.03622</td><td>7/9：多模型共識、蒙地卡羅穩定、貝氏校準、趨勢一致、分布平衡、牌型相似跟隨、漏命中回收</td><td>passed</td></tr><tr><td>17</td><td>最強9中3</td><td>4</td><td>0.8533</td><td>17.64%</td><td>91.8</td><td>遺漏週期 0.5566 / 權重 0.06455<br>區間奇偶壓力 0.894 / 權重 0.03471<br>近100期熱度 0.4444 / 權重 0.06804<br>拖牌轉移 0.7685 / 權重 0.03622<br>近20期熱度 0.6 / 權重 0.04534<br>共現配對 0.5714 / 權重 0.04683</td><td>3/9：週期位置、區間奇偶壓力、漏命中回收</td><td>watch</td></tr><tr><td>03</td><td>最強3中1、最強5中2、最強9中3</td><td>5</td><td>0.9268</td><td>17.6%</td><td>95.4</td><td>遺漏週期 0.8199 / 權重 0.06455<br>區間奇偶壓力 1.0 / 權重 0.03471<br>牌型相似跟隨 0.727 / 權重 0.04154<br>共現配對 0.5714 / 權重 0.04683<br>尾數區間 0.5476 / 權重 0.04556<br>多模型共識 0.4245 / 權重 0.05696</td><td>3/9：週期位置、牌型相似跟隨、區間奇偶壓力</td><td>watch</td></tr><tr><td>02</td><td>最強5中2、最強9中3</td><td>6</td><td>0.9005</td><td>17.2%</td><td>94.1</td><td>多模型共識 1.0 / 權重 0.05696<br>近50期熱度 0.8 / 權重 0.06532<br>近100期熱度 0.7222 / 權重 0.06804<br>遺漏週期 0.7153 / 權重 0.06455<br>近20期熱度 1.0 / 權重 0.04534<br>尾數區間 0.8095 / 權重 0.04556</td><td>5/9：多模型共識、貝氏校準、趨勢一致、週期位置、區間奇偶壓力</td><td>passed</td></tr><tr><td>38</td><td>最強5中2、最強9中3</td><td>7</td><td>0.8857</td><td>16.97%</td><td>93.4</td><td>遺漏週期 0.646 / 權重 0.06455<br>蒙地卡羅穩定 1.0 / 權重 0.03718<br>多模型共識 0.5989 / 權重 0.05696<br>拖牌轉移 0.8889 / 權重 0.03622<br>牌型相似跟隨 0.7737 / 權重 0.04154<br>近20期熱度 0.6 / 權重 0.04534</td><td>7/9：多模型共識、蒙地卡羅穩定、貝氏校準、週期位置、分布平衡、牌型相似跟隨、漏命中回收</td><td>passed</td></tr><tr><td>14</td><td>最強9中3</td><td>10</td><td>0.8619</td><td>16.6%</td><td>92.2</td><td>遺漏週期 0.6045 / 權重 0.06455<br>共現配對 0.7143 / 權重 0.04683<br>漏命中回收 1.0 / 權重 0.03163<br>近20期熱度 0.6 / 權重 0.04534<br>多模型共識 0.4492 / 權重 0.05696<br>牌型相似跟隨 0.5803 / 權重 0.04154</td><td>5/9：貝氏校準、週期位置、分布平衡、牌型相似跟隨、漏命中回收</td><td>passed</td></tr><tr><td>23</td><td>最強9中3</td><td>12</td><td>0.8523</td><td>16.46%</td><td>91.8</td><td>遺漏週期 0.9741 / 權重 0.06455<br>區間奇偶壓力 0.8735 / 權重 0.03471<br>拖牌轉移 0.7407 / 權重 0.03622<br>共現配對 0.4286 / 權重 0.04683<br>分布平衡 0.7344 / 權重 0.02675<br>近100期熱度 0.2778 / 權重 0.06804</td><td>3/9：分布平衡、區間奇偶壓力、漏命中回收</td><td>watch</td></tr></tbody></table>
+    </section>
+    
+    <section class="band singlebox single-strong">
+      <h2>最強獨隻特別信心提示（目標 2026-06-16）</h2>
+      <div class="single-layout">
+        <div class="single-number-wrap">
+          <div class="single-number-label">本日高機率</div>
+          <div class="single-number">11</div>
+        </div>
+        <div>
+          <p><span class="status">獨隻特別信心</span> <span class="status fresh">狀態 released</span></p>
+          <p>排名 1 / 保守機率 18.72% / 分數 1.0 / 信心 99.0</p>
+          <p>獨隻回測：樣本 360 / 達標率 0.142 / 零命中率 0.858 / 判定 通過</p>
+          <p>交叉驗證：3/9 watch</p>
+          <p>主要來源：遺漏週期、牌型相似跟隨、區間奇偶壓力、貝氏保守校準、尾數區間、多模型共識、近300期穩定、拖牌轉移</p>
+          <p>原因 / 風控：遺漏補償、貝氏保守校準、牌型相似跟隨、區間奇偶壓力。獨隻達到特別信心門檻，但仍需依開獎後實際結果檢討。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="band hotbox">
+      <h2>本日高機率重點提示（目標 2026-06-16）</h2>
+      <p>只在分數、保守機率、信心、來源模型與交叉驗證同時達標時顯示；未達標不硬標示高機率。</p>
+      <table><thead><tr><th>號碼</th><th>等級</th><th>排名</th><th>保守機率</th><th>分數</th><th>信心</th><th>交叉驗證</th><th>主要來源模型</th><th>主要原因 / 風控</th></tr></thead><tbody><tr class="hot-main"><td><span class="hot-number">11</span></td><td>高機率主標</td><td>1</td><td>18.72%</td><td>1.0</td><td>99.0</td><td>3/9 watch</td><td>遺漏週期、牌型相似跟隨、區間奇偶壓力、貝氏保守校準、尾數區間、多模型共識</td><td>遺漏補償、貝氏保守校準、牌型相似跟隨、區間奇偶壓力</td></tr><tr class="hot-main"><td><span class="hot-number">35</span></td><td>高機率主標</td><td>3</td><td>18.1%</td><td>0.9595</td><td>97.0</td><td>7/9 passed</td><td>多模型共識、近100期熱度、遺漏週期、蒙地卡羅穩定、牌型相似跟隨、拖牌轉移</td><td>神經網路綜合、貝氏保守校準、蒙地卡羅穩定、牌型相似跟隨</td></tr><tr class="hot-main"><td><span class="hot-number">03</span></td><td>高機率主標</td><td>5</td><td>17.6%</td><td>0.9268</td><td>95.4</td><td>3/9 watch</td><td>遺漏週期、區間奇偶壓力、牌型相似跟隨、共現配對、尾數區間、多模型共識</td><td>遺漏補償、牌型相似跟隨、區間奇偶壓力、滾動檢討命中來源升權</td></tr><tr class="hot-main"><td><span class="hot-number">02</span></td><td>高機率主標</td><td>6</td><td>17.2%</td><td>0.9005</td><td>94.1</td><td>5/9 passed</td><td>多模型共識、近50期熱度、近100期熱度、遺漏週期、近20期熱度、尾數區間</td><td>遺漏補償、神經網路綜合、尾數區間、多模型共識</td></tr><tr class="hot-main"><td><span class="hot-number">04</span></td><td>高機率主標</td><td>2</td><td>18.16%</td><td>0.8874</td><td>93.5</td><td>6/9 passed</td><td>多模型共識、近100期熱度、尾數區間、近50期熱度、蒙地卡羅穩定、牌型相似跟隨</td><td>時間序列動能、神經網路綜合、尾數區間、多模型共識</td></tr><tr class="hot-watch"><td><span class="hot-number">38</span></td><td>高機率觀察</td><td>7</td><td>16.97%</td><td>0.8857</td><td>93.4</td><td>7/9 passed</td><td>遺漏週期、蒙地卡羅穩定、多模型共識、拖牌轉移、牌型相似跟隨、近20期熱度</td><td>神經網路綜合、週期位置、蒙地卡羅穩定、牌型相似跟隨</td></tr><tr class="hot-watch"><td><span class="hot-number">14</span></td><td>高機率觀察</td><td>10</td><td>16.6%</td><td>0.8619</td><td>92.2</td><td>5/9 passed</td><td>遺漏週期、共現配對、漏命中回收、近20期熱度、多模型共識、牌型相似跟隨</td><td>共現關聯、時間序列動能、漏命中回收、日期牌</td></tr><tr class="hot-watch"><td><span class="hot-number">17</span></td><td>高機率觀察</td><td>4</td><td>17.64%</td><td>0.8533</td><td>91.8</td><td>3/9 watch</td><td>遺漏週期、區間奇偶壓力、近100期熱度、拖牌轉移、近20期熱度、共現配對</td><td>區間奇偶壓力、穩定共識</td></tr><tr class="hot-watch"><td><span class="hot-number">23</span></td><td>高機率觀察</td><td>12</td><td>16.46%</td><td>0.8523</td><td>91.8</td><td>3/9 watch</td><td>遺漏週期、區間奇偶壓力、拖牌轉移、共現配對、分布平衡、近100期熱度</td><td>遺漏補償、分布平衡風控、區間奇偶壓力、日期牌</td></tr></tbody></table>
     </section>
     <section class="band">
       <h2>自動權重校準：近期實戰特徵調權（目標 2026-06-16）</h2>
@@ -304,7 +343,7 @@
     </section>
     <section class="band">
       <h2>候選 Top 15</h2>
-      <table><thead><tr><th>#</th><th>號碼</th><th>排名</th><th>分數</th><th>保守機率</th><th>信心</th><th>遺漏</th><th>來源模型</th><th>交叉驗證</th><th>理由</th></tr></thead><tbody><tr><td>1</td><td>11</td><td>1</td><td>1.0</td><td>18.72%</td><td>99.0</td><td>17</td><td>遺漏週期、牌型相似跟隨、區間奇偶壓力、貝氏保守校準</td><td>3/9 watch</td><td>遺漏補償、貝氏保守校準、牌型相似跟隨、區間奇偶壓力</td></tr><tr><td>2</td><td>35</td><td>3</td><td>0.9595</td><td>18.1%</td><td>97.0</td><td>4</td><td>多模型共識、近100期熱度、遺漏週期、蒙地卡羅穩定</td><td>7/9 passed</td><td>神經網路綜合、貝氏保守校準、蒙地卡羅穩定、牌型相似跟隨</td></tr><tr><td>3</td><td>03</td><td>5</td><td>0.9268</td><td>17.6%</td><td>95.4</td><td>13</td><td>遺漏週期、區間奇偶壓力、牌型相似跟隨、共現配對</td><td>3/9 watch</td><td>遺漏補償、牌型相似跟隨、區間奇偶壓力、滾動檢討命中來源升權</td></tr><tr><td>4</td><td>02</td><td>6</td><td>0.9005</td><td>17.2%</td><td>94.1</td><td>9</td><td>多模型共識、近50期熱度、近100期熱度、遺漏週期</td><td>5/9 passed</td><td>遺漏補償、神經網路綜合、尾數區間、多模型共識</td></tr><tr><td>5</td><td>04</td><td>2</td><td>0.8874</td><td>18.16%</td><td>93.5</td><td>1</td><td>多模型共識、近100期熱度、尾數區間、近50期熱度</td><td>6/9 passed</td><td>時間序列動能、神經網路綜合、尾數區間、多模型共識</td></tr><tr><td>6</td><td>38</td><td>7</td><td>0.8857</td><td>16.97%</td><td>93.4</td><td>7</td><td>遺漏週期、蒙地卡羅穩定、多模型共識、拖牌轉移</td><td>7/9 passed</td><td>神經網路綜合、週期位置、蒙地卡羅穩定、牌型相似跟隨</td></tr><tr><td>7</td><td>14</td><td>10</td><td>0.8619</td><td>16.6%</td><td>92.2</td><td>6</td><td>遺漏週期、共現配對、漏命中回收、近20期熱度</td><td>5/9 passed</td><td>共現關聯、時間序列動能、漏命中回收、日期牌</td></tr><tr><td>8</td><td>17</td><td>4</td><td>0.8533</td><td>17.64%</td><td>91.8</td><td>5</td><td>遺漏週期、區間奇偶壓力、近100期熱度、拖牌轉移</td><td>3/9 watch</td><td>區間奇偶壓力、穩定共識</td></tr><tr><td>9</td><td>23</td><td>12</td><td>0.8523</td><td>16.46%</td><td>91.8</td><td>22</td><td>遺漏週期、區間奇偶壓力、拖牌轉移、共現配對</td><td>3/9 watch</td><td>遺漏補償、分布平衡風控、區間奇偶壓力、日期牌</td></tr><tr><td>10</td><td>34</td><td>8</td><td>0.8095</td><td>16.97%</td><td>89.7</td><td>1</td><td>拖牌轉移、漏命中回收、共現配對、分布平衡</td><td>3/9 watch</td><td>分布平衡風控、漏命中回收、穩定共識</td></tr><tr><td>11</td><td>19</td><td>9</td><td>0.79</td><td>16.67%</td><td>88.7</td><td>12</td><td>遺漏週期、拖牌轉移、多模型共識、區間奇偶壓力</td><td>4/9 passed</td><td>遺漏補償、神經網路綜合、蒙地卡羅穩定、區間奇偶壓力</td></tr><tr><td>12</td><td>06</td><td>11</td><td>0.7089</td><td>16.59%</td><td>84.7</td><td>1</td><td>多模型共識、近50期熱度、近20期熱度、尾數區間</td><td>6/9 passed</td><td>共現關聯、時間序列動能、神經網路綜合、尾數區間</td></tr><tr><td>13</td><td>01</td><td>13</td><td>0.6955</td><td>16.38%</td><td>84.1</td><td>4</td><td>尾數區間、區間奇偶壓力、多模型共識、遺漏週期</td><td>2/9 watch</td><td>馬可夫轉移、尾數區間、區間奇偶壓力、滾動檢討未命中來源降權</td></tr><tr><td>14</td><td>05</td><td>14</td><td>0.6754</td><td>16.08%</td><td>83.1</td><td>1</td><td>共現配對、尾數區間、拖牌轉移、區間奇偶壓力</td><td>1/9 watch</td><td>共現關聯、尾數區間、區間奇偶壓力、滾動檢討未命中來源降權</td></tr><tr><td>15</td><td>13</td><td>15</td><td>0.576</td><td>15.72%</td><td>78.2</td><td>7</td><td>遺漏週期、區間奇偶壓力、週期位置、近20期熱度</td><td>3/9 watch</td><td>週期位置、區間奇偶壓力</td></tr></tbody></table>
+      <table><thead><tr><th>#</th><th>號碼</th><th>排名</th><th>分數</th><th>保守機率</th><th>信心</th><th>遺漏</th><th>來源模型</th><th>交叉驗證</th><th>理由</th></tr></thead><tbody><tr><td>1</td><td>11</td><td>1</td><td>1.0</td><td>18.72%</td><td>99.0</td><td>17</td><td>遺漏週期、牌型相似跟隨、區間奇偶壓力、貝氏保守校準</td><td>3/9 watch</td><td>遺漏補償、貝氏保守校準、牌型相似跟隨、區間奇偶壓力</td></tr><tr class="hot-main"><td>2</td><td>35</td><td>3</td><td>0.9595</td><td>18.1%</td><td>97.0</td><td>4</td><td>多模型共識、近100期熱度、遺漏週期、蒙地卡羅穩定</td><td>7/9 passed</td><td>神經網路綜合、貝氏保守校準、蒙地卡羅穩定、牌型相似跟隨</td></tr><tr><td>3</td><td>03</td><td>5</td><td>0.9268</td><td>17.6%</td><td>95.4</td><td>13</td><td>遺漏週期、區間奇偶壓力、牌型相似跟隨、共現配對</td><td>3/9 watch</td><td>遺漏補償、牌型相似跟隨、區間奇偶壓力、滾動檢討命中來源升權</td></tr><tr class="hot-main"><td>4</td><td>02</td><td>6</td><td>0.9005</td><td>17.2%</td><td>94.1</td><td>9</td><td>多模型共識、近50期熱度、近100期熱度、遺漏週期</td><td>5/9 passed</td><td>遺漏補償、神經網路綜合、尾數區間、多模型共識</td></tr><tr class="hot-main"><td>5</td><td>04</td><td>2</td><td>0.8874</td><td>18.16%</td><td>93.5</td><td>1</td><td>多模型共識、近100期熱度、尾數區間、近50期熱度</td><td>6/9 passed</td><td>時間序列動能、神經網路綜合、尾數區間、多模型共識</td></tr><tr><td>6</td><td>38</td><td>7</td><td>0.8857</td><td>16.97%</td><td>93.4</td><td>7</td><td>遺漏週期、蒙地卡羅穩定、多模型共識、拖牌轉移</td><td>7/9 passed</td><td>神經網路綜合、週期位置、蒙地卡羅穩定、牌型相似跟隨</td></tr><tr><td>7</td><td>14</td><td>10</td><td>0.8619</td><td>16.6%</td><td>92.2</td><td>6</td><td>遺漏週期、共現配對、漏命中回收、近20期熱度</td><td>5/9 passed</td><td>共現關聯、時間序列動能、漏命中回收、日期牌</td></tr><tr><td>8</td><td>17</td><td>4</td><td>0.8533</td><td>17.64%</td><td>91.8</td><td>5</td><td>遺漏週期、區間奇偶壓力、近100期熱度、拖牌轉移</td><td>3/9 watch</td><td>區間奇偶壓力、穩定共識</td></tr><tr><td>9</td><td>23</td><td>12</td><td>0.8523</td><td>16.46%</td><td>91.8</td><td>22</td><td>遺漏週期、區間奇偶壓力、拖牌轉移、共現配對</td><td>3/9 watch</td><td>遺漏補償、分布平衡風控、區間奇偶壓力、日期牌</td></tr><tr><td>10</td><td>34</td><td>8</td><td>0.8095</td><td>16.97%</td><td>89.7</td><td>1</td><td>拖牌轉移、漏命中回收、共現配對、分布平衡</td><td>3/9 watch</td><td>分布平衡風控、漏命中回收、穩定共識</td></tr><tr><td>11</td><td>19</td><td>9</td><td>0.79</td><td>16.67%</td><td>88.7</td><td>12</td><td>遺漏週期、拖牌轉移、多模型共識、區間奇偶壓力</td><td>4/9 passed</td><td>遺漏補償、神經網路綜合、蒙地卡羅穩定、區間奇偶壓力</td></tr><tr><td>12</td><td>06</td><td>11</td><td>0.7089</td><td>16.59%</td><td>84.7</td><td>1</td><td>多模型共識、近50期熱度、近20期熱度、尾數區間</td><td>6/9 passed</td><td>共現關聯、時間序列動能、神經網路綜合、尾數區間</td></tr><tr><td>13</td><td>01</td><td>13</td><td>0.6955</td><td>16.38%</td><td>84.1</td><td>4</td><td>尾數區間、區間奇偶壓力、多模型共識、遺漏週期</td><td>2/9 watch</td><td>馬可夫轉移、尾數區間、區間奇偶壓力、滾動檢討未命中來源降權</td></tr><tr><td>14</td><td>05</td><td>14</td><td>0.6754</td><td>16.08%</td><td>83.1</td><td>1</td><td>共現配對、尾數區間、拖牌轉移、區間奇偶壓力</td><td>1/9 watch</td><td>共現關聯、尾數區間、區間奇偶壓力、滾動檢討未命中來源降權</td></tr><tr><td>15</td><td>13</td><td>15</td><td>0.576</td><td>15.72%</td><td>78.2</td><td>7</td><td>遺漏週期、區間奇偶壓力、週期位置、近20期熱度</td><td>3/9 watch</td><td>週期位置、區間奇偶壓力</td></tr></tbody></table>
     </section>
     <section class="band">
       <h2>低機率暫避號碼（風控觀察）</h2>
@@ -388,7 +427,7 @@
   </script>
 
     <script>
-      window.MOBILE_BUILD_VERSION="20260615234621";
+      window.MOBILE_BUILD_VERSION="20260616080859";
       async function forceRefresh(){
         try{
           if("serviceWorker" in navigator){
@@ -411,7 +450,7 @@
           }
         }catch(e){}
       }
-      if("serviceWorker" in navigator)navigator.serviceWorker.register("service-worker.js?v=20260615234621");
+      if("serviceWorker" in navigator)navigator.serviceWorker.register("service-worker.js?v=20260616080859");
       setInterval(checkMobileVersion, 120000);
       checkMobileVersion();
     </script></body>
