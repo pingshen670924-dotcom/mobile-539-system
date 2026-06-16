@@ -36,7 +36,8 @@ def build():
       <h2>\u624b\u6a5f\u7368\u7acb\u64cd\u4f5c</h2>
       <p><strong>\u624b\u6a5f\u7248\u6700\u5f8c\u5efa\u7acb\uff1a{mobile_built_at}</strong></p>
       <p>\u6700\u65b0\u8cc7\u6599\uff1a{latest_draw.get('period', '-')}\u671f / {latest_draw.get('draw_date', '-')} / \u7248\u672c {version}</p>
-      <p><a class="mobile-action history" href="prediction-history.html">\u67e5\u770b\u6bcf\u671f\u9810\u6e2c\u5c0d\u6bd4</a></p>
+      <p><a class="mobile-action refresh" href="clear-cache.html?v={version}">\u6e05\u9664\u820a\u7248\u5feb\u53d6\u4e26\u6253\u958b\u6700\u65b0\u624b\u6a5f\u7248</a></p>
+      <p><a class="mobile-action history" href="prediction-history.html?v={version}">\u67e5\u770b\u6bcf\u671f\u9810\u6e2c\u5c0d\u6bd4</a></p>
       <p><a class="mobile-action" href="{repository_url('actions/workflows/daily-update.yml')}">\u767b\u5165 GitHub \u5f8c\u7acb\u5373\u66f4\u65b0</a></p>
       <p><button class="mobile-action refresh" type="button" onclick="forceRefresh()">\u5f37\u5236\u91cd\u65b0\u8f09\u5165\u6700\u65b0\u624b\u6a5f\u6210\u679c</button></p>
       <p>\u514d\u8cbb\u624b\u6a5f\u7248\u6703\u81ea\u52d5\u66f4\u65b0\uff1a\u53f0\u5317\u6642\u9593 20:50 \u9810\u5099\u6aa2\u67e5\uff0c21:00-23:50 \u6bcf10\u5206\u9418\u91cd\u8a66\uff0c00:10 \u6700\u5f8c\u6aa2\u67e5\u3002\u624b\u52d5\u7acb\u5373\u66f4\u65b0\u9700\u767b\u5165 GitHub\u3002</p>
@@ -84,14 +85,14 @@ def build():
             await Promise.all(keys.map(k=>caches.delete(k)));
           }}
         }}catch(e){{}}
-        location.href=location.pathname+"?v="+Date.now();
-      }}
+          location.href="index.html?v="+Date.now();
+        }}
       async function checkMobileVersion(){{
         try{{
           const r=await fetch("version.json?v="+Date.now(),{{cache:"no-store"}});
           const data=await r.json();
           if(data.version && data.version!==window.MOBILE_BUILD_VERSION){{
-            location.href=location.pathname+"?v="+Date.now();
+            location.href="clear-cache.html?v="+Date.now();
           }}
         }}catch(e){{}}
       }}
@@ -126,6 +127,58 @@ def build():
         "cache_policy": "network_first_no_store",
     }
     (SITE / "version.json").write_text(json.dumps(version_payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    latest_html = f"""<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>最新手機版</title>
+  <script>location.replace("index.html?v={version}&t="+Date.now());</script>
+</head>
+<body>
+  <p>正在打開最新手機版...</p>
+  <p><a href="index.html?v={version}">若沒有自動跳轉，請點這裡</a></p>
+</body>
+</html>
+"""
+    (SITE / "latest.html").write_text(latest_html, encoding="utf-8")
+    (SITE / "clear-cache.html").write_text(
+        f"""<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>清除舊版快取</title>
+</head>
+<body>
+  <p>正在清除舊版快取並打開最新手機版...</p>
+  <script>
+    (async()=>{{
+      try{{
+        if("serviceWorker" in navigator){{
+          const regs=await navigator.serviceWorker.getRegistrations();
+          for(const reg of regs) await reg.unregister();
+        }}
+        if(window.caches){{
+          const keys=await caches.keys();
+          await Promise.all(keys.map(key=>caches.delete(key)));
+        }}
+      }}catch(e){{}}
+      location.replace("index.html?v={version}&t="+Date.now());
+    }})();
+  </script>
+  <p><a href="index.html?v={version}">若沒有自動跳轉，請點這裡</a></p>
+</body>
+</html>
+""",
+        encoding="utf-8",
+    )
     latest_entry = ROOT / "\u6253\u958b\u6700\u65b0\u624b\u6a5f\u7248.html"
     latest_entry.write_text(
         f"""<!doctype html>
@@ -137,11 +190,11 @@ def build():
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>打開最新手機版</title>
-  <meta http-equiv="refresh" content="0; url=site/index.html?v={version}">
+  <meta http-equiv="refresh" content="0; url=site/clear-cache.html?v={version}">
 </head>
 <body>
   <p>正在打開最新手機版...</p>
-  <p><a href="site/index.html?v={version}">若沒有自動跳轉，請點這裡</a></p>
+  <p><a href="site/clear-cache.html?v={version}">若沒有自動跳轉，請點這裡</a></p>
 </body>
 </html>
 """,
@@ -149,17 +202,16 @@ def build():
     )
     (SITE / "service-worker.js").write_text(
         f'''const CACHE="539-mobile-{version}";
-self.addEventListener("install",event=>{{self.skipWaiting();event.waitUntil(caches.open(CACHE));}});
-self.addEventListener("activate",event=>{{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()));}});
+async function clearAllCaches(){{
+  const keys=await caches.keys();
+  await Promise.all(keys.map(key=>caches.delete(key)));
+}}
+self.addEventListener("install",event=>{{self.skipWaiting();event.waitUntil(clearAllCaches());}});
+self.addEventListener("activate",event=>{{event.waitUntil(clearAllCaches().then(()=>self.clients.claim()));}});
 self.addEventListener("fetch",event=>{{
   const req=event.request;
   if(req.method!=="GET") return;
-  const url=new URL(req.url);
-  if(url.pathname.endsWith("/")||url.pathname.endsWith("index.html")||url.pathname.endsWith(".json")||url.pathname.endsWith("prediction-history.html")){{
-    event.respondWith(fetch(req,{{cache:"no-store"}}).catch(()=>caches.match(req)));
-    return;
-  }}
-  event.respondWith(fetch(req).catch(()=>caches.match(req)));
+  event.respondWith(fetch(req,{{cache:"no-store"}}));
 }});''',
         encoding="utf-8",
     )
