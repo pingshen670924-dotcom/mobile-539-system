@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-17T01:53:31",
+  "generated_at": "2026-06-17T02:06:44",
   "prediction_mode": "current_precision_stability_v35",
   "latest_draw": {
     "period": 115000146,
@@ -18869,7 +18869,7 @@
     "latest_date": "2026-06-16",
     "expected_latest_date": "2026-06-16",
     "lag_days": 0,
-    "checked_at": "2026-06-17T01:50:29"
+    "checked_at": "2026-06-17T02:03:45"
   },
   "research_kpi": {
     "status": "insufficient_samples",
@@ -18966,5 +18966,5 @@
       }
     }
   },
-  "official_prediction_status": "observation_only_inserted"
+  "official_prediction_status": "observation_only_recalculated_same_as_official"
 }
