@@ -1043,6 +1043,7 @@ def live_precision_calibration(candidates, review=None):
     late_hits = _count_map(rolling.get("late_hit_numbers", []), "number", "late_hit_count")
     missed_actual = _count_map(rolling.get("missed_actual_numbers", []), "number", "missed_count")
     repeated_failed = _count_map(rolling.get("repeated_failed_numbers", []), "number", "miss_count")
+    repeated_failed_numbers = {int(number) for number in repeated_failed}
     missed_tails = _count_map(rolling.get("missed_actual_tails", []), "tail", "missed_count")
     missed_zones = _label_count_map(rolling.get("missed_actual_zones", []), "zone", "missed_count")
     boosted_reasons = _string_set(rolling.get("boosted_reasons", []), "reason")
@@ -1072,21 +1073,26 @@ def live_precision_calibration(candidates, review=None):
         adjustment = 0.0
         tags = []
 
-        if top5_slump and original_rank <= 5 and stability < 4 and passed < 7:
-            adjustment -= 0.035 * slump_intensity
+        if top5_slump and original_rank <= 5 and stability < 5 and passed < 8:
+            adjustment -= 0.055 * slump_intensity
             tags.append("recent_top5_slump_penalty")
-        if top10_slump and 6 <= original_rank <= 15:
-            adjustment += 0.018 * slump_intensity
+        if top5_slump and original_rank <= 3 and number not in late_hits and number not in missed_actual:
+            adjustment -= 0.022 * slump_intensity
+            tags.append("front_rank_overconfidence_penalty")
+        if top10_slump and 6 <= original_rank <= 20:
+            boundary_factor = 1.0 if original_rank <= 15 else 0.72
+            adjustment += 0.024 * boundary_factor * slump_intensity
             tags.append("top10_boundary_recovery")
-        if 11 <= original_rank <= 15 and (number in late_hits or number in missed_actual or stability >= 4):
-            adjustment += 0.046 * slump_intensity
+        if 11 <= original_rank <= 25 and number not in repeated_failed_numbers and (number in late_hits or number in missed_actual or stability >= 4):
+            depth_factor = 1.0 if original_rank <= 15 else 0.68
+            adjustment += 0.064 * depth_factor * slump_intensity
             tags.append("late_band_front_pull")
 
         if number in late_hits:
-            adjustment += min(0.105, 0.022 * late_hits[number]) * slump_intensity
+            adjustment += min(0.135, 0.028 * late_hits[number]) * slump_intensity
             tags.append("late_hit_number_recovered")
         if number in missed_actual:
-            adjustment += min(0.115, 0.020 * missed_actual[number]) * slump_intensity
+            adjustment += min(0.145, 0.026 * missed_actual[number]) * slump_intensity
             tags.append("missed_actual_number_recovered")
         if number % 10 in missed_tails:
             adjustment += min(0.040, 0.006 * missed_tails[number % 10]) * slump_intensity
@@ -1096,8 +1102,11 @@ def live_precision_calibration(candidates, review=None):
             tags.append("missed_zone_recovered")
 
         if number in repeated_failed:
-            adjustment -= min(0.165, 0.022 * repeated_failed[number]) * (1.12 if top10_slump else 1.0)
+            adjustment -= min(0.245, 0.032 * repeated_failed[number]) * (1.22 if top10_slump else 1.0)
             tags.append("repeated_failed_number_penalty")
+            if original_rank <= 10:
+                adjustment -= 0.030 * slump_intensity
+                tags.append("failed_number_top10_escape")
         if guard and not guard.get("passed"):
             adjustment -= 0.090
             tags.append("previous_prediction_reentry_blocked")
@@ -1113,7 +1122,7 @@ def live_precision_calibration(candidates, review=None):
             tags.append("losing_source_penalty")
 
         if {"pair", "rank_error_correction", "missed_hit_recovery"} & model_names:
-            adjustment += 0.018 if mode != "normal" else 0.010
+            adjustment += 0.028 if mode != "normal" else 0.014
             tags.append("practical_model_support")
         if {"date", "time_series"} <= model_names and passed < 5:
             adjustment -= 0.018
@@ -1569,9 +1578,10 @@ def single_precision_group(candidates, review=None):
     rolling = (review or {}).get("rolling_adjustment", {})
     boosted_reasons = {item.get("reason") for item in rolling.get("boosted_reasons", [])}
     late_hit_numbers = {int(item.get("number")) for item in rolling.get("late_hit_numbers", []) if item.get("number")}
+    missed_actual_numbers = {int(item.get("number")) for item in rolling.get("missed_actual_numbers", []) if item.get("number")}
     repeated_failed_numbers = {int(item.get("number")) for item in rolling.get("repeated_failed_numbers", []) if item.get("number")}
     ranked = []
-    for item in candidates[:18]:
+    for original_rank, item in enumerate(candidates[:24], 1):
         number = item["number"]
         if number in failed or number in repeated_failed_numbers:
             continue
@@ -1584,7 +1594,9 @@ def single_precision_group(candidates, review=None):
             + ((item.get("confidence_index", 50) - 50) / 49) * 0.22
             + min(item.get("stability_count", 0), 5) * 0.028
             + (0.045 if reasons & boosted_reasons else 0)
-            + (0.035 if number in late_hit_numbers else 0)
+            + (0.055 if number in late_hit_numbers else 0)
+            + (0.045 if number in missed_actual_numbers else 0)
+            + (0.030 if 11 <= original_rank <= 24 and item.get("stability_count", 0) >= 4 else 0)
         )
         ranked.append((precision_score, item))
     ranked.sort(key=lambda pair: (pair[0], pair[1].get("score", 0), pair[1].get("confidence_index", 0), -pair[1]["number"]), reverse=True)
@@ -1601,7 +1613,7 @@ def five_hit_two_group(candidates, review=None):
     ]
     selected = []
     pool = [
-        item for item in candidates[:18]
+        item for item in candidates[:24]
         if item["number"] not in failed
         and not (item.get("previous_prediction_guard") and not item["previous_prediction_guard"].get("passed"))
     ]
@@ -1759,10 +1771,19 @@ def top10_promotion_audit(candidates, review=None):
     rolling = (review or {}).get("rolling_adjustment", {})
     boosted_reasons = {item.get("reason") for item in rolling.get("boosted_reasons", [])}
     late_hit_numbers = {int(item.get("number")) for item in rolling.get("late_hit_numbers", []) if item.get("number")}
+    missed_actual_numbers = {int(item.get("number")) for item in rolling.get("missed_actual_numbers", []) if item.get("number")}
+    repeated_failed_numbers = {int(item.get("number")) for item in rolling.get("repeated_failed_numbers", []) if item.get("number")}
     promotions = []
-    for rank, item in enumerate(candidates[10:15], 11):
+    for rank, item in enumerate(candidates[10:25], 11):
         reasons = set(item.get("reasons", []))
-        should_promote = bool(reasons & boosted_reasons) or item["number"] in late_hit_numbers or item.get("stability_count", 0) >= 4
+        if item["number"] in repeated_failed_numbers:
+            continue
+        should_promote = (
+            bool(reasons & boosted_reasons)
+            or item["number"] in late_hit_numbers
+            or item["number"] in missed_actual_numbers
+            or item.get("stability_count", 0) >= 4
+        )
         if should_promote:
             promotions.append(
                 {
@@ -1776,7 +1797,7 @@ def top10_promotion_audit(candidates, review=None):
                 }
             )
     return {
-        "policy": "promote_11_to_15_when_late_hit_or_boosted_reason_is_detected",
+        "policy": "promote_11_to_25_when_late_hit_missed_actual_or_stability_is_detected",
         "promotion_candidates": promotions,
         "promotion_count": len(promotions),
     }
@@ -1788,13 +1809,22 @@ def apply_top10_boundary_promotion(candidates, review=None):
     rolling = (review or {}).get("rolling_adjustment", {})
     boosted_reasons = {item.get("reason") for item in rolling.get("boosted_reasons", [])}
     late_hit_numbers = {int(item.get("number")) for item in rolling.get("late_hit_numbers", []) if item.get("number")}
+    missed_actual_numbers = {int(item.get("number")) for item in rolling.get("missed_actual_numbers", []) if item.get("number")}
+    repeated_failed_numbers = {int(item.get("number")) for item in rolling.get("repeated_failed_numbers", []) if item.get("number")}
     promoted = list(candidates)
-    for source_index in range(10, min(15, len(promoted))):
+    for source_index in range(10, min(25, len(promoted))):
         item = promoted[source_index]
+        if item["number"] in repeated_failed_numbers:
+            continue
+        if item.get("previous_prediction_guard") and not item["previous_prediction_guard"].get("passed"):
+            continue
+        if item.get("repeat_guard") and not item["repeat_guard"].get("passed"):
+            continue
         reasons = set(item.get("reasons", []))
         should_promote = (
             bool(reasons & boosted_reasons)
             or item["number"] in late_hit_numbers
+            or item["number"] in missed_actual_numbers
             or item.get("stability_count", 0) >= 4
         )
         if not should_promote:
@@ -1808,7 +1838,8 @@ def apply_top10_boundary_promotion(candidates, review=None):
         )
         replace_score = promoted[replace_index].get("score", 0) or 0
         item_score = item.get("score", 0) or 0
-        if replace_score and item_score >= replace_score * 0.92:
+        threshold = 0.86 if source_index < 18 else 0.82
+        if replace_score and item_score >= replace_score * threshold:
             promoted[replace_index], promoted[source_index] = promoted[source_index], promoted[replace_index]
     return promoted
 

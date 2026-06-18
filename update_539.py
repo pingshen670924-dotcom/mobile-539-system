@@ -5,6 +5,7 @@ import io
 import json
 import logging
 import os
+import re
 import shutil
 import sqlite3
 import ssl
@@ -41,6 +42,7 @@ API_BASE = "https://api.taiwanlottery.com/TLCAPIWeB"
 DOWNLOAD_API = f"{API_BASE}/Lottery/ResultDownload"
 LATEST_API = f"{API_BASE}/Lottery/LatestResult"
 HISTORY_API = f"{API_BASE}/Lottery/Daily539Result"
+PUBLIC_FALLBACK_LATEST_URL = "https://www.pilio.idv.tw/lto539/drawlist/drawlist.asp"
 
 START_ROC_YEAR = 96
 TAIPEI_TZ = ZoneInfo("Asia/Taipei")
@@ -626,6 +628,110 @@ def update_latest(conn):
     return row
 
 
+def parse_public_fallback_latest(text):
+    pattern = re.compile(
+        r"<td[^>]*>\s*(20\d{2})\s*<br\s*/?>\s*(\d{2})/(\d{2})\s*<br\s*/?>\s*\([^<]*\)\s*</td>\s*"
+        r"<td[^>]*>(.*?)</td>",
+        re.IGNORECASE | re.DOTALL,
+    )
+    for match in pattern.finditer(text):
+        year, month, day, numbers_html = match.groups()
+        numbers = [int(value) for value in re.findall(r"\d{2}", numbers_html)[:5]]
+        if len(numbers) != 5 or len(set(numbers)) != 5:
+            continue
+        if any(number < 1 or number > 39 for number in numbers):
+            continue
+        draw_date = f"{int(year):04d}-{int(month):02d}-{int(day):02d}"
+        return {
+            "draw_date": draw_date,
+            "draw_order": ",".join(f"{number:02d}" for number in numbers),
+            "numbers": sorted(numbers),
+        }
+    return None
+
+
+def infer_period_for_draw_date(conn, draw_date):
+    existing = conn.execute(
+        "SELECT period FROM draws_539 WHERE draw_date=? ORDER BY period DESC LIMIT 1",
+        (draw_date,),
+    ).fetchone()
+    if existing:
+        return int(existing[0])
+
+    target = datetime.strptime(draw_date, "%Y-%m-%d").date()
+    previous = conn.execute(
+        "SELECT period, draw_date FROM draws_539 WHERE draw_date < ? ORDER BY draw_date DESC, period DESC LIMIT 1",
+        (draw_date,),
+    ).fetchone()
+    if not previous:
+        raise RuntimeError(f"cannot infer fallback period for {draw_date}")
+
+    period = int(previous[0])
+    current = datetime.strptime(previous[1], "%Y-%m-%d").date()
+    while current < target:
+        current += timedelta(days=1)
+        if current.weekday() != 6:
+            period += 1
+    return period
+
+
+def import_public_fallback_latest(conn):
+    current = stats(conn)
+    freshness = data_freshness(current["max_date"]) if current["max_date"] else None
+    if freshness and freshness["status"] == "fresh":
+        return 0
+
+    text = http_get_bytes(PUBLIC_FALLBACK_LATEST_URL, retries=2, retry_delay=1).decode("utf-8", "replace")
+    parsed = parse_public_fallback_latest(text)
+    if not parsed:
+        raise RuntimeError("public fallback latest result could not be parsed")
+
+    expected = freshness["expected_latest_date"] if freshness else expected_latest_draw_date()
+    if parsed["draw_date"] < expected:
+        logging.warning(
+            "Public fallback latest result is also behind expected date: latest=%s expected=%s",
+            parsed["draw_date"],
+            expected,
+        )
+        return 0
+
+    numbers = parsed["numbers"]
+    row = {
+        "period": infer_period_for_draw_date(conn, parsed["draw_date"]),
+        "draw_date": parsed["draw_date"],
+        "n1": numbers[0],
+        "n2": numbers[1],
+        "n3": numbers[2],
+        "n4": numbers[3],
+        "n5": numbers[4],
+        "draw_order": parsed["draw_order"],
+        "sales_amount": None,
+        "sales_count": None,
+        "prize_total": None,
+        "jackpot_winners": None,
+        "second_winners": None,
+        "third_winners": None,
+        "fourth_winners": None,
+        "source": "public_fallback_pilio_latest",
+        "fetched_at": datetime.now().isoformat(timespec="seconds"),
+    }
+    before = current["max_date"]
+    upsert_draw(conn, row)
+    conn.commit()
+    logging.info(
+        "Public fallback latest imported: %s %s %02d %02d %02d %02d %02d (previous latest=%s)",
+        row["period"],
+        row["draw_date"],
+        row["n1"],
+        row["n2"],
+        row["n3"],
+        row["n4"],
+        row["n5"],
+        before,
+    )
+    return 1
+
+
 def month_strings(count=2):
     today = taipei_now()
     year = today.year
@@ -1106,9 +1212,11 @@ def run_main():
                 safe_update_step("annual_download", lambda: import_all_years(conn, args.start_roc_year, args.end_roc_year))
                 safe_update_step("recent_month_download", lambda: import_recent_months(conn))
                 safe_update_step("latest_download", lambda: update_latest(conn))
+                safe_update_step("public_fallback_latest", lambda: import_public_fallback_latest(conn))
             elif args.latest:
                 safe_update_step("recent_month_download", lambda: import_recent_months(conn, count=1))
                 safe_update_step("latest_download", lambda: update_latest(conn))
+                safe_update_step("public_fallback_latest", lambda: import_public_fallback_latest(conn))
 
             count = export_csv(conn)
             current = stats(conn)
@@ -1165,12 +1273,13 @@ def run_main():
             conn.commit()
             logging.warning("Official prediction blocked by aerospace assurance.")
         elif freshness and freshness["status"] != "fresh":
-            store_prediction_snapshot(conn, analysis, "stale_data_analysis_snapshot_no_official_prediction")
-            conn.commit()
+            recalculated_status = store_prediction(conn, analysis)
+            prediction_status = "stale_data_" + recalculated_status
             logging.warning(
-                "Official prediction blocked because data is stale: latest=%s expected=%s",
+                "Data is stale, but pending prediction was still recalculated to prevent stale reports: latest=%s expected=%s status=%s",
                 freshness.get("latest_date"),
                 freshness.get("expected_latest_date"),
+                recalculated_status,
             )
         else:
             prediction_status = store_prediction(conn, analysis)
