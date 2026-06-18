@@ -453,6 +453,63 @@ def distribution_balance_scores(draws):
     return normalize(values)
 
 
+def regime_switch_scores(draws):
+    if len(draws) < 80:
+        return {n: 0.0 for n in range(NUMBER_MIN, NUMBER_MAX + 1)}
+    latest = draw_signature(draws[-1])
+    recent = [draw_signature(draw) for draw in draws[-120:]]
+    sums = [item["sum"] for item in recent]
+    spans = [item["span"] for item in recent]
+    latest_sum_z = zscore(latest["sum"], sums)
+    latest_span_z = zscore(latest["span"], spans)
+    latest_odd = int(str(latest["odd_even"]).split(":")[0])
+    latest_big = int(str(latest["small_big"]).split(":")[1])
+    values = {}
+    for number in range(NUMBER_MIN, NUMBER_MAX + 1):
+        score = 0.0
+        if abs(latest_sum_z) >= 1.2:
+            if latest_sum_z > 0 and number <= 19:
+                score += 0.32
+            if latest_sum_z < 0 and number >= 20:
+                score += 0.32
+        else:
+            score += 0.12 if 11 <= number <= 30 else 0.04
+        if abs(latest_span_z) >= 1.2:
+            if latest_span_z > 0 and 11 <= number <= 30:
+                score += 0.22
+            if latest_span_z < 0 and (number <= 10 or number >= 31):
+                score += 0.22
+        if latest_odd >= 4 and number % 2 == 0:
+            score += 0.20
+        elif latest_odd <= 1 and number % 2 == 1:
+            score += 0.20
+        if latest_big >= 4 and number <= 19:
+            score += 0.18
+        elif latest_big <= 1 and number >= 20:
+            score += 0.18
+        values[number] = score
+    return normalize(values)
+
+
+def zone_coverage_recovery_scores(draws, review=None):
+    rolling = ((review or {}).get("rolling_adjustment") or {})
+    missed_zones = {
+        str(item.get("zone")): int(item.get("missed_count", 0))
+        for item in rolling.get("missed_actual_zones", [])
+        if item.get("zone")
+    }
+    recent = draws[-30:] if len(draws) >= 30 else draws
+    recent_zone_counts = Counter()
+    for draw in recent:
+        for number in draw["numbers"]:
+            recent_zone_counts[zone_label(number)] += 1
+    zone_pressure = {}
+    for label in ["01-10", "11-20", "21-30", "31-39"]:
+        zone_pressure[label] = missed_zones.get(label, 0) * 0.7 - recent_zone_counts.get(label, 0) * 0.08
+    zone_norm = normalize(zone_pressure)
+    return normalize({number: zone_norm[zone_label(number)] for number in range(NUMBER_MIN, NUMBER_MAX + 1)})
+
+
 def draw_profile(numbers):
     ordered = sorted(numbers)
     zones = Counter(zone_label(number) for number in ordered)
@@ -541,6 +598,91 @@ def missed_hit_recovery_scores(review):
     return normalize(values)
 
 
+def rank_error_correction_scores(review):
+    if not review or not review.get("has_review"):
+        return {n: 0.0 for n in range(NUMBER_MIN, NUMBER_MAX + 1)}
+    rolling = review.get("rolling_adjustment", {})
+    late_hits = {
+        int(item.get("number")): int(item.get("late_hit_count", 0))
+        for item in rolling.get("late_hit_numbers", [])
+        if item.get("number")
+    }
+    repeated_misses = {
+        int(item.get("number")): int(item.get("miss_count", 0))
+        for item in rolling.get("repeated_failed_numbers", [])
+        if item.get("number")
+    }
+    missed_actual = {
+        int(item.get("number")): int(item.get("missed_count", 0))
+        for item in rolling.get("missed_actual_numbers", [])
+        if item.get("number")
+    }
+    missed_actual_tails = {
+        int(item.get("tail")): int(item.get("missed_count", 0))
+        for item in rolling.get("missed_actual_tails", [])
+        if item.get("tail") is not None
+    }
+    missed_actual_zones = {
+        str(item.get("zone")): int(item.get("missed_count", 0))
+        for item in rolling.get("missed_actual_zones", [])
+        if item.get("zone")
+    }
+    recent = rolling.get("recent_performance", {})
+    slump_multiplier = 1.35 if recent.get("critical_slump") else 1.18 if recent.get("recent_slump") else 1.0
+    settled = review.get("last_settled", {})
+    actual = {int(n) for n in settled.get("actual_numbers", []) if NUMBER_MIN <= int(n) <= NUMBER_MAX}
+    top10 = {
+        int(n)
+        for n in (settled.get("candidate_numbers") or [])[:10]
+        if NUMBER_MIN <= int(n) <= NUMBER_MAX
+    }
+    last_top10_misses = actual - top10
+    late_tails = {number % 10 for number in late_hits}
+    late_zones = {zone_label(number) for number in late_hits}
+    missed_tails = {number % 10 for number in last_top10_misses}
+    missed_zones = {zone_label(number) for number in last_top10_misses}
+    values = {}
+    for number in range(NUMBER_MIN, NUMBER_MAX + 1):
+        score = 0.0
+        if number in late_hits:
+            score += min(1.0, late_hits[number] / 5) * 0.85
+        if number in missed_actual:
+            score += min(1.0, missed_actual[number] / 5) * 0.72
+        if number in last_top10_misses:
+            score += 0.42
+        if number % 10 in late_tails:
+            score += 0.16
+        if zone_label(number) in late_zones:
+            score += 0.12
+        if number % 10 in missed_tails:
+            score += 0.18
+        if zone_label(number) in missed_zones:
+            score += 0.12
+        if number % 10 in missed_actual_tails:
+            score += min(0.32, missed_actual_tails[number % 10] * 0.055)
+        if zone_label(number) in missed_actual_zones:
+            score += min(0.24, missed_actual_zones[zone_label(number)] * 0.035)
+        if any(1 <= abs(number - anchor) <= 2 for anchor in late_hits):
+            score += 0.14
+        if any(1 <= abs(number - anchor) <= 2 for anchor in missed_actual):
+            score += 0.14
+        if any(1 <= abs(number - anchor) <= 2 for anchor in last_top10_misses):
+            score += 0.12
+        if number in repeated_misses:
+            score -= min(0.72, repeated_misses[number] * 0.16)
+        values[number] = score * slump_multiplier
+    return normalize(values)
+
+
+def slump_mode(review):
+    recent = ((review or {}).get("rolling_adjustment") or {}).get("recent_performance", {})
+    if recent.get("critical_slump"):
+        return "critical"
+    if recent.get("recent_slump"):
+        return "warning"
+    return "normal"
+
+
 def build_feature_matrix(draws, review=None, include_dependency=True):
     windows = [5, 10, 20, 50, 100, 300]
     feature_scores = {n: defaultdict(float) for n in range(NUMBER_MIN, NUMBER_MAX + 1)}
@@ -573,6 +715,9 @@ def build_feature_matrix(draws, review=None, include_dependency=True):
     shape_follow = shape_follow_scores(draws)
     zone_parity_pressure = zone_parity_pressure_scores(draws)
     missed_hit_recovery = missed_hit_recovery_scores(review)
+    rank_error_correction = rank_error_correction_scores(review)
+    regime_switch = regime_switch_scores(draws)
+    zone_coverage_recovery = zone_coverage_recovery_scores(draws, review)
     cross_consensus = cross_model_consensus_scores([
         window_scores[20],
         window_scores[50],
@@ -592,6 +737,9 @@ def build_feature_matrix(draws, review=None, include_dependency=True):
         shape_follow,
         zone_parity_pressure,
         missed_hit_recovery,
+        rank_error_correction,
+        regime_switch,
+        zone_coverage_recovery,
     ])
     monte_carlo_stability = monte_carlo_stability_scores([
         cross_consensus,
@@ -603,6 +751,9 @@ def build_feature_matrix(draws, review=None, include_dependency=True):
         distribution_balance,
         shape_follow,
         zone_parity_pressure,
+        rank_error_correction,
+        regime_switch,
+        zone_coverage_recovery,
     ])
     next_date = next_draw_date(draws[-1]["draw_date"])
     date_set = set(date_numbers(next_date))
@@ -629,6 +780,9 @@ def build_feature_matrix(draws, review=None, include_dependency=True):
         feature_scores[number]["shape_follow"] = shape_follow[number]
         feature_scores[number]["zone_parity_pressure"] = zone_parity_pressure[number]
         feature_scores[number]["missed_hit_recovery"] = missed_hit_recovery[number]
+        feature_scores[number]["rank_error_correction"] = rank_error_correction[number]
+        feature_scores[number]["regime_switch"] = regime_switch[number]
+        feature_scores[number]["zone_coverage_recovery"] = zone_coverage_recovery[number]
         feature_scores[number]["date"] = date_score[number]
         feature_scores[number]["repeat"] = 1.0 if number in latest_set else 0.0
         feature_scores[number]["neighbor"] = 1.0 if any(abs(number - anchor) == 1 for anchor in latest_set) else 0.0
@@ -663,6 +817,9 @@ def industrial_weights(review=None):
         "shape_follow": 0.072,
         "zone_parity_pressure": 0.062,
         "missed_hit_recovery": 0.054,
+        "rank_error_correction": 0.075,
+        "regime_switch": 0.052,
+        "zone_coverage_recovery": 0.058,
         "date": 0.025,
         "repeat": 0.015,
         "neighbor": 0.025,
@@ -686,6 +843,9 @@ def industrial_weights(review=None):
                 "shape_follow": 0.096,
                 "zone_parity_pressure": 0.082,
                 "missed_hit_recovery": 0.074,
+                "rank_error_correction": 0.105,
+                "regime_switch": 0.074,
+                "zone_coverage_recovery": 0.088,
                 "repeat": 0.005,
                 "neighbor": 0.01,
                 "freq_50": 0.15,
@@ -695,6 +855,26 @@ def industrial_weights(review=None):
                 "pair": 0.11,
             }
         )
+    mode = slump_mode(review)
+    if mode in {"warning", "critical"}:
+        intensity = 1.0 if mode == "warning" else 1.35
+        for key in ["freq_5", "freq_10", "date", "repeat", "time_series", "neural_network", "tail_zone"]:
+            if key in weights:
+                weights[key] *= 0.74 if mode == "warning" else 0.58
+        for key in [
+            "rank_error_correction",
+            "missed_hit_recovery",
+            "omission",
+            "bayesian_posterior",
+            "validated_dependency",
+            "distribution_balance",
+            "regime_switch",
+            "zone_coverage_recovery",
+            "cycle_timing",
+            "pair",
+        ]:
+            if key in weights:
+                weights[key] *= 1.0 + 0.34 * intensity
     total = sum(weights.values()) or 1
     return {key: value / total for key, value in weights.items()}
 
@@ -725,6 +905,9 @@ MODEL_SOURCE_LABELS = {
     "shape_follow": "\u724c\u578b\u76f8\u4f3c\u8ddf\u96a8",
     "zone_parity_pressure": "\u5340\u9593\u5947\u5076\u58d3\u529b",
     "missed_hit_recovery": "\u6f0f\u547d\u4e2d\u56de\u6536",
+    "rank_error_correction": "\u6392\u540d\u932f\u4f4d\u4fee\u6b63",
+    "regime_switch": "\u958b\u734e\u578b\u614b\u5207\u63db",
+    "zone_coverage_recovery": "\u5206\u5340\u8986\u84cb\u56de\u88dc",
     "date": "\u65e5\u671f\u724c",
     "repeat": "\u9023\u838a\u56de\u6e2c",
     "neighbor": "\u9130\u865f\u9023\u52d5",
@@ -765,6 +948,9 @@ def number_cross_validation(values):
         ("shape_follow", "\u724c\u578b\u76f8\u4f3c\u8ddf\u96a8", values.get("shape_follow", 0) >= 0.52),
         ("zone_parity_pressure", "\u5340\u9593\u5947\u5076\u58d3\u529b", values.get("zone_parity_pressure", 0) >= 0.52),
         ("missed_hit_recovery", "\u6f0f\u547d\u4e2d\u56de\u6536", values.get("missed_hit_recovery", 0) >= 0.52),
+        ("rank_error_correction", "\u6392\u540d\u932f\u4f4d\u4fee\u6b63", values.get("rank_error_correction", 0) >= 0.52),
+        ("regime_switch", "\u958b\u734e\u578b\u614b\u5207\u63db", values.get("regime_switch", 0) >= 0.52),
+        ("zone_coverage_recovery", "\u5206\u5340\u8986\u84cb\u56de\u88dc", values.get("zone_coverage_recovery", 0) >= 0.52),
     ]
     passed = [{"key": key, "label": label} for key, label, ok in checks if ok]
     failed = [{"key": key, "label": label} for key, label, ok in checks if not ok]
@@ -774,6 +960,237 @@ def number_cross_validation(values):
         "passed": passed,
         "failed": failed,
         "status": "passed" if len(passed) >= 4 else "watch",
+    }
+
+
+def confidence_profile(score, confidence, probability, model_sources, cross_validation, rank):
+    source_count = len(model_sources)
+    passed_count = int(cross_validation.get("passed_count") or 0)
+    total_count = int(cross_validation.get("total_count") or 0)
+    ratio = (passed_count / total_count) if total_count else 0
+
+    if score >= 0.92 and confidence >= 95 and probability >= 17.0 and source_count >= 6 and passed_count >= 6 and rank <= 5:
+        return {
+            "level": "very_high",
+            "label": "\u672c\u65e5\u9ad8\u6a5f\u7387\u5f37\u8abf",
+            "badges": ["\u672c\u65e5\u9ad8\u6a5f\u7387", "\u9ad8\u4fe1\u5fc3", "\u591a\u6a21\u578b\u5171\u632f"],
+            "is_high_confidence": True,
+            "risk_note": "\u5206\u6578\u3001\u6a5f\u7387\u3001\u4fe1\u5fc3\u3001\u4f86\u6e90\u6a21\u578b\u8207\u4ea4\u53c9\u9a57\u8b49\u540c\u6642\u9054\u6a19",
+        }
+    if score >= 0.84 and confidence >= 91 and probability >= 16.0 and source_count >= 5 and passed_count >= 5 and rank <= 9:
+        return {
+            "level": "high",
+            "label": "\u9ad8\u4fe1\u5fc3\u95dc\u6ce8",
+            "badges": ["\u9ad8\u4fe1\u5fc3", "\u4ea4\u53c9\u9a57\u8b49\u901a\u904e"],
+            "is_high_confidence": True,
+            "risk_note": "\u689d\u4ef6\u9054\u5230\u4e3b\u63a8\u89c0\u5bdf\uff0c\u4f46\u672a\u9054\u672c\u65e5\u9ad8\u6a5f\u7387\u5f37\u8abf\u7d1a",
+        }
+    if score >= 0.76 and confidence >= 87 and probability >= 15.0 and source_count >= 4 and ratio >= 0.33 and rank <= 15:
+        return {
+            "level": "watch",
+            "label": "\u5f37\u70c8\u95dc\u6ce8",
+            "badges": ["\u5f37\u70c8\u95dc\u6ce8"],
+            "is_high_confidence": False,
+            "risk_note": "\u90e8\u5206\u689d\u4ef6\u9054\u6a19\uff0c\u9700\u8207\u5206\u5340\u8207\u724c\u578b\u98a8\u63a7\u4e00\u8d77\u89c0\u5bdf",
+        }
+    return {
+        "level": "normal",
+        "label": "\u4e00\u822c\u89c0\u5bdf",
+        "badges": [],
+        "is_high_confidence": False,
+        "risk_note": "\u672a\u9054\u9ad8\u4fe1\u5fc3\u6a19\u8a18\u9580\u6abb",
+    }
+
+
+def _count_map(rows, key_name="number", value_name="miss_count"):
+    result = {}
+    for row in rows or []:
+        value = row.get(key_name)
+        if value is None:
+            continue
+        try:
+            result[int(value)] = int(row.get(value_name, 0) or 0)
+        except (TypeError, ValueError):
+            continue
+    return result
+
+
+def _string_set(rows, key_name):
+    return {
+        str(row.get(key_name))
+        for row in rows or []
+        if row.get(key_name) is not None
+    }
+
+
+def _label_count_map(rows, key_name, value_name):
+    result = {}
+    for row in rows or []:
+        value = row.get(key_name)
+        if value is None:
+            continue
+        try:
+            result[str(value)] = int(row.get(value_name, 0) or 0)
+        except (TypeError, ValueError):
+            continue
+    return result
+
+
+def live_precision_calibration(candidates, review=None):
+    rolling = (review or {}).get("rolling_adjustment", {})
+    recent = rolling.get("recent_performance", {})
+    mode = slump_mode(review)
+    late_hits = _count_map(rolling.get("late_hit_numbers", []), "number", "late_hit_count")
+    missed_actual = _count_map(rolling.get("missed_actual_numbers", []), "number", "missed_count")
+    repeated_failed = _count_map(rolling.get("repeated_failed_numbers", []), "number", "miss_count")
+    missed_tails = _count_map(rolling.get("missed_actual_tails", []), "tail", "missed_count")
+    missed_zones = _label_count_map(rolling.get("missed_actual_zones", []), "zone", "missed_count")
+    boosted_reasons = _string_set(rolling.get("boosted_reasons", []), "reason")
+    penalized_reasons = _string_set(rolling.get("penalized_reasons", []), "reason")
+    slump_intensity = 1.0 if mode == "warning" else 1.35 if mode == "critical" else 0.65
+    recent_top5 = recent.get("last5_top5_avg", 1.0) or 0
+    recent_top10 = recent.get("last5_top10_avg", 1.8) or 0
+    top5_slump = recent_top5 < 0.85
+    top10_slump = recent_top10 < 1.75
+    calibrated = []
+    promotions = []
+    demotions = []
+
+    for original_rank, item in enumerate(candidates, 1):
+        row = dict(item)
+        number = int(row["number"])
+        base_score = float(row.get("score", 0) or 0)
+        reasons = set(str(reason) for reason in row.get("reasons", []))
+        model_names = {source.get("model") for source in row.get("model_sources", [])}
+        cross = row.get("cross_validation", {})
+        passed = int(cross.get("passed_count") or 0)
+        total = int(cross.get("total_count") or 0) or 1
+        stability = int(row.get("stability_count", 0) or 0)
+        guard = row.get("previous_prediction_guard")
+        repeat_info = row.get("repeat_guard")
+
+        adjustment = 0.0
+        tags = []
+
+        if top5_slump and original_rank <= 5 and stability < 4 and passed < 7:
+            adjustment -= 0.035 * slump_intensity
+            tags.append("recent_top5_slump_penalty")
+        if top10_slump and 6 <= original_rank <= 15:
+            adjustment += 0.018 * slump_intensity
+            tags.append("top10_boundary_recovery")
+        if 11 <= original_rank <= 15 and (number in late_hits or number in missed_actual or stability >= 4):
+            adjustment += 0.046 * slump_intensity
+            tags.append("late_band_front_pull")
+
+        if number in late_hits:
+            adjustment += min(0.105, 0.022 * late_hits[number]) * slump_intensity
+            tags.append("late_hit_number_recovered")
+        if number in missed_actual:
+            adjustment += min(0.115, 0.020 * missed_actual[number]) * slump_intensity
+            tags.append("missed_actual_number_recovered")
+        if number % 10 in missed_tails:
+            adjustment += min(0.040, 0.006 * missed_tails[number % 10]) * slump_intensity
+            tags.append("missed_tail_recovered")
+        if zone_label(number) in missed_zones:
+            adjustment += min(0.034, 0.004 * missed_zones[zone_label(number)]) * slump_intensity
+            tags.append("missed_zone_recovered")
+
+        if number in repeated_failed:
+            adjustment -= min(0.165, 0.022 * repeated_failed[number]) * (1.12 if top10_slump else 1.0)
+            tags.append("repeated_failed_number_penalty")
+        if guard and not guard.get("passed"):
+            adjustment -= 0.090
+            tags.append("previous_prediction_reentry_blocked")
+        if repeat_info and not repeat_info.get("passed"):
+            adjustment -= 0.115
+            tags.append("repeat_gate_blocked")
+
+        if reasons & boosted_reasons:
+            adjustment += 0.024 * slump_intensity
+            tags.append("winning_source_boost")
+        if reasons & penalized_reasons and not (reasons & boosted_reasons):
+            adjustment -= 0.022 * slump_intensity
+            tags.append("losing_source_penalty")
+
+        if {"pair", "rank_error_correction", "missed_hit_recovery"} & model_names:
+            adjustment += 0.018 if mode != "normal" else 0.010
+            tags.append("practical_model_support")
+        if {"date", "time_series"} <= model_names and passed < 5:
+            adjustment -= 0.018
+            tags.append("weak_short_signal_penalty")
+
+        adjustment += min(stability, 5) * 0.006
+        adjustment += max(0.0, (passed / total) - 0.45) * 0.040
+
+        calibrated_score = max(0.0, min(1.0, base_score + adjustment))
+        row["pre_calibration_rank"] = original_rank
+        row["pre_calibration_score"] = round(base_score, 4)
+        row["precision_calibration"] = {
+            "mode": mode,
+            "adjustment": round(adjustment, 4),
+            "tags": tags[:8],
+            "recent_top5_avg": recent_top5,
+            "recent_top10_avg": recent_top10,
+        }
+        row["score"] = round(calibrated_score, 4)
+        row["confidence_index"] = round(50 + calibrated_score * 49, 1)
+        if adjustment >= 0.05:
+            row["reasons"] = (row.get("reasons", []) + ["\u5be6\u6230\u6821\u6e96\u5347\u6b0a"])[:4]
+            promotions.append({
+                "number": number,
+                "from_rank": original_rank,
+                "adjustment": round(adjustment, 4),
+                "tags": tags[:6],
+            })
+        elif adjustment <= -0.05:
+            row["reasons"] = (row.get("reasons", []) + ["\u5be6\u6230\u6821\u6e96\u964d\u6b0a"])[:4]
+            demotions.append({
+                "number": number,
+                "from_rank": original_rank,
+                "adjustment": round(adjustment, 4),
+                "tags": tags[:6],
+            })
+        calibrated.append(row)
+
+    calibrated.sort(
+        key=lambda row: (
+            row.get("score", 0),
+            row.get("stability_count", 0),
+            row.get("cross_validation", {}).get("passed_count", 0),
+            -row["number"],
+        ),
+        reverse=True,
+    )
+    for rank, row in enumerate(calibrated, 1):
+        row["rank"] = rank
+        probability_value = conservative_probability_percent(row["score"])
+        row["model_probability_percent"] = probability_value
+        confidence = confidence_profile(
+            row["score"],
+            row["confidence_index"],
+            probability_value,
+            row.get("model_sources", []),
+            row.get("cross_validation", {}),
+            rank,
+        )
+        row["confidence_profile"] = confidence
+        row["confidence_badges"] = confidence["badges"]
+        row["confidence_level"] = confidence["level"]
+        row["confidence_label"] = confidence["label"]
+        row["high_confidence"] = confidence["is_high_confidence"]
+
+    return calibrated, {
+        "status": "evaluated",
+        "method": "settled_prediction_live_precision_calibration",
+        "mode": mode,
+        "recent_top5_avg": recent_top5,
+        "recent_top10_avg": recent_top10,
+        "top5_slump": top5_slump,
+        "top10_slump": top10_slump,
+        "promotion_count": len(promotions),
+        "demotion_count": len(demotions),
+        "promotions": promotions[:12],
+        "demotions": demotions[:12],
     }
 
 
@@ -787,10 +1204,20 @@ def adaptive_feature_weights(draws, review=None, rounds=360):
         }
     feature_names = list(base_weights)
     stats = {
-        name: {"rounds": 0, "top5_hits": 0, "top10_hits": 0, "top15_hits": 0}
+        name: {
+            "rounds": 0,
+            "top5_hits": 0,
+            "top10_hits": 0,
+            "top15_hits": 0,
+            "recent_rounds": 0,
+            "recent_top5_hits": 0,
+            "recent_top10_hits": 0,
+            "recent_top15_hits": 0,
+        }
         for name in feature_names
     }
     start = max(120, len(draws) - rounds - 1)
+    recent_start = max(start, len(draws) - 91)
     for idx in range(start, len(draws) - 1):
         train = draws[: idx + 1]
         actual = set(draws[idx + 1]["numbers"])
@@ -802,9 +1229,17 @@ def adaptive_feature_weights(draws, review=None, rounds=360):
                 reverse=True,
             )
             stats[name]["rounds"] += 1
-            stats[name]["top5_hits"] += len(set(ranked[:5]) & actual)
-            stats[name]["top10_hits"] += len(set(ranked[:10]) & actual)
-            stats[name]["top15_hits"] += len(set(ranked[:15]) & actual)
+            top5_hits = len(set(ranked[:5]) & actual)
+            top10_hits = len(set(ranked[:10]) & actual)
+            top15_hits = len(set(ranked[:15]) & actual)
+            stats[name]["top5_hits"] += top5_hits
+            stats[name]["top10_hits"] += top10_hits
+            stats[name]["top15_hits"] += top15_hits
+            if idx >= recent_start:
+                stats[name]["recent_rounds"] += 1
+                stats[name]["recent_top5_hits"] += top5_hits
+                stats[name]["recent_top10_hits"] += top10_hits
+                stats[name]["recent_top15_hits"] += top15_hits
 
     baseline = {
         5: DRAW_SIZE * 5 / NUMBER_MAX,
@@ -818,18 +1253,34 @@ def adaptive_feature_weights(draws, review=None, rounds=360):
         top5_avg = item["top5_hits"] / rounds_done
         top10_avg = item["top10_hits"] / rounds_done
         top15_avg = item["top15_hits"] / rounds_done
-        edge = (
+        recent_rounds = item["recent_rounds"] or 1
+        recent_top5_avg = item["recent_top5_hits"] / recent_rounds
+        recent_top10_avg = item["recent_top10_hits"] / recent_rounds
+        recent_top15_avg = item["recent_top15_hits"] / recent_rounds
+        full_edge = (
             (top5_avg - baseline[5]) * 0.48
             + (top10_avg - baseline[10]) * 0.34
             + (top15_avg - baseline[15]) * 0.18
         )
-        multiplier = max(0.55, min(1.45, 1 + edge * 0.42))
+        recent_edge = (
+            (recent_top5_avg - baseline[5]) * 0.42
+            + (recent_top10_avg - baseline[10]) * 0.43
+            + (recent_top15_avg - baseline[15]) * 0.15
+        )
+        edge = full_edge * 0.42 + recent_edge * 0.58
+        multiplier = max(0.45, min(1.65, 1 + edge * 0.72))
         multipliers[name] = multiplier
         feature_report[name] = {
             "rounds": item["rounds"],
+            "recent_rounds": item["recent_rounds"],
             "top5_avg_hits": round(top5_avg, 3),
             "top10_avg_hits": round(top10_avg, 3),
             "top15_avg_hits": round(top15_avg, 3),
+            "recent_top5_avg_hits": round(recent_top5_avg, 3),
+            "recent_top10_avg_hits": round(recent_top10_avg, 3),
+            "recent_top15_avg_hits": round(recent_top15_avg, 3),
+            "full_weighted_edge": round(full_edge, 4),
+            "recent_weighted_edge": round(recent_edge, 4),
             "weighted_edge": round(edge, 4),
             "multiplier": round(multiplier, 3),
         }
@@ -839,7 +1290,7 @@ def adaptive_feature_weights(draws, review=None, rounds=360):
     ranked_features = sorted(feature_report.items(), key=lambda pair: pair[1]["weighted_edge"], reverse=True)
     return calibrated, {
         "status": "evaluated",
-        "method": "recent_walk_forward_feature_weight_calibration",
+        "method": "recent_90_and_long_walk_forward_feature_weight_calibration",
         "rounds": max((item["rounds"] for item in stats.values()), default=0),
         "top_boosted_features": [
             {"feature": name, **report}
@@ -854,6 +1305,74 @@ def adaptive_feature_weights(draws, review=None, rounds=360):
     }
 
 
+def model_lifecycle_policy(weight_calibration):
+    rows = []
+    for item in weight_calibration.get("top_boosted_features", []) + weight_calibration.get("top_penalized_features", []):
+        feature = item.get("feature")
+        if not feature or any(row["feature"] == feature for row in rows):
+            continue
+        recent_edge = item.get("recent_weighted_edge", item.get("weighted_edge", 0)) or 0
+        full_edge = item.get("full_weighted_edge", item.get("weighted_edge", 0)) or 0
+        multiplier = item.get("multiplier", 1) or 1
+        if recent_edge >= 0.08 and multiplier >= 1.04:
+            action = "upgrade"
+            label = "\u5347\u7d1a"
+            reason = "\u8fd1\u671f\u8207\u9577\u671f\u56de\u6e2c\u5747\u6709\u6b63\u5411\u512a\u52e2"
+        elif recent_edge <= -0.10 and multiplier <= 0.94:
+            action = "quarantine"
+            label = "\u89c0\u5bdf\u505c\u7528"
+            reason = "\u8fd1\u671f\u56de\u6e2c\u660e\u986f\u62d6\u7d2f\uff0c\u4e0b\u671f\u964d\u4f4e\u8a72\u6a21\u578b\u5f71\u97ff"
+        elif recent_edge < -0.04 or multiplier < 0.99:
+            action = "downgrade"
+            label = "\u964d\u7d1a"
+            reason = "\u8fd1\u671f\u8868\u73fe\u4f4e\u65bc\u57fa\u6e96\uff0c\u9700\u964d\u6b0a"
+        else:
+            action = "keep"
+            label = "\u4fdd\u7559"
+            reason = "\u8868\u73fe\u63a5\u8fd1\u57fa\u6e96\uff0c\u4fdd\u7559\u4f46\u4e0d\u653e\u5927"
+        rows.append(
+            {
+                "feature": feature,
+                "label": MODEL_SOURCE_LABELS.get(feature, feature),
+                "action": action,
+                "action_label": label,
+                "reason": reason,
+                "recent_edge": round(recent_edge, 4),
+                "full_edge": round(full_edge, 4),
+                "multiplier": round(multiplier, 3),
+                "recent_top10_avg_hits": item.get("recent_top10_avg_hits"),
+                "top10_avg_hits": item.get("top10_avg_hits"),
+            }
+        )
+    priority = {"upgrade": 0, "quarantine": 1, "downgrade": 2, "keep": 3}
+    rows.sort(key=lambda row: (priority.get(row["action"], 9), -abs(row["recent_edge"])))
+    return {
+        "status": "evaluated",
+        "policy": "recent_model_upgrade_downgrade_quarantine",
+        "upgrade_count": sum(1 for row in rows if row["action"] == "upgrade"),
+        "downgrade_count": sum(1 for row in rows if row["action"] == "downgrade"),
+        "quarantine_count": sum(1 for row in rows if row["action"] == "quarantine"),
+        "models": rows,
+    }
+
+
+def apply_lifecycle_weight_policy(weights, lifecycle):
+    adjusted = dict(weights)
+    for row in lifecycle.get("models", []):
+        feature = row.get("feature")
+        action = row.get("action")
+        if feature not in adjusted:
+            continue
+        if action == "upgrade":
+            adjusted[feature] *= 1.12
+        elif action == "downgrade":
+            adjusted[feature] *= 0.82
+        elif action == "quarantine":
+            adjusted[feature] *= 0.45
+    total = sum(adjusted.values()) or 1.0
+    return {name: value / total for name, value in adjusted.items()}
+
+
 def score_numbers(draws, review=None, include_dependency=True, weights_override=None):
     features = build_feature_matrix(draws, review, include_dependency=include_dependency)
     weights = weights_override or industrial_weights(review)
@@ -862,6 +1381,11 @@ def score_numbers(draws, review=None, include_dependency=True, weights_override=
     penalized_reasons = {item.get("reason") for item in rolling.get("penalized_reasons", [])}
     boosted_reasons = {item.get("reason") for item in rolling.get("boosted_reasons", [])}
     repeated_failed_numbers = {int(item.get("number")) for item in rolling.get("repeated_failed_numbers", []) if item.get("number")}
+    late_hit_numbers = {int(item.get("number")) for item in rolling.get("late_hit_numbers", []) if item.get("number")}
+    missed_actual_numbers = {int(item.get("number")) for item in rolling.get("missed_actual_numbers", []) if item.get("number")}
+    missed_actual_tails = {int(item.get("tail")) for item in rolling.get("missed_actual_tails", []) if item.get("tail") is not None}
+    missed_actual_zones = {str(item.get("zone")) for item in rolling.get("missed_actual_zones", []) if item.get("zone")}
+    mode = slump_mode(review)
     latest_set = set(draws[-1]["numbers"])
     repeat_policy = repeat_guard(draws)
     score = {}
@@ -910,6 +1434,12 @@ def score_numbers(draws, review=None, include_dependency=True, weights_override=
             reasons[number].append("\u5340\u9593\u5947\u5076\u58d3\u529b")
         if values["missed_hit_recovery"] >= 0.7:
             reasons[number].append("\u6f0f\u547d\u4e2d\u56de\u6536")
+        if values["rank_error_correction"] >= 0.7:
+            reasons[number].append("\u6392\u540d\u932f\u4f4d\u4fee\u6b63")
+        if values["regime_switch"] >= 0.7:
+            reasons[number].append("\u958b\u734e\u578b\u614b\u5207\u63db")
+        if values["zone_coverage_recovery"] >= 0.7:
+            reasons[number].append("\u5206\u5340\u8986\u84cb\u56de\u88dc")
         if values["freq_50"] >= 0.7 or values["freq_100"] >= 0.7:
             reasons[number].append("\u4e2d\u671f\u7a69\u5b9a")
         if values["date"] > 0:
@@ -924,13 +1454,22 @@ def score_numbers(draws, review=None, include_dependency=True, weights_override=
                 reasons[number].append("\u9023\u838a\u5b88\u9580\u672a\u901a\u904e")
         reason_set = set(reasons[number])
         if number in repeated_failed_numbers:
-            raw *= 0.72
+            raw *= 0.62 if mode == "critical" else 0.68 if mode == "warning" else 0.72
             reasons[number].append("\u6efe\u52d5\u6aa2\u8a0e\u9023\u7e8c\u672a\u547d\u4e2d\u964d\u6b0a")
+        if number in late_hit_numbers and values["rank_error_correction"] >= 0.55:
+            raw *= 1.28 if mode == "critical" else 1.22 if mode == "warning" else 1.16
+            reasons[number].append("\u6efe\u52d5\u6aa2\u8a0e\u5f8c\u6bb5\u547d\u4e2d\u524d\u79fb")
+        if number in missed_actual_numbers and values["rank_error_correction"] >= 0.52:
+            raw *= 1.26 if mode == "critical" else 1.18
+            reasons[number].append("\u6efe\u52d5\u6aa2\u8a0e\u6f0f\u6293\u5be6\u958b\u865f\u88dc\u4f4d")
+        elif (number % 10 in missed_actual_tails or zone_label(number) in missed_actual_zones) and mode in {"warning", "critical"}:
+            raw *= 1.08
+            reasons[number].append("\u6efe\u52d5\u6aa2\u8a0e\u6f0f\u6293\u5c3e\u6578\u5340\u9593\u88dc\u4f4d")
         if reason_set & penalized_reasons:
-            raw *= 0.84
+            raw *= 0.76 if mode == "critical" else 0.8 if mode == "warning" else 0.84
             reasons[number].append("\u6efe\u52d5\u6aa2\u8a0e\u672a\u547d\u4e2d\u4f86\u6e90\u964d\u6b0a")
         if reason_set & boosted_reasons:
-            raw *= 1.12
+            raw *= 1.2 if mode == "critical" else 1.16 if mode == "warning" else 1.12
             reasons[number].append("\u6efe\u52d5\u6aa2\u8a0e\u547d\u4e2d\u4f86\u6e90\u5347\u6b0a")
         score[number] = raw
 
@@ -941,19 +1480,35 @@ def score_numbers(draws, review=None, include_dependency=True, weights_override=
     for rank, number in enumerate(ranked, 1):
         model_sources = number_model_sources(features[number], weights)
         cross_validation = number_cross_validation(features[number])
+        score_value = round(normalized_score[number], 4)
+        confidence_value = round(50 + normalized_score[number] * 49, 1)
+        probability_value = conservative_probability_percent(normalized_score[number])
+        confidence = confidence_profile(
+            score_value,
+            confidence_value,
+            probability_value,
+            model_sources,
+            cross_validation,
+            rank,
+        )
         candidates.append(
             {
                 "number": number,
                 "rank": rank,
-                "score": round(normalized_score[number], 4),
-                "confidence_index": round(50 + normalized_score[number] * 49, 1),
-                "model_probability_percent": conservative_probability_percent(normalized_score[number]),
+                "score": score_value,
+                "confidence_index": confidence_value,
+                "model_probability_percent": probability_value,
                 "omission": omissions[number],
                 "repeat_guard": repeat_policy.get(number),
                 "previous_prediction_guard": previous_prediction_guard(number, features[number], review),
                 "model_sources": model_sources,
                 "source_model_count": len(model_sources),
                 "cross_validation": cross_validation,
+                "confidence_profile": confidence,
+                "confidence_badges": confidence["badges"],
+                "confidence_level": confidence["level"],
+                "confidence_label": confidence["label"],
+                "high_confidence": confidence["is_high_confidence"],
                 "reasons": reasons[number][:4] or ["\u5de5\u696d\u7d1a\u7d9c\u5408\u5206\u6578"],
             }
         )
@@ -1038,12 +1593,19 @@ def single_precision_group(candidates, review=None):
 
 def five_hit_two_group(candidates, review=None):
     failed = failed_number_set(review)
+    rolling = (review or {}).get("rolling_adjustment", {})
+    priority_zones = [
+        str(item.get("zone"))
+        for item in rolling.get("missed_actual_zones", [])
+        if item.get("zone")
+    ]
     selected = []
     pool = [
         item for item in candidates[:18]
         if item["number"] not in failed
         and not (item.get("previous_prediction_guard") and not item["previous_prediction_guard"].get("passed"))
     ]
+    score_map = {item["number"]: item["score"] for item in candidates}
     for item in pool:
         if len(selected) >= 5:
             break
@@ -1053,6 +1615,24 @@ def five_hit_two_group(candidates, review=None):
         if sum(1 for selected_number in selected if selected_number % 10 == number % 10) >= 2:
             continue
         selected.append(number)
+    for zone in priority_zones:
+        if any(zone_label(number) == zone for number in selected):
+            continue
+        zone_item = next((item for item in pool if zone_label(item["number"]) == zone and item["number"] not in selected), None)
+        if not zone_item:
+            continue
+        if len(selected) < 5:
+            selected.append(zone_item["number"])
+            continue
+        replacement_pool = [
+            number for number in selected
+            if sum(1 for selected_number in selected if zone_label(selected_number) == zone_label(number)) >= 2
+        ] or selected
+        replace_number = min(replacement_pool, key=lambda number: score_map.get(number, 0))
+        add_number = zone_item["number"]
+        if score_map.get(add_number, 0) >= score_map.get(replace_number, 0) * 0.82:
+            selected.remove(replace_number)
+            selected.append(add_number)
     if len(selected) < 5:
         for item in pool:
             if item["number"] not in selected:
@@ -1066,6 +1646,11 @@ def nine_hit_three_group(candidates, review=None):
     failed = failed_number_set(review)
     rolling = (review or {}).get("rolling_adjustment", {})
     late_hit_numbers = {int(item.get("number")) for item in rolling.get("late_hit_numbers", []) if item.get("number")}
+    priority_zones = [
+        str(item.get("zone"))
+        for item in rolling.get("missed_actual_zones", [])
+        if item.get("zone")
+    ]
     score_map = {item["number"]: item["score"] for item in candidates}
     pool = [
         item["number"] for item in candidates[:24]
@@ -1085,6 +1670,21 @@ def nine_hit_three_group(candidates, review=None):
         )
         selected.append(best)
         pool.remove(best)
+    for zone in priority_zones:
+        if any(zone_label(number) == zone for number in selected):
+            continue
+        zone_candidates = [number for number in pool if zone_label(number) == zone]
+        if not zone_candidates:
+            continue
+        replacement_pool = [
+            number for number in selected
+            if sum(1 for selected_number in selected if zone_label(selected_number) == zone_label(number)) >= 3
+        ] or selected
+        replace_number = min(replacement_pool, key=lambda number: score_map.get(number, 0))
+        add_number = max(zone_candidates, key=lambda number: score_map.get(number, 0))
+        if score_map.get(add_number, 0) >= score_map.get(replace_number, 0) * 0.82:
+            selected.remove(replace_number)
+            selected.append(add_number)
     return sorted(selected[:9])
 
 
@@ -1180,6 +1780,37 @@ def top10_promotion_audit(candidates, review=None):
         "promotion_candidates": promotions,
         "promotion_count": len(promotions),
     }
+
+
+def apply_top10_boundary_promotion(candidates, review=None):
+    if len(candidates) < 11:
+        return candidates
+    rolling = (review or {}).get("rolling_adjustment", {})
+    boosted_reasons = {item.get("reason") for item in rolling.get("boosted_reasons", [])}
+    late_hit_numbers = {int(item.get("number")) for item in rolling.get("late_hit_numbers", []) if item.get("number")}
+    promoted = list(candidates)
+    for source_index in range(10, min(15, len(promoted))):
+        item = promoted[source_index]
+        reasons = set(item.get("reasons", []))
+        should_promote = (
+            bool(reasons & boosted_reasons)
+            or item["number"] in late_hit_numbers
+            or item.get("stability_count", 0) >= 4
+        )
+        if not should_promote:
+            continue
+        replace_index = min(
+            range(5, min(10, len(promoted))),
+            key=lambda index: (
+                promoted[index].get("score", 0),
+                promoted[index].get("confidence_index", 0),
+            ),
+        )
+        replace_score = promoted[replace_index].get("score", 0) or 0
+        item_score = item.get("score", 0) or 0
+        if replace_score and item_score >= replace_score * 0.92:
+            promoted[replace_index], promoted[source_index] = promoted[source_index], promoted[replace_index]
+    return promoted
 
 
 def empty_pack(name, goal, reason):
@@ -1783,8 +2414,12 @@ def unlikely_backtest(draws, rounds=360, avoid_size=10):
 
 def compute_industrial_analysis(draws, review=None):
     weights, weight_calibration = adaptive_feature_weights(draws, review)
+    lifecycle = model_lifecycle_policy(weight_calibration)
+    weights = apply_lifecycle_weight_policy(weights, lifecycle)
     base_candidates, weights = score_numbers(draws, review, weights_override=weights)
     candidates, stability = stability_consensus(draws, base_candidates, review)
+    candidates = apply_top10_boundary_promotion(candidates, review)
+    candidates, precision_calibration = live_precision_calibration(candidates, review)
     pack_governance = pack_recent_governance(draws)
     packs = strong_packs(candidates, review, pack_governance)
     audit = industrial_backtest(draws)
@@ -1827,6 +2462,7 @@ def compute_industrial_analysis(draws, review=None):
         },
         "stability_consensus": stability,
         "adaptive_weight_calibration": weight_calibration,
+        "live_precision_calibration": precision_calibration,
         "top10_promotion_audit": promotion_audit,
         "dependency_analysis": {
             "method": "three_fold_conditional_lift_with_fdr",
@@ -1849,6 +2485,7 @@ def compute_industrial_analysis(draws, review=None):
             "recent_performance_passed": recent_passed,
         },
         "weights": {key: round(value, 4) for key, value in weights.items()},
+        "model_lifecycle": lifecycle,
         "backtest": audit,
         "advanced_models": advanced_models,
         "advanced_model_backtest": advanced_backtest,

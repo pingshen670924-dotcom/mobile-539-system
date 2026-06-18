@@ -51,6 +51,45 @@ function Confirm-TemporaryPath {
   }
 }
 
+function Get-MobileVersion {
+  $versionPath = Join-Path (Join-Path $ScriptDir "site") "version.json"
+  if (Test-Path -LiteralPath $versionPath) {
+    try {
+      return (Get-Content -LiteralPath $versionPath -Raw -Encoding UTF8 | ConvertFrom-Json).version
+    } catch {
+    }
+  }
+  return Get-Date -Format "yyyyMMddHHmmss"
+}
+
+function Write-PublishStatus {
+  param(
+    [string]$Status,
+    [string]$Message,
+    [string]$Owner = "pingshen670924-dotcom",
+    [bool]$PromoteToPrimary = $false
+  )
+  $mobileVersion = Get-MobileVersion
+  $freshPageUrl = "https://$Owner.github.io/$RepoName/clear-cache.html?v=$mobileVersion&t=$([DateTimeOffset]::Now.ToUnixTimeSeconds())"
+  $cloudUrlName = ([char]0x624B) + ([char]0x6A5F) + ([char]0x96F2) + ([char]0x7AEF) + ([char]0x7248) + ([char]0x7DB2) + ([char]0x5740) + ".txt"
+  $primaryUrlName = ([char]0x624B) + ([char]0x6A5F) + ([char]0x7368) + ([char]0x7ACB) + ([char]0x7248) + ([char]0x7DB2) + ([char]0x5740) + ".txt"
+  $statusName = ([char]0x624B) + ([char]0x6A5F) + ([char]0x96F2) + ([char]0x7AEF) + ([char]0x767C) + ([char]0x5E03) + ([char]0x72C0) + ([char]0x614B) + ".json"
+  Set-Content -LiteralPath (Join-Path $ScriptDir $cloudUrlName) -Value $freshPageUrl -Encoding UTF8
+  if ($PromoteToPrimary) {
+    Set-Content -LiteralPath (Join-Path $ScriptDir $primaryUrlName) -Value $freshPageUrl -Encoding UTF8
+  }
+  $payload = @{
+    status = $Status
+    message = $Message
+    written_at = (Get-Date -Format s)
+    version = $mobileVersion
+    url = $freshPageUrl
+    repository = "$Owner/$RepoName"
+  }
+  $payload | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $ScriptDir $statusName) -Encoding UTF8
+  return $freshPageUrl
+}
+
 function Clear-PublishStage {
   param([string]$Path)
   Confirm-TemporaryPath $Path
@@ -82,24 +121,27 @@ function Copy-PublishPayload {
 }
 
 Write-Host "Preparing the free independent mobile 539 system..."
+Write-PublishStatus "started" "Mobile cloud publish started." | Out-Null
 Ensure-Command "git" "Git.Git"
 Ensure-Command "gh" "GitHub.cli"
 
 if (-not (Test-GhAuthentication)) {
-  Write-Host "A GitHub official login page will open. Approve the login once."
-  gh auth login --web --git-protocol https
-  if ($LASTEXITCODE -ne 0) {
-    throw "GitHub login was not completed."
-  }
+  $fallbackUrl = Write-PublishStatus "blocked" "GitHub CLI is not authenticated or network access is blocked. Local phone report link was refreshed by mobile_server.py."
+  Write-Host "GitHub cloud publish skipped because authentication or network access is not available."
+  Write-Host "Cloud URL prepared for the next successful publish:"
+  Write-Host $fallbackUrl
+  exit 1
 }
 
 $Owner = gh api user --jq .login
 if (-not $Owner) {
+  Write-PublishStatus "blocked" "The GitHub account name could not be detected." | Out-Null
   throw "The GitHub account name could not be detected."
 }
 
 $Repository = "$Owner/$RepoName"
 $RepositoryExists = Test-GhRepository $Repository
+Write-PublishStatus "authenticated" "GitHub authentication passed." $Owner | Out-Null
 $PublishStage = Join-Path $env:TEMP ("mobile-539-publish-" + [guid]::NewGuid().ToString("N"))
 Confirm-TemporaryPath $PublishStage
 
@@ -146,13 +188,25 @@ gh api "repos/$Repository/pages" -X POST -f build_type=workflow *> $null
 $ErrorActionPreference = $previousPreference
 
 $PageUrl = "https://$Owner.github.io/$RepoName/"
-$UrlName = ([char]0x624B) + ([char]0x6A5F) + ([char]0x7368) + ([char]0x7ACB) + ([char]0x7248) + ([char]0x7DB2) + ([char]0x5740) + ".txt"
-Set-Content -Path (Join-Path $ScriptDir $UrlName) -Value $PageUrl -Encoding UTF8
+$VersionPath = Join-Path (Join-Path $ScriptDir "site") "version.json"
+$MobileVersion = Get-Date -Format "yyyyMMddHHmmss"
+if (Test-Path -LiteralPath $VersionPath) {
+  try {
+    $MobileVersion = (Get-Content -LiteralPath $VersionPath -Raw -Encoding UTF8 | ConvertFrom-Json).version
+  } catch {
+    $MobileVersion = Get-Date -Format "yyyyMMddHHmmss"
+  }
+}
+$FreshPageUrl = $PageUrl + "clear-cache.html?v=$MobileVersion&t=$([DateTimeOffset]::Now.ToUnixTimeSeconds())"
+$UrlName = ([char]0x624B) + ([char]0x6A5F) + ([char]0x96F2) + ([char]0x7AEF) + ([char]0x7248) + ([char]0x7DB2) + ([char]0x5740) + ".txt"
+Set-Content -Path (Join-Path $ScriptDir $UrlName) -Value $FreshPageUrl -Encoding UTF8
+Write-PublishStatus "pushed" "Mobile files were pushed to GitHub. Workflow is starting." $Owner | Out-Null
 
 Write-Host ""
 Write-Host "Starting the cloud calculation and website deployment..."
 gh workflow run daily-update.yml --repo $Repository
 if ($LASTEXITCODE -ne 0) {
+  Write-PublishStatus "workflow_failed" "The cloud update workflow could not be started." $Owner | Out-Null
   throw "The cloud update workflow could not be started."
 }
 
@@ -162,11 +216,13 @@ if ($RunId) {
   gh run watch $RunId --repo $Repository --exit-status
   if ($LASTEXITCODE -ne 0) {
     Start-Process "https://github.com/$Repository/actions"
+    Write-PublishStatus "deploy_failed" "GitHub Pages deployment failed." $Owner | Out-Null
     throw "GitHub Pages deployment failed."
   }
 }
+Write-PublishStatus "published" "Mobile cloud site published successfully." $Owner $true | Out-Null
 
 Write-Host ""
 Write-Host "The free independent mobile website is online:"
-Write-Host $PageUrl
-Start-Process $PageUrl
+Write-Host $FreshPageUrl
+Start-Process $FreshPageUrl

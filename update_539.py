@@ -131,7 +131,9 @@ def http_get_bytes_via_powershell(url):
     script = (
         "$ErrorActionPreference='Stop';"
         "$ProgressPreference='SilentlyContinue';"
+        "[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12;"
         f"Invoke-WebRequest -Uri {powershell_quote(url)} "
+        "-Headers @{'User-Agent'='Mozilla/5.0 539-data-system/1.0'} "
         f"-UseBasicParsing -TimeoutSec 60 -OutFile {powershell_quote(str(temp_path))};"
     )
     command = base64.b64encode(script.encode("utf-16le")).decode("ascii")
@@ -165,20 +167,56 @@ def http_get_bytes_via_powershell(url):
             pass
 
 
-def acquire_run_lock(max_age_minutes=180):
+def lock_process_is_active():
+    try:
+        payload = json.loads(RUN_LOCK_PATH.read_text(encoding="utf-8") or "{}")
+        pid = int(payload.get("pid") or 0)
+    except Exception:
+        return False
+    if pid <= 0 or pid == os.getpid():
+        return False
+    try:
+        completed = subprocess.run(
+            ["tasklist", "/FI", f"PID eq {pid}", "/FO", "CSV", "/NH"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=10,
+        )
+        output = (completed.stdout or "") + (completed.stderr or "")
+        return str(pid) in output and "No tasks" not in output
+    except Exception:
+        return False
+
+
+def acquire_run_lock(max_age_minutes=10, wait_seconds=90):
     LOG_DIR.mkdir(parents=True, exist_ok=True)
-    if RUN_LOCK_PATH.exists():
-        age_seconds = time.time() - RUN_LOCK_PATH.stat().st_mtime
-        if age_seconds < max_age_minutes * 60:
-            raise RuntimeError("another update is already running; blocked to protect the database")
-        RUN_LOCK_PATH.unlink(missing_ok=True)
-    flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY
-    fd = os.open(str(RUN_LOCK_PATH), flags)
-    with os.fdopen(fd, "w", encoding="utf-8") as handle:
-        handle.write(json.dumps({
-            "pid": os.getpid(),
-            "started_at": taipei_now().isoformat(timespec="seconds"),
-        }, ensure_ascii=False))
+    deadline = time.time() + wait_seconds
+    while True:
+        if RUN_LOCK_PATH.exists():
+            age_seconds = time.time() - RUN_LOCK_PATH.stat().st_mtime
+            if age_seconds >= max_age_minutes * 60 or not lock_process_is_active():
+                RUN_LOCK_PATH.unlink(missing_ok=True)
+            elif time.time() < deadline:
+                time.sleep(5)
+                continue
+            else:
+                raise RuntimeError("another update is still running; waited and stopped to protect the database")
+        try:
+            flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY
+            fd = os.open(str(RUN_LOCK_PATH), flags)
+            with os.fdopen(fd, "w", encoding="utf-8") as handle:
+                handle.write(json.dumps({
+                    "pid": os.getpid(),
+                    "started_at": taipei_now().isoformat(timespec="seconds"),
+                }, ensure_ascii=False))
+            return
+        except FileExistsError:
+            if time.time() < deadline:
+                time.sleep(3)
+                continue
+            raise RuntimeError("update lock is busy; waited and stopped to protect the database")
 
 
 def release_run_lock():
@@ -239,6 +277,17 @@ def http_get_bytes(url, retries=3, retry_delay=2):
     )
     context = ssl._create_unverified_context()
     errors = []
+    for label, downloader in (
+        ("powershell", http_get_bytes_via_powershell),
+        ("curl", http_get_bytes_via_curl),
+    ):
+        try:
+            logging.info("Trying %s download path first: %s", label, url)
+            return downloader(url)
+        except Exception as exc:
+            errors.append(f"{label}: {exc}")
+            logging.warning("%s download path failed: %s", label, url)
+
     for attempt in range(1, retries + 1):
         try:
             with urllib.request.urlopen(req, timeout=60, context=context) as response:
@@ -252,18 +301,21 @@ def http_get_bytes(url, retries=3, retry_delay=2):
             if attempt < retries:
                 time.sleep(retry_delay * attempt)
 
-    for label, downloader in (
-        ("powershell", http_get_bytes_via_powershell),
-        ("curl", http_get_bytes_via_curl),
-    ):
-        try:
-            logging.warning("Trying %s download fallback: %s", label, url)
-            return downloader(url)
-        except Exception as exc:
-            errors.append(f"{label}: {exc}")
-            logging.warning("%s download fallback failed: %s", label, url)
-
-    raise RuntimeError("download failed: " + " | ".join(errors))
+    sandbox_note = ""
+    try:
+        check = subprocess.run(
+            ["netsh", "advfirewall", "firewall", "show", "rule", "name=codex_sandbox_offline_block_outbound"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=15,
+        )
+        if "codex_sandbox_offline_block_outbound" in ((check.stdout or "") + (check.stderr or "")):
+            sandbox_note = " | detected Codex sandbox outbound block; run the Windows desktop one-click launcher outside Codex"
+    except Exception:
+        pass
+    raise RuntimeError("download failed: " + " | ".join(errors) + sandbox_note)
 
 
 def http_get_json(url, params=None):

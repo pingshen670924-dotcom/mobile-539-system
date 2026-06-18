@@ -8,6 +8,9 @@ Set-Location $ScriptDir
 $LogDir = Join-Path $ScriptDir "logs"
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
 $RunLog = Join-Path $LogDir "one_click.log"
+$MutexName = "Global\539PredictionSystemOneClick"
+$Mutex = New-Object System.Threading.Mutex($false, $MutexName)
+$HasMutex = $false
 
 function Find-Python {
   $bundled = Join-Path $env:USERPROFILE ".cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"
@@ -34,6 +37,27 @@ function Run-Step {
   }
 }
 
+function Run-PowerShell-Step {
+  param(
+    [string]$Label,
+    [string]$ScriptPath,
+    [string[]]$Arguments = @(),
+    [bool]$Required = $false
+  )
+  "$(Get-Date -Format s) $Label" | Out-File -FilePath $RunLog -Encoding utf8 -Append
+  if (-not (Test-Path $ScriptPath)) {
+    "$Label skipped because the script was not found." | Out-File -FilePath $RunLog -Encoding utf8 -Append
+    return
+  }
+  & "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -File $ScriptPath @Arguments 2>&1 | Tee-Object -FilePath $RunLog -Append
+  if ($LASTEXITCODE -ne 0 -and $Required) {
+    throw "$Label failed."
+  }
+  if ($LASTEXITCODE -ne 0) {
+    "$Label finished with warnings." | Out-File -FilePath $RunLog -Encoding utf8 -Append
+  }
+}
+
 function Remove-GeneratedCaches {
   Get-ChildItem -Path $ScriptDir -Directory -Recurse -Force -Filter "__pycache__" -ErrorAction SilentlyContinue | ForEach-Object {
     try {
@@ -44,9 +68,53 @@ function Remove-GeneratedCaches {
   }
 }
 
+function Start-MobileReportServer {
+  "Refresh phone report link" | Out-File -FilePath $RunLog -Encoding utf8 -Append
+  try {
+    & $Python ".\mobile_server.py" "--write-url" 2>&1 | Tee-Object -FilePath $RunLog -Append
+  } catch {
+    "Phone report link refresh warning." | Out-File -FilePath $RunLog -Encoding utf8 -Append
+  }
+
+  try {
+    netsh advfirewall firewall add rule name="539 Mobile Control" dir=in action=allow protocol=TCP localport=5390 profile=private *> $null
+  } catch {
+    "Phone firewall rule refresh skipped." | Out-File -FilePath $RunLog -Encoding utf8 -Append
+  }
+
+  $listening = $null
+  try {
+    $listening = Get-NetTCPConnection -LocalPort 5390 -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1
+  } catch {
+  }
+  if (-not $listening) {
+    try {
+      Start-Process -FilePath $Python -ArgumentList "`"$ScriptDir\mobile_server.py`"" -WorkingDirectory $ScriptDir -WindowStyle Hidden
+      Start-Sleep -Seconds 2
+      "Phone report server started." | Out-File -FilePath $RunLog -Encoding utf8 -Append
+    } catch {
+      "Phone report server could not be started automatically." | Out-File -FilePath $RunLog -Encoding utf8 -Append
+    }
+  }
+
+  try {
+    & $Python ".\mobile_server.py" "--write-url" 2>&1 | Tee-Object -FilePath $RunLog -Append
+  } catch {
+    "Phone report final link refresh warning." | Out-File -FilePath $RunLog -Encoding utf8 -Append
+  }
+}
+
 try {
   "==== 539 run started $(Get-Date -Format s) ====" | Out-File -FilePath $RunLog -Encoding utf8 -Append
+  $HasMutex = $Mutex.WaitOne(0)
+  if (-not $HasMutex) {
+    "Another full run is already running. This run is skipped to protect the database." | Out-File -FilePath $RunLog -Encoding utf8 -Append
+    exit 0
+  }
   $Python = Find-Python
+  Run-PowerShell-Step "Cleanup obsolete runtime folders" (Join-Path $ScriptDir "cleanup_obsolete_runtime.ps1") @() $false
+  Run-PowerShell-Step "Network permission repair" (Join-Path $ScriptDir "repair_network_permission.ps1") @("-NoPause") $false
+  Run-PowerShell-Step "Network permission diagnostic" (Join-Path $ScriptDir "network_permission_diagnostic.ps1") @() $false
   Run-Step "Compile check" @("-m", "py_compile", ".\update_539.py", ".\analyze_539.py", ".\battle_report.py", ".\health_check.py", ".\dashboard.py", ".\pages_build.py", ".\industrial_engine.py", ".\aerospace_engine.py", ".\research_kpi.py", ".\daily_integrity_audit.py", ".\line_push.py")
   "Update latest draw and rebuild all outputs" | Out-File -FilePath $RunLog -Encoding utf8 -Append
   & $Python ".\update_539.py" --latest 2>&1 | Tee-Object -FilePath $RunLog -Append
@@ -54,11 +122,14 @@ try {
     "Main update returned a warning or failure. Continue rebuilding local reports so the user always gets an opened battle report." | Out-File -FilePath $RunLog -Encoding utf8 -Append
   }
   Run-Step "Rebuild battle report" @(".\battle_report.py")
+  Run-Step "Model competition" @(".\model_competition.py") $false
   Run-Step "Rebuild dashboard" @(".\dashboard.py") $false
   Run-Step "Health check" @(".\health_check.py") $false
   Run-Step "Daily integrity audit" @(".\daily_integrity_audit.py")
   Run-Step "Rebuild battle report after audit" @(".\battle_report.py")
   Run-Step "Build phone site files" @(".\pages_build.py") $false
+  Start-MobileReportServer
+  Run-PowerShell-Step "Publish phone cloud site" (Join-Path $ScriptDir "publish_free_github.ps1") @() $false
   Run-Step "Push LINE report" @(".\line_push.py") $false
   Run-Step "File encoding check" @(".\system_file_check.py") $false
   Remove-GeneratedCaches
@@ -75,4 +146,9 @@ try {
   $_ | Out-File -FilePath $RunLog -Encoding utf8 -Append
   Write-Host "539 one-click run failed. Please check logs\one_click.log."
   exit 1
+} finally {
+  if ($HasMutex) {
+    $Mutex.ReleaseMutex()
+  }
+  $Mutex.Dispose()
 }

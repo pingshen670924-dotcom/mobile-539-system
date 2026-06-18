@@ -1,3 +1,5 @@
+param([switch]$NoPause)
+
 $ErrorActionPreference = "Stop"
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
@@ -73,4 +75,6 @@ Write-Log "Next step is automatic: running network diagnostic again."
 
 Write-Host ""
 Write-Host "Finished. You can now run 點我一鍵啟動539主系統.bat again."
-pause
+if (-not $NoPause) {
+  pause
+}

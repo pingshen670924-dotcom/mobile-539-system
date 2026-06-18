@@ -1,4 +1,4 @@
-import json
+﻿import json
 import os
 import shutil
 from pathlib import Path
@@ -10,11 +10,34 @@ REPORTS = ROOT / "reports"
 SITE = ROOT / "site"
 REPORT = REPORTS / "539\u6700\u65b0\u5f37\u5316\u6230\u5831.html"
 HISTORY_REPORT = REPORTS / "539\u6bcf\u671f\u9810\u6e2c\u5c0d\u6bd4.html"
-REPOSITORY = os.environ.get("GITHUB_REPOSITORY", "OWNER/REPOSITORY")
+REPOSITORY = os.environ.get("GITHUB_REPOSITORY", "pingshen670924-dotcom/mobile-539-system")
 
 
 def repository_url(path=""):
     return f"https://github.com/{REPOSITORY}/{path}".rstrip("/")
+
+
+def write_mobile_entry(path, version):
+    path.write_text(
+        f"""<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>&#25171;&#38283;&#26368;&#26032;&#25163;&#27231;&#29256;</title>
+  <meta http-equiv="refresh" content="0; url=site/clear-cache.html?v={version}&t={version}">
+</head>
+<body>
+  <p>&#27491;&#22312;&#25171;&#38283;&#26368;&#26032;&#25163;&#27231;&#29256;...</p>
+  <p><a href="site/clear-cache.html?v={version}&t={version}">&#33509;&#27794;&#26377;&#33258;&#21205;&#36339;&#36681;&#65292;&#35531;&#40670;&#36889;&#35041;</a></p>
+</body>
+</html>
+""",
+        encoding="utf-8",
+    )
 
 
 def build():
@@ -135,12 +158,12 @@ def build():
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>最新手機版</title>
+  <title>&#26368;&#26032;&#25163;&#27231;&#29256;</title>
   <script>location.replace("index.html?v={version}&t="+Date.now());</script>
 </head>
 <body>
-  <p>正在打開最新手機版...</p>
-  <p><a href="index.html?v={version}">若沒有自動跳轉，請點這裡</a></p>
+  <p>&#27491;&#22312;&#25171;&#38283;&#26368;&#26032;&#25163;&#27231;&#29256;...</p>
+  <p><a href="index.html?v={version}">&#33509;&#27794;&#26377;&#33258;&#21205;&#36339;&#36681;&#65292;&#35531;&#40670;&#36889;&#35041;</a></p>
 </body>
 </html>
 """
@@ -154,10 +177,10 @@ def build():
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>清除舊版快取</title>
+  <title>&#28165;&#38500;&#33290;&#29256;&#24555;&#21462;</title>
 </head>
 <body>
-  <p>正在清除舊版快取並打開最新手機版...</p>
+  <p>&#27491;&#22312;&#28165;&#38500;&#33290;&#29256;&#24555;&#21462;&#20006;&#25171;&#38283;&#26368;&#26032;&#25163;&#27231;&#29256;...</p>
   <script>
     (async()=>{{
       try{{
@@ -173,33 +196,15 @@ def build():
       location.replace("index.html?v={version}&t="+Date.now());
     }})();
   </script>
-  <p><a href="index.html?v={version}">若沒有自動跳轉，請點這裡</a></p>
+  <p><a href="index.html?v={version}">&#33509;&#27794;&#26377;&#33258;&#21205;&#36339;&#36681;&#65292;&#35531;&#40670;&#36889;&#35041;</a></p>
 </body>
 </html>
 """,
         encoding="utf-8",
     )
-    latest_entry = ROOT / "\u6253\u958b\u6700\u65b0\u624b\u6a5f\u7248.html"
-    latest_entry.write_text(
-        f"""<!doctype html>
-<html lang="zh-Hant">
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>打開最新手機版</title>
-  <meta http-equiv="refresh" content="0; url=site/clear-cache.html?v={version}">
-</head>
-<body>
-  <p>正在打開最新手機版...</p>
-  <p><a href="site/clear-cache.html?v={version}">若沒有自動跳轉，請點這裡</a></p>
-</body>
-</html>
-""",
-        encoding="utf-8",
-    )
+    entry_name = "\u6253\u958b\u6700\u65b0\u624b\u6a5f\u7248.html"
+    for latest_entry in {ROOT / entry_name, ROOT.parent / entry_name}:
+        write_mobile_entry(latest_entry, version)
     (SITE / "service-worker.js").write_text(
         f'''const CACHE="539-mobile-{version}";
 async function clearAllCaches(){{
@@ -224,3 +229,4 @@ self.addEventListener("fetch",event=>{{
 
 if __name__ == "__main__":
     build()
+

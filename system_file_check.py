@@ -1,4 +1,5 @@
 import json
+import csv
 from datetime import datetime
 from pathlib import Path
 
@@ -37,6 +38,7 @@ SKIP_DIRS = {
 }
 SKIP_DIR_PREFIXES = (
     "\u820a\u6a94\u6e05\u7406\u5340",
+    "TW539\u9810\u6e2c\u7cfb\u7d71_",
 )
 MOJIBAKE_MARKERS = ["\ufffd", "\u5697", "\ueaa8", "\uea8f", "\ueaf0", "\uf593"]
 
@@ -97,13 +99,107 @@ def scan():
         files.append(scan_file(path))
     failed = [item for item in files if item["status"] == "failed"]
     warnings = [item for item in files if item["status"] == "warning"]
+    consistency = data_consistency_check()
+    overall_status = "failed" if failed or consistency["status"] == "failed" else ("warning" if warnings else "ok")
     return {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
-        "status": "failed" if failed else ("warning" if warnings else "ok"),
+        "status": overall_status,
         "checked_files": len(files),
-        "failed_count": len(failed),
+        "failed_count": len(failed) + (1 if consistency["status"] == "failed" else 0),
         "warning_count": len(warnings),
         "files": files,
+        "data_consistency": consistency,
+    }
+
+
+def read_latest_csv_draw():
+    csv_path = BASE_DIR / "data" / "539.csv"
+    if not csv_path.exists():
+        return {"status": "failed", "reason": "data/539.csv missing"}
+    latest = None
+    with csv_path.open("r", encoding="utf-8-sig", newline="") as handle:
+        for row in csv.DictReader(handle):
+            if not row.get("period") or not row.get("draw_date"):
+                continue
+            period = int(row["period"])
+            numbers = [int(row[f"n{i}"]) for i in range(1, 6)]
+            item = {
+                "period": period,
+                "draw_date": row["draw_date"],
+                "numbers": sorted(numbers),
+            }
+            if latest is None or period > latest["period"]:
+                latest = item
+    if latest is None:
+        return {"status": "failed", "reason": "data/539.csv has no draw rows"}
+    return latest
+
+
+def data_consistency_check():
+    latest_csv = read_latest_csv_draw()
+    if latest_csv.get("status") == "failed":
+        return {
+            "status": "failed",
+            "checks": [latest_csv],
+        }
+    checks = []
+    status = "ok"
+
+    analysis_path = REPORT_DIR / "latest_analysis.json"
+    if analysis_path.exists():
+        analysis = json.loads(analysis_path.read_text(encoding="utf-8"))
+        latest_analysis = analysis.get("latest_draw", {})
+        analysis_numbers = sorted(int(n) for n in latest_analysis.get("numbers", []))
+        ok = (
+            int(latest_analysis.get("period", -1)) == latest_csv["period"]
+            and latest_analysis.get("draw_date") == latest_csv["draw_date"]
+            and analysis_numbers == latest_csv["numbers"]
+        )
+        checks.append({
+            "name": "analysis_matches_csv_latest_draw",
+            "status": "ok" if ok else "failed",
+            "csv_latest": latest_csv,
+            "analysis_latest": {
+                "period": latest_analysis.get("period"),
+                "draw_date": latest_analysis.get("draw_date"),
+                "numbers": analysis_numbers,
+            },
+        })
+        if not ok:
+            status = "failed"
+    else:
+        checks.append({"name": "latest_analysis_exists", "status": "failed"})
+        status = "failed"
+
+    health_path = REPORT_DIR / "health_status.json"
+    if health_path.exists():
+        health = json.loads(health_path.read_text(encoding="utf-8"))
+        freshness = health.get("data_freshness", {})
+        health_data = health.get("data", {})
+        ok = (
+            freshness.get("latest_date") == latest_csv["draw_date"]
+            and int(health_data.get("latest_period", -1)) == latest_csv["period"]
+        )
+        checks.append({
+            "name": "health_matches_csv_latest_draw",
+            "status": "ok" if ok else "failed",
+            "csv_latest": latest_csv,
+            "health_latest": {
+                "period": health_data.get("latest_period"),
+                "draw_date": freshness.get("latest_date"),
+                "freshness_status": freshness.get("status"),
+            },
+        })
+        if not ok:
+            status = "failed"
+    else:
+        checks.append({"name": "health_status_exists", "status": "failed"})
+        status = "failed"
+
+    return {
+        "status": status,
+        "csv_latest": latest_csv,
+        "checks": checks,
     }
 
 
@@ -118,13 +214,25 @@ def save_report(result):
         f"- \u6aa2\u67e5\u6a94\u6848\uff1a{result['checked_files']}",
         f"- \u5931\u6557\uff1a{result['failed_count']}",
         f"- \u8b66\u544a\uff1a{result['warning_count']}",
+        f"- \u8cc7\u6599\u4e00\u81f4\u6027\uff1a{result.get('data_consistency', {}).get('status', 'unknown')}",
         "",
     ]
+    consistency = result.get("data_consistency", {})
+    csv_latest = consistency.get("csv_latest", {})
+    if csv_latest:
+        lines.append(
+            f"- CSV \u6700\u65b0\uff1a{csv_latest.get('period')} / {csv_latest.get('draw_date')} / "
+            + " ".join(f"{int(n):02d}" for n in csv_latest.get("numbers", []))
+        )
     for item in result["files"]:
         if item["status"] != "ok":
             lines.append(f"- {item['status']}: {item['path']} / {', '.join(item['warnings'])}")
+    for check in consistency.get("checks", []):
+        if check.get("status") != "ok":
+            lines.append(f"- data_consistency_{check.get('status')}: {check.get('name', check.get('reason'))}")
     if result["status"] == "ok":
         lines.append("\u6240\u6709\u6587\u5b57\u6a94\u5747\u53ef\u4ee5 UTF-8 \u6b63\u5e38\u8b80\u53d6\uff0c\u7a0b\u5f0f\u6a94\u672a\u767c\u73fe\u76f4\u63a5\u4e2d\u6587\u6b98\u7559\u3002")
+        lines.append("\u958b\u734e CSV\u3001latest_analysis.json\u3001health_status.json \u7684\u6700\u65b0\u671f\u5225\u8207\u865f\u78bc\u4e00\u81f4\u3002")
     REPORT_MD.write_text("\n".join(lines), encoding="utf-8")
 
 

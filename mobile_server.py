@@ -1,5 +1,6 @@
 import html
 import json
+import mimetypes
 import os
 import secrets
 import socket
@@ -26,8 +27,10 @@ from crowd_consensus import (
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 REPORT_DIR = BASE_DIR / "reports"
+SITE_DIR = BASE_DIR / "site"
 TOKEN_PATH = DATA_DIR / "mobile_access_token.txt"
 REPORT_PATH = REPORT_DIR / "539\u6700\u65b0\u5f37\u5316\u6230\u5831.html"
+LATEST_REPORT_PATH = REPORT_DIR / "latest_battle_report.html"
 PORT = int(os.environ.get("PORT", "5390"))
 RUN_STATE = {"running": False, "message": "ready", "finished_at": None}
 
@@ -51,22 +54,123 @@ def local_ip():
         return "127.0.0.1"
 
 
-def run_update():
-    RUN_STATE.update({"running": True, "message": "updating", "finished_at": None})
+def current_report_path():
+    if REPORT_PATH.exists():
+        return REPORT_PATH
+    return LATEST_REPORT_PATH
+
+
+def latest_mobile_version():
+    version_path = SITE_DIR / "version.json"
+    if version_path.exists():
+        try:
+            return json.loads(version_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            pass
+    return {
+        "version": datetime.now().strftime("%Y%m%d%H%M%S"),
+        "mobile_built_at": datetime.now().isoformat(timespec="seconds"),
+        "latest_period": None,
+        "latest_draw_date": None,
+    }
+
+
+def mobile_urls():
+    token = access_token()
+    version = str(latest_mobile_version().get("version") or datetime.now().strftime("%Y%m%d%H%M%S"))
+    base_url = f"http://{local_ip()}:{PORT}"
+    query = f"token={urllib.parse.quote(token)}&v={urllib.parse.quote(version)}"
+    return {
+        "control_url": f"{base_url}/?{query}",
+        "report_url": f"{base_url}/report?{query}",
+        "site_url": f"{base_url}/site/index.html?{query}",
+        "version": version,
+    }
+
+
+def write_mobile_entry_files():
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    urls = mobile_urls()
+    version = latest_mobile_version()
+    payload = {
+        "status": "ready",
+        "written_at": datetime.now().isoformat(timespec="seconds"),
+        "report_url": urls["report_url"],
+        "control_url": urls["control_url"],
+        "site_url": urls["site_url"],
+        "version": urls["version"],
+        "latest_period": version.get("latest_period"),
+        "latest_draw_date": version.get("latest_draw_date"),
+        "mobile_built_at": version.get("mobile_built_at"),
+        "cache_policy": "no_store_lan_report",
+    }
+    url_name = "\u624b\u6a5f\u7368\u7acb\u7248\u7db2\u5740.txt"
+    report_url_name = "\u624b\u6a5f\u6230\u5831\u5373\u6642\u7db2\u5740.txt"
+    status_name = "\u624b\u6a5f\u6230\u5831\u66f4\u65b0\u72c0\u614b.json"
+    (BASE_DIR / url_name).write_text(urls["control_url"], encoding="utf-8")
+    (BASE_DIR / report_url_name).write_text(urls["report_url"], encoding="utf-8")
+    (BASE_DIR / status_name).write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    return payload
+
+
+def run_python_step(name, script, args=None, timeout=900, required=False):
+    args = args or []
+    command = [sys.executable, str(BASE_DIR / script), *args]
     try:
         result = subprocess.run(
-            [sys.executable, str(BASE_DIR / "update_539.py"), "--latest", "--require-fresh"],
+            command,
             cwd=BASE_DIR,
             capture_output=True,
             text=True,
-            timeout=900,
+            timeout=timeout,
         )
-        RUN_STATE["message"] = "completed" if result.returncode == 0 else "failed"
+        return {
+            "name": name,
+            "returncode": result.returncode,
+            "required": required,
+            "stdout_tail": result.stdout[-3000:],
+            "stderr_tail": result.stderr[-3000:],
+        }
+    except Exception as exc:
+        return {
+            "name": name,
+            "returncode": 1,
+            "required": required,
+            "stdout_tail": "",
+            "stderr_tail": str(exc),
+        }
+
+
+def run_update():
+    RUN_STATE.update({"running": True, "message": "updating", "finished_at": None})
+    update_log = []
+    try:
+        steps = [
+            ("update_latest_draw", "update_539.py", ["--latest", "--require-fresh"], False),
+            ("rebuild_battle_report", "battle_report.py", [], True),
+            ("health_check", "health_check.py", [], False),
+            ("rebuild_battle_report_after_health", "battle_report.py", [], True),
+            ("build_phone_site", "pages_build.py", [], False),
+        ]
+        failed_required = False
+        for name, script, args, required in steps:
+            result = run_python_step(name, script, args=args, required=required)
+            update_log.append(result)
+            if result["returncode"] != 0 and required:
+                failed_required = True
+        entry_payload = write_mobile_entry_files()
+        update_log.append({"name": "write_mobile_entry_files", "returncode": 0, "required": False, "payload": entry_payload})
+        RUN_STATE["message"] = "completed" if not failed_required else "failed"
     except Exception as exc:
         RUN_STATE["message"] = f"failed: {exc}"
     finally:
         RUN_STATE["running"] = False
         RUN_STATE["finished_at"] = datetime.now().isoformat(timespec="seconds")
+        REPORT_DIR.mkdir(parents=True, exist_ok=True)
+        (REPORT_DIR / "mobile_update_status.json").write_text(
+            json.dumps({"run_state": RUN_STATE, "steps": update_log}, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
 
 
 def add_crowd_prediction(source_name, source_url, numbers_text, engagement_text):
@@ -100,10 +204,12 @@ def add_crowd_prediction(source_name, source_url, numbers_text, engagement_text)
 
 def page(message=""):
     token = access_token()
-    report_exists = REPORT_PATH.exists()
+    version = latest_mobile_version()
+    urls = mobile_urls()
+    report_exists = current_report_path().exists()
     status = RUN_STATE["message"]
     message_html = f'<p class="notice">{html.escape(message)}</p>' if message else ""
-    report_link = f'/report?token={urllib.parse.quote(token)}' if report_exists else "#"
+    report_link = f'/report?token={urllib.parse.quote(token)}&v={urllib.parse.quote(str(version.get("version", "")))}' if report_exists else "#"
     return f"""<!doctype html>
 <html lang="zh-Hant">
 <head>
@@ -132,6 +238,8 @@ def page(message=""):
 <section>
   <h2>\u6700\u65b0\u6230\u5831</h2>
   <a href="{report_link}">\u958b\u555f539\u6700\u65b0\u5f37\u5316\u6230\u5831</a>
+  <p class="muted">\u624b\u6a5f\u5efa\u7acb\uff1a{html.escape(str(version.get("mobile_built_at", "-")))} / \u6700\u65b0\u671f\u6578\uff1a{html.escape(str(version.get("latest_period", "-")))} / {html.escape(str(version.get("latest_draw_date", "-")))}</p>
+  <p class="muted">\u5373\u6642\u6230\u5831\u7db2\u5740\uff1a{html.escape(urls["report_url"])}</p>
 </section>
 <section>
   <h2>\u7acb\u5373\u66f4\u65b0\u8207\u91cd\u65b0\u904b\u7b97</h2>
@@ -200,13 +308,39 @@ class Handler(BaseHTTPRequestHandler):
             icon = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="72" fill="#111827"/><circle cx="256" cy="256" r="174" fill="#f8fafc"/><text x="256" y="300" text-anchor="middle" font-family="Arial" font-size="150" font-weight="700" fill="#b91c1c">539</text></svg>"""
             self.send_bytes(icon.encode("utf-8"), "image/svg+xml")
             return
-        if parsed.path == "/report" and REPORT_PATH.exists():
-            self.send_bytes(REPORT_PATH.read_bytes())
+        site_file = self.resolve_site_file(parsed.path)
+        if site_file:
+            content_type = mimetypes.guess_type(str(site_file))[0] or "application/octet-stream"
+            if content_type.startswith("text/") or site_file.suffix in {".json", ".js", ".webmanifest", ".svg"}:
+                content_type += "; charset=utf-8"
+            self.send_bytes(site_file.read_bytes(), content_type)
+            return
+        report_path = current_report_path()
+        if parsed.path == "/report" and report_path.exists():
+            self.send_bytes(report_path.read_bytes())
             return
         if parsed.path == "/api/status":
             self.send_bytes(json.dumps(RUN_STATE).encode("utf-8"), "application/json; charset=utf-8")
             return
         self.send_bytes(page().encode("utf-8"))
+
+    def resolve_site_file(self, path_text):
+        if path_text in {"/site", "/site/", "/latest", "/latest.html"}:
+            relative = "index.html"
+        elif path_text.startswith("/site/"):
+            relative = urllib.parse.unquote(path_text[len("/site/"):])
+        else:
+            return None
+        target = (SITE_DIR / relative).resolve()
+        try:
+            target.relative_to(SITE_DIR.resolve())
+        except ValueError:
+            return None
+        if target.is_dir():
+            target = target / "index.html"
+        if target.exists() and target.is_file():
+            return target
+        return None
 
     def do_POST(self):
         length = int(self.headers.get("Content-Length", "0"))
@@ -239,8 +373,13 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
+    if "--write-url" in sys.argv:
+        payload = write_mobile_entry_files()
+        print(payload["report_url"])
+        return
     token = access_token()
     address = local_ip()
+    write_mobile_entry_files()
     print(f"Mobile control: http://{address}:{PORT}/?token={token}")
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
 

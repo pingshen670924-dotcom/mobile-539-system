@@ -78,6 +78,22 @@ def load_json(path):
         return {}
 
 
+def resolved_data_freshness(analysis, health, latest):
+    freshness = analysis.get("data_freshness") or {}
+    if freshness.get("status") and freshness.get("expected_latest_date"):
+        return freshness
+    health_freshness = health.get("data_freshness") or {}
+    if health_freshness.get("status") and health_freshness.get("expected_latest_date"):
+        return health_freshness
+    health_data = health.get("data") or {}
+    latest_date = latest.get("draw_date") or health_data.get("latest_draw_date") or ""
+    return {
+        "status": health_data.get("freshness") or ("fresh" if latest_date else "unknown"),
+        "latest_date": latest_date,
+        "expected_latest_date": health_freshness.get("expected_latest_date") or latest_date,
+    }
+
+
 def latest_settled_prediction():
     if not DB_PATH.exists():
         return {}
@@ -475,11 +491,13 @@ def build_report():
     guard_audit = industrial.get("guard_policy_audit", {})
     precision_governor = industrial.get("precision_governor", {})
     weight_calibration = industrial.get("adaptive_weight_calibration", {})
+    live_precision = industrial.get("live_precision_calibration", {})
+    model_lifecycle = industrial.get("model_lifecycle", {})
     rolling_adjustment = analysis.get("failure_review", {}).get("rolling_adjustment", {})
     rolling_windows = industrial_backtest.get("rolling_windows", {})
     unlikely = industrial.get("unlikely_number_analysis", {})
     unlikely_backtest = industrial.get("unlikely_backtest", {})
-    freshness = analysis.get("data_freshness", {})
+    freshness = resolved_data_freshness(analysis, health, latest)
     release_label = "\u6b63\u5f0f\u4e3b\u63a8" if release_gate.get("status") == "official" else "\u50c5\u4f9b\u89c0\u5bdf\uff0c\u4e0d\u5217\u6b63\u5f0f\u4e3b\u63a8"
     settled_prediction = latest_settled_prediction()
     pending_prediction = latest_pending_prediction()
@@ -917,11 +935,14 @@ def build_html_report(markdown_text):
     guard_audit = industrial.get("guard_policy_audit", {})
     precision_governor = industrial.get("precision_governor", {})
     weight_calibration = industrial.get("adaptive_weight_calibration", {})
+    live_precision = industrial.get("live_precision_calibration", {})
+    model_lifecycle = industrial.get("model_lifecycle", {})
     rolling_adjustment = analysis.get("failure_review", {}).get("rolling_adjustment", {})
     rolling_windows = industrial_backtest.get("rolling_windows", {})
     unlikely = industrial.get("unlikely_number_analysis", {})
     unlikely_backtest = industrial.get("unlikely_backtest", {})
-    freshness = analysis.get("data_freshness", {})
+    freshness = resolved_data_freshness(analysis, health, latest)
+    data_is_fresh = freshness.get("status") == "fresh"
     external_risk = health.get("external_risk", "\u7121")
     audit_status = daily_audit.get("status", "\u5c1a\u672a\u7522\u751f")
     failed_checks = [
@@ -982,11 +1003,14 @@ def build_html_report(markdown_text):
             odds = probability.get("odds_1_in")
             status = pack.get("status", "released")
             reason = pack.get("withheld_reason", "")
-            status_label = {
-                "released": "\u6b63\u5f0f\u4e3b\u63a8",
-                "research_prediction": "\u4eca\u65e5\u4f5c\u6230\u9810\u6e2c\uff08\u7814\u7a76\u7d1a\uff09",
-                "withheld": "\u672a\u7522\u51fa",
-            }.get(status, status)
+            if data_is_fresh:
+                status_label = {
+                    "released": "\u6b63\u5f0f\u4e3b\u63a8",
+                    "research_prediction": "\u4eca\u65e5\u4f5c\u6230\u9810\u6e2c\uff08\u7814\u7a76\u7d1a\uff09",
+                    "withheld": "\u672a\u7522\u51fa",
+                }.get(status, status)
+            else:
+                status_label = "\u8cc7\u6599\u904e\u671f\u89c0\u5bdf\uff0c\u7981\u6b62\u6b63\u5f0f\u4e3b\u63a8"
             sub = (
                 f"\u72c0\u614b {status_label} / \u7406\u8ad6\u6a5f\u7387 {probability.get('probability')} / 1\u4e2d{odds}"
                 if odds
@@ -997,6 +1021,8 @@ def build_html_report(markdown_text):
             number_text = fmt_numbers(pack.get("numbers", [])) or "\u6263\u7559"
             gov_result = "\u901a\u904e" if gov.get("passed") else "\u672a\u901a\u904e"
             decision_reason = reason or "\u9054\u5230\u767c\u5e03\u9580\u6abb"
+            if not data_is_fresh:
+                decision_reason = "\u8cc7\u6599\u672a\u66f4\u65b0\u5230\u61c9\u6709\u65e5\u671f\uff0c\u50c5\u4fdd\u7559\u7814\u7a76\u89c0\u5bdf"
             variant_label = {
                 "dedicated": "\u5c08\u7528\u6a21\u578b",
                 "top_rank": "\u7e3d\u5206\u6392\u540d",
@@ -1029,6 +1055,19 @@ def build_html_report(markdown_text):
             f"<td>{item.get('weighted_edge')}</td><td>{item.get('multiplier')}</td>"
             "</tr>"
         )
+
+    lifecycle_rows = ""
+    for item in model_lifecycle.get("models", []):
+        lifecycle_rows += (
+            "<tr>"
+            f"<td>{item.get('label')}</td><td>{item.get('action_label')}</td>"
+            f"<td>{item.get('recent_top10_avg_hits')}</td><td>{item.get('top10_avg_hits')}</td>"
+            f"<td>{item.get('recent_edge')}</td><td>{item.get('multiplier')}</td>"
+            f"<td>{item.get('reason')}</td>"
+            "</tr>"
+        )
+    if not lifecycle_rows:
+        lifecycle_rows = "<tr><td colspan=\"7\">尚無足夠模型升降級資料</td></tr>"
 
     wheel_rows = ""
     wheel = packs.get("nine_hit_three", {})
@@ -1066,6 +1105,9 @@ def build_html_report(markdown_text):
     high_probability_items = []
     for item in candidates[:15]:
         cv = item.get("cross_validation", {})
+        profile = item.get("confidence_profile", {})
+        badges = item.get("confidence_badges") or profile.get("badges") or []
+        badge_text = "\u3001".join(badges) if badges else item.get("confidence_label", "\u4e00\u822c\u89c0\u5bdf")
         score = float(item.get("score") or 0)
         confidence = float(item.get("confidence_index") or 0)
         probability = float(item.get("model_probability_percent") or 0)
@@ -1084,11 +1126,22 @@ def build_html_report(markdown_text):
             and probability >= 16
             and passed_count >= 3
         )
-        if is_high_probability or is_watch_high:
+        is_profile_high = item.get("high_confidence") or item.get("confidence_level") in {"very_high", "high"}
+        if is_high_probability or is_watch_high or is_profile_high:
+            if item.get("confidence_level") == "very_high":
+                level_label = "\u672c\u65e5\u9ad8\u6a5f\u7387\u5f37\u8abf"
+                row_class = "hot-main hot-very-high"
+            elif item.get("confidence_level") == "high" or is_high_probability:
+                level_label = "\u9ad8\u6a5f\u7387\u9ad8\u4fe1\u5fc3"
+                row_class = "hot-main"
+            else:
+                level_label = "\u9ad8\u6a5f\u7387\u89c0\u5bdf"
+                row_class = "hot-watch"
             high_probability_items.append({
                 "item": item,
-                "level": "\u9ad8\u6a5f\u7387\u4e3b\u6a19" if is_high_probability else "\u9ad8\u6a5f\u7387\u89c0\u5bdf",
-                "class": "hot-main" if is_high_probability else "hot-watch",
+                "level": level_label,
+                "confidence_badge": badge_text,
+                "class": row_class,
             })
 
     high_probability_rows = ""
@@ -1101,6 +1154,7 @@ def build_html_report(markdown_text):
             f"<tr class=\"{row['class']}\">"
             f"<td><span class=\"hot-number\">{item.get('number'):02d}</span></td>"
             f"<td>{row['level']}</td>"
+            f"<td>{row['confidence_badge']}</td>"
             f"<td>{item.get('rank', '-')}</td>"
             f"<td>{item.get('model_probability_percent', '-')}%</td>"
             f"<td>{item.get('score', '-')}</td>"
@@ -1112,7 +1166,7 @@ def build_html_report(markdown_text):
         )
     if not high_probability_rows:
         high_probability_rows = (
-            "<tr><td colspan=\"9\">\u672c\u671f\u6c92\u6709\u865f\u78bc\u540c\u6642\u9054\u5230\u9ad8\u6a5f\u7387\u986f\u793a\u9580\u6abb\uff0c"
+            "<tr><td colspan=\"10\">\u672c\u671f\u6c92\u6709\u865f\u78bc\u540c\u6642\u9054\u5230\u9ad8\u6a5f\u7387\u986f\u793a\u9580\u6abb\uff0c"
             "\u4e0d\u786c\u6a19\u793a\u9ad8\u6a5f\u7387\u3002</td></tr>"
         )
 
@@ -1180,12 +1234,24 @@ def build_html_report(markdown_text):
         confidence = float(item.get("confidence_index") or 0)
         probability = float(item.get("model_probability_percent") or 0)
         passed_count = int(cv.get("passed_count") or 0)
-        row_class = " class=\"hot-main\"" if score >= 0.88 and confidence >= 93 and probability >= 17 and passed_count >= 5 else ""
+        profile = item.get("confidence_profile", {})
+        level = item.get("confidence_level") or profile.get("level") or "normal"
+        badges = item.get("confidence_badges") or profile.get("badges") or []
+        badge_text = "\u3001".join(badges) if badges else item.get("confidence_label", "\u4e00\u822c\u89c0\u5bdf")
+        if level == "very_high":
+            row_class = " class=\"hot-main hot-very-high\""
+        elif level == "high" or (score >= 0.84 and confidence >= 91 and probability >= 16 and passed_count >= 5):
+            row_class = " class=\"hot-main\""
+        elif level == "watch":
+            row_class = " class=\"hot-watch\""
+        else:
+            row_class = ""
         candidate_rows += (
             f"<tr{row_class}>"
             f"<td>{idx}</td><td>{item['number']:02d}</td><td>{item.get('rank', idx)}</td>"
             f"<td>{item.get('score')}</td><td>{item.get('model_probability_percent')}%</td>"
             f"<td>{item['confidence_index']}</td><td>{item['omission']}</td>"
+            f"<td>{badge_text}</td>"
             f"<td>{sources}</td><td>{cv.get('passed_count', 0)}/{cv.get('total_count', 0)} {cv.get('status', '-')}</td>"
             f"<td>{reason}</td>"
             "</tr>"
@@ -1364,6 +1430,42 @@ def build_html_report(markdown_text):
     if not rolling_number_rows:
         rolling_number_rows = "<tr><td colspan=\"3\">目前沒有達到連續落空隔離門檻的號碼。</td></tr>"
 
+    calibration_tag_labels = {
+        "recent_top5_slump_penalty": "近5期 Top5 低迷降權",
+        "top10_boundary_recovery": "Top10 邊界回補",
+        "late_band_front_pull": "11-15 名前拉",
+        "late_hit_number_recovered": "後段命中號回補",
+        "missed_actual_number_recovered": "漏抓實開號回補",
+        "missed_tail_recovered": "漏抓尾數回補",
+        "missed_zone_recovered": "漏抓區間回補",
+        "repeated_failed_number_penalty": "連續落空降權",
+        "previous_prediction_reentry_blocked": "昨日預測重入未過",
+        "repeat_gate_blocked": "連莊守門未過",
+        "winning_source_boost": "命中來源升權",
+        "losing_source_penalty": "未命中來源降權",
+        "practical_model_support": "實戰模型支撐",
+        "weak_short_signal_penalty": "短線弱訊號降權",
+    }
+
+    def fmt_calibration_tags(tags):
+        return "、".join(calibration_tag_labels.get(tag, tag) for tag in tags or [])
+
+    live_precision_rows = ""
+    for action, label, rows in [
+        ("up", "升權", live_precision.get("promotions", [])),
+        ("down", "降權", live_precision.get("demotions", [])),
+    ]:
+        for item in rows:
+            live_precision_rows += (
+                "<tr>"
+                f"<td>{label}</td><td>{int(item.get('number')):02d}</td>"
+                f"<td>{item.get('from_rank')}</td><td>{item.get('adjustment')}</td>"
+                f"<td>{fmt_calibration_tags(item.get('tags', []))}</td>"
+                "</tr>"
+            )
+    if not live_precision_rows:
+        live_precision_rows = "<tr><td colspan=\"5\">本期沒有觸發實戰校準升降權。</td></tr>"
+
     top10_promotion_rows = ""
     for item in top10_promotion.get("promotion_candidates", []):
         top10_promotion_rows += (
@@ -1423,9 +1525,11 @@ def build_html_report(markdown_text):
     verdict = audit.get("verdict", "")
     regime_messages = "\u3001".join(regime.get("messages", []))
     release_status = release_gate.get("status", "watch_only")
+    if not data_is_fresh and release_status == "official":
+        release_status = "data_stale_watch_only"
     release_label = "\u6b63\u5f0f\u4e3b\u63a8" if release_status == "official" else "\u50c5\u4f9b\u89c0\u5bdf\uff0c\u7981\u6b62\u6b63\u5f0f\u4e3b\u63a8"
     freshness_label = "\u8cc7\u6599\u5df2\u66f4\u65b0" if freshness.get("status") == "fresh" else "\u8cc7\u6599\u904e\u671f\uff0c\u7981\u6b62\u9810\u6e2c"
-    observation_note = "" if release_status == "official" else "\u672c\u5340\u70ba\u89c0\u5bdf\u5019\u9078\uff0c\u767c\u5e03\u9580\u6abb\u672a\u901a\u904e"
+    observation_note = "" if release_status == "official" else "\u672c\u5340\u70ba\u89c0\u5bdf\u5019\u9078\uff0c\u8cc7\u6599\u6216\u767c\u5e03\u9580\u6abb\u672a\u901a\u904e"
     official_status = official_status_label(official_status_code)
     pending_summary = (
         f"\u9810\u6e2c\u4f9d\u64da\u671f {pending_prediction.get('based_on_period', '\u7121')} / "
@@ -1592,6 +1696,7 @@ def build_html_report(markdown_text):
     .hotbox {{ border:2px solid #dc2626; background:#fff7ed; box-shadow:0 0 0 3px rgba(220,38,38,.08); }}
     .hotbox h2 {{ color:#991b1b; }}
     .hot-main {{ background:#fff1f2; font-weight:800; }}
+    .hot-very-high {{ outline:3px solid #dc2626; background:#fee2e2; color:#7f1d1d; }}
     .hot-watch {{ background:#fffbeb; }}
     .hot-number {{ display:inline-flex; align-items:center; justify-content:center; min-width:34px; height:34px; border:3px solid #dc2626; border-radius:999px; color:#b91c1c; font-weight:900; background:#fff; }}
     .singlebox {{ border:3px solid #991b1b; background:#fff1f2; box-shadow:0 0 0 4px rgba(153,27,27,.08); }}
@@ -1702,6 +1807,12 @@ def build_html_report(markdown_text):
       <table><thead><tr><th>\u865f\u78bc</th><th>\u672a\u547d\u4e2d\u6b21\u6578</th><th>\u8abf\u6574</th></tr></thead><tbody>{rolling_number_rows}</tbody></table>
     </section>
     <section class="band">
+      <h2>\u5be6\u6230\u6e96\u5ea6\u6821\u6e96\u5668\uff08\u76ee\u6a19 {pending_target_date}\uff09</h2>
+      <p>\u72c0\u614b\uff1a{live_precision.get('status', '-')} / \u6a21\u5f0f\uff1a{live_precision.get('mode', '-')} / \u8fd15\u671f Top5 \u5e73\u5747\uff1a{live_precision.get('recent_top5_avg', '-')} / \u8fd15\u671f Top10 \u5e73\u5747\uff1a{live_precision.get('recent_top10_avg', '-')}</p>
+      <p>\u4f5c\u7528\uff1a\u5c07\u4e0a\u671f\u672a\u547d\u4e2d\u3001\u8fd1\u671f\u6f0f\u6293\u865f\u3001Top11-15 \u904e\u5f80\u547d\u4e2d\u3001\u9023\u7e8c\u843d\u7a7a\u865f\u78bc\u5168\u90e8\u9032\u5165\u4eca\u65e5\u6392\u540d\u5347\u964d\u6b0a\u3002\u672c\u671f\u5347\u6b0a {live_precision.get('promotion_count', 0)} \u9846\uff0c\u964d\u6b0a {live_precision.get('demotion_count', 0)} \u9846\u3002</p>
+      <table><thead><tr><th>\u52d5\u4f5c</th><th>\u865f\u78bc</th><th>\u539f\u6392\u540d</th><th>\u8abf\u6574\u5e45\u5ea6</th><th>\u6821\u6e96\u539f\u56e0</th></tr></thead><tbody>{live_precision_rows}</tbody></table>
+    </section>
+    <section class="band">
       <h2>1\u4e2d1 / 5\u4e2d2 / 9\u4e2d3~5 \u6838\u5fc3\u5c08\u7528\u6a21\u578b</h2>
       <p>1\u4e2d1 \u4f7f\u7528\u7368\u96bb\u5c08\u7528\u5b88\u9580\uff1a\u5fc5\u9808\u540c\u6642\u5177\u5099\u6975\u9ad8\u5206\u6578\u3001\u6975\u9ad8\u4fe1\u5fc3\u3001\u7a69\u5b9a\u5171\u8b58\u6216\u6efe\u52d5\u5347\u6b0a\u4f86\u6e90\uff0c\u4e14\u4e0d\u80fd\u662f\u9023\u7e8c\u843d\u7a7a\u865f\u6216\u672a\u901a\u904e\u6628\u65e5\u91cd\u5165\u5b88\u9580\u865f\u3002\u4e0d\u9054\u6a19\u5c31\u6263\u7559\uff0c\u4e0d\u786c\u767c\u7368\u96bb\u3002</p>
       <p>5\u4e2d2 \u4f7f\u7528\u96c6\u4e2d\u578b\u9078\u865f\uff1a\u512a\u5148\u9ad8\u5206\u3001\u9ad8\u4fe1\u5fc3\u3001\u6392\u9664\u9023\u7e8c\u843d\u7a7a\u8207\u672a\u901a\u904e\u91cd\u5165\u5b88\u9580\u865f\uff0c\u76ee\u6a19\u662f\u63d0\u9ad8 5 \u9846\u88e1\u81f3\u5c11\u4e2d 2 \u7684\u5bc6\u5ea6\u3002</p>
@@ -1773,7 +1884,7 @@ def build_html_report(markdown_text):
     <section class="band hotbox">
       <h2>\u672c\u65e5\u9ad8\u6a5f\u7387\u91cd\u9ede\u63d0\u793a\uff08\u76ee\u6a19 {pending_target_date}\uff09</h2>
       <p>\u53ea\u5728\u5206\u6578\u3001\u4fdd\u5b88\u6a5f\u7387\u3001\u4fe1\u5fc3\u3001\u4f86\u6e90\u6a21\u578b\u8207\u4ea4\u53c9\u9a57\u8b49\u540c\u6642\u9054\u6a19\u6642\u986f\u793a\uff1b\u672a\u9054\u6a19\u4e0d\u786c\u6a19\u793a\u9ad8\u6a5f\u7387\u3002</p>
-      <table><thead><tr><th>\u865f\u78bc</th><th>\u7b49\u7d1a</th><th>\u6392\u540d</th><th>\u4fdd\u5b88\u6a5f\u7387</th><th>\u5206\u6578</th><th>\u4fe1\u5fc3</th><th>\u4ea4\u53c9\u9a57\u8b49</th><th>\u4e3b\u8981\u4f86\u6e90\u6a21\u578b</th><th>\u4e3b\u8981\u539f\u56e0 / \u98a8\u63a7</th></tr></thead><tbody>{high_probability_rows}</tbody></table>
+      <table><thead><tr><th>\u865f\u78bc</th><th>\u7b49\u7d1a</th><th>\u9ad8\u4fe1\u5fc3\u6a19\u8a18</th><th>\u6392\u540d</th><th>\u4fdd\u5b88\u6a5f\u7387</th><th>\u5206\u6578</th><th>\u4fe1\u5fc3</th><th>\u4ea4\u53c9\u9a57\u8b49</th><th>\u4e3b\u8981\u4f86\u6e90\u6a21\u578b</th><th>\u4e3b\u8981\u539f\u56e0 / \u98a8\u63a7</th></tr></thead><tbody>{high_probability_rows}</tbody></table>
     </section>
     <section class="band">
       <h2>\u81ea\u52d5\u6b0a\u91cd\u6821\u6e96\uff1a\u8fd1\u671f\u5be6\u6230\u7279\u5fb5\u8abf\u6b0a\uff08\u76ee\u6a19 {pending_target_date}\uff09</h2>
@@ -1782,6 +1893,9 @@ def build_html_report(markdown_text):
       <table><thead><tr><th>\u7279\u5fb5</th><th>Top5 \u5e73\u5747\u547d\u4e2d</th><th>Top10 \u5e73\u5747\u547d\u4e2d</th><th>Top15 \u5e73\u5747\u547d\u4e2d</th><th>\u52a0\u6b0a\u512a\u52e2</th><th>\u8abf\u6b0a\u500d\u6578</th></tr></thead><tbody>{boosted_weight_rows}</tbody></table>
       <h3>\u4eca\u65e5\u81ea\u52d5\u964d\u6b0a\u6a21\u578b</h3>
       <table><thead><tr><th>\u7279\u5fb5</th><th>Top5 \u5e73\u5747\u547d\u4e2d</th><th>Top10 \u5e73\u5747\u547d\u4e2d</th><th>Top15 \u5e73\u5747\u547d\u4e2d</th><th>\u52a0\u6b0a\u512a\u52e2</th><th>\u8abf\u6b0a\u500d\u6578</th></tr></thead><tbody>{penalized_weight_rows}</tbody></table>
+      <h3>\u6a21\u578b\u81ea\u52d5\u5347\u964d\u7d1a\u5236\u5ea6</h3>
+      <p>\u898f\u5247\uff1a\u8fd1\u671f\u62d6\u7d2f\u7684\u6a21\u578b\u964d\u7d1a\u6216\u89c0\u5bdf\u505c\u7528\uff1b\u8fd1\u671f\u8207\u9577\u671f\u5747\u6709\u512a\u52e2\u7684\u6a21\u578b\u81ea\u52d5\u5347\u7d1a\u3002</p>
+      <table><thead><tr><th>\u6a21\u578b</th><th>\u52d5\u4f5c</th><th>\u8fd1\u671f Top10</th><th>\u9577\u671f Top10</th><th>\u8fd1\u671f\u512a\u52e2</th><th>\u8abf\u6b0a\u500d\u6578</th><th>\u539f\u56e0</th></tr></thead><tbody>{lifecycle_rows}</tbody></table>
     </section>
     <section class="band">
       <h2>\u4e0b\u671f\u9810\u6e2c\u5c08\u5340\uff1a\u5de5\u696d\u7d1a\u6a21\u578b\u5be9\u8a08\uff08\u76ee\u6a19 {pending_target_date}\uff09</h2>
@@ -1851,7 +1965,7 @@ def build_html_report(markdown_text):
     </section>
     <section class="band">
       <h2>\u5019\u9078 Top 15</h2>
-      <table><thead><tr><th>#</th><th>\u865f\u78bc</th><th>\u6392\u540d</th><th>\u5206\u6578</th><th>\u4fdd\u5b88\u6a5f\u7387</th><th>\u4fe1\u5fc3</th><th>\u907a\u6f0f</th><th>\u4f86\u6e90\u6a21\u578b</th><th>\u4ea4\u53c9\u9a57\u8b49</th><th>\u7406\u7531</th></tr></thead><tbody>{candidate_rows}</tbody></table>
+      <table><thead><tr><th>#</th><th>\u865f\u78bc</th><th>\u6392\u540d</th><th>\u5206\u6578</th><th>\u4fdd\u5b88\u6a5f\u7387</th><th>\u4fe1\u5fc3</th><th>\u907a\u6f0f</th><th>\u9ad8\u4fe1\u5fc3\u6a19\u8a18</th><th>\u4f86\u6e90\u6a21\u578b</th><th>\u4ea4\u53c9\u9a57\u8b49</th><th>\u7406\u7531</th></tr></thead><tbody>{candidate_rows}</tbody></table>
     </section>
     <section class="band">
       <h2>\u4f4e\u6a5f\u7387\u66ab\u907f\u865f\u78bc\uff08\u98a8\u63a7\u89c0\u5bdf\uff09</h2>

@@ -51,6 +51,7 @@ function Run-PowerShell-Step {
   param(
     [string]$Label,
     [string]$ScriptPath,
+    [string[]]$Arguments = @(),
     [bool]$Required = $false
   )
   Write-Step $Label
@@ -58,7 +59,7 @@ function Run-PowerShell-Step {
     Write-Step "$Label skipped because the script was not found."
     return
   }
-  & "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -File $ScriptPath 2>&1 | Tee-Object -FilePath $RunLog -Append
+  & "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -File $ScriptPath @Arguments 2>&1 | Tee-Object -FilePath $RunLog -Append
   if ($LASTEXITCODE -ne 0 -and $Required) {
     throw "$Label failed."
   }
@@ -81,17 +82,80 @@ function Open-BattleReport {
   $reportName = "539" + [char]0x6700 + [char]0x65B0 + [char]0x5F37 + [char]0x5316 + [char]0x6230 + [char]0x5831 + ".html"
   $reportPath = Join-Path (Join-Path $ScriptDir "reports") $reportName
   if (Test-Path $reportPath) {
+    $visibleReport = Join-Path (Split-Path -Parent $ScriptDir) $reportName
     try {
-      Start-Process $reportPath
-      Write-Step "Battle report opened."
+      Copy-Item -LiteralPath $reportPath -Destination $visibleReport -Force
+      Write-Step "Battle report copied to package root."
     } catch {
-      Write-Step "Report was created, but automatic open was blocked."
-      Write-Step $reportPath
+      Write-Step "Battle report root copy skipped."
     }
-    return $true
+    foreach ($candidate in @($visibleReport, $reportPath)) {
+      if (-not (Test-Path -LiteralPath $candidate)) {
+        continue
+      }
+      try {
+        Start-Process -FilePath $candidate
+        Write-Step "Battle report opened."
+        return $true
+      } catch {
+      }
+      try {
+        Invoke-Item -LiteralPath $candidate
+        Write-Step "Battle report opened."
+        return $true
+      } catch {
+      }
+      try {
+        Start-Process -FilePath "explorer.exe" -ArgumentList @($candidate)
+        Write-Step "Battle report opened."
+        return $true
+      } catch {
+      }
+    }
+    Write-Step "Report was created, but automatic open was blocked."
+    Write-Step $visibleReport
+    return $false
   }
   Write-Step "Battle report file does not exist yet."
   return $false
+}
+
+function Start-MobileReportServer {
+  Write-Step "Refresh phone report link"
+  try {
+    & $Python ".\mobile_server.py" "--write-url" 2>&1 | Tee-Object -FilePath $RunLog -Append
+  } catch {
+    Write-Step "Phone report link refresh warning."
+  }
+
+  try {
+    netsh advfirewall firewall add rule name="539 Mobile Control" dir=in action=allow protocol=TCP localport=5390 profile=private *> $null
+  } catch {
+    Write-Step "Phone firewall rule refresh skipped."
+  }
+
+  $listening = $null
+  try {
+    $listening = Get-NetTCPConnection -LocalPort 5390 -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1
+  } catch {
+  }
+  if (-not $listening) {
+    try {
+      Start-Process -FilePath $Python -ArgumentList "`"$ScriptDir\mobile_server.py`"" -WorkingDirectory $ScriptDir -WindowStyle Hidden
+      Start-Sleep -Seconds 2
+      Write-Step "Phone report server started."
+    } catch {
+      Write-Step "Phone report server could not be started automatically."
+    }
+  } else {
+    Write-Step "Phone report server already running."
+  }
+
+  try {
+    & $Python ".\mobile_server.py" "--write-url" 2>&1 | Tee-Object -FilePath $RunLog -Append
+  } catch {
+    Write-Step "Phone report final link refresh warning."
+  }
 }
 
 try {
@@ -103,15 +167,20 @@ try {
     exit 0
   }
   $Python = Find-Python
+  Run-PowerShell-Step "Cleanup obsolete runtime folders" (Join-Path $ScriptDir "cleanup_obsolete_runtime.ps1") @() $false
+  Run-PowerShell-Step "Network permission repair" (Join-Path $ScriptDir "repair_network_permission.ps1") @("-NoPause") $false
+  Run-PowerShell-Step "Network permission diagnostic" (Join-Path $ScriptDir "network_permission_diagnostic.ps1") @() $false
   Run-Step "Compile check" @("-m", "py_compile", ".\update_539.py", ".\analyze_539.py", ".\battle_report.py", ".\health_check.py", ".\dashboard.py", ".\pages_build.py", ".\industrial_engine.py", ".\aerospace_engine.py", ".\research_kpi.py", ".\daily_integrity_audit.py", ".\line_push.py")
-  Run-Step "Update latest draw" @(".\update_539.py", "--latest")
+  Run-Step "Update latest draw" @(".\update_539.py", "--latest") $false
   Run-Step "Rebuild battle report" @(".\battle_report.py")
+  Run-Step "Model competition" @(".\model_competition.py") $false
   Run-Step "Rebuild dashboard" @(".\dashboard.py") $false
   Run-Step "Health check" @(".\health_check.py") $false
   Run-Step "Daily integrity audit" @(".\daily_integrity_audit.py") $false
   Run-Step "Rebuild battle report after audit" @(".\battle_report.py") $false
   Run-Step "Build phone site files" @(".\pages_build.py") $false
-  Run-PowerShell-Step "Publish phone cloud site" (Join-Path $ScriptDir "publish_free_github.ps1") $false
+  Start-MobileReportServer
+  Run-PowerShell-Step "Publish phone cloud site" (Join-Path $ScriptDir "publish_free_github.ps1") @() $false
   Run-Step "Push LINE report" @(".\line_push.py") $false
   Run-Step "File encoding check" @(".\system_file_check.py") $false
   Remove-GeneratedCaches
@@ -122,6 +191,9 @@ try {
 } catch {
   $_ | Out-File -FilePath $RunLog -Encoding utf8 -Append
   Write-Step "Main one click encountered a problem, opening the latest available battle report instead of stopping."
+  if ($Python) {
+    Start-MobileReportServer
+  }
   Open-BattleReport | Out-Null
   exit 0
 } finally {

@@ -1,4 +1,4 @@
-import argparse
+﻿import argparse
 import json
 import math
 import sqlite3
@@ -554,7 +554,7 @@ def rolling_failure_profile(db_path=DB_PATH, limit=30):
         with sqlite3.connect(db_path) as conn:
             rows = conn.execute(
                 """
-                SELECT candidates_json, actual_numbers_json
+                SELECT candidates_json, actual_numbers_json, top5_hits, top10_hits, top15_hits
                 FROM predictions_539
                 WHERE status='settled'
                 ORDER BY actual_period DESC
@@ -563,19 +563,52 @@ def rolling_failure_profile(db_path=DB_PATH, limit=30):
                 (limit,),
             ).fetchall()
     except sqlite3.OperationalError:
-        return {"sample_size": 0, "penalized_reasons": [], "boosted_reasons": [], "repeated_failed_numbers": [], "late_hit_numbers": []}
+        return {
+            "sample_size": 0,
+            "penalized_reasons": [],
+            "boosted_reasons": [],
+            "repeated_failed_numbers": [],
+            "late_hit_numbers": [],
+            "missed_actual_numbers": [],
+            "recent_performance": {},
+        }
 
     reason_stats = defaultdict(lambda: {"hit": 0, "miss": 0})
     number_misses = Counter()
+    missed_actual_numbers = Counter()
+    missed_actual_tails = Counter()
+    missed_actual_zones = Counter()
     late_hit_reasons = Counter()
     late_hit_numbers = Counter()
-    for candidates_json, actual_json in rows:
+    top5_values = []
+    top10_values = []
+    top15_values = []
+    for candidates_json, actual_json, top5_hits, top10_hits, top15_hits in rows:
         candidates = json.loads(candidates_json or "[]")
         actual = set(json.loads(actual_json or "[]"))
+        top10_numbers = {int(item.get("number")) for item in candidates[:10] if item.get("number")}
+        for number in actual - top10_numbers:
+            missed_actual_numbers[number] += 1
+            missed_actual_tails[number % 10] += 1
+            if number <= 10:
+                zone = "01-10"
+            elif number <= 20:
+                zone = "11-20"
+            elif number <= 30:
+                zone = "21-30"
+            else:
+                zone = "31-39"
+            missed_actual_zones[zone] += 1
+        if top5_hits is not None:
+            top5_values.append(int(top5_hits))
+        if top10_hits is not None:
+            top10_values.append(int(top10_hits))
+        if top15_hits is not None:
+            top15_values.append(int(top15_hits))
         for rank, item in enumerate(candidates[:15], 1):
             number = int(item.get("number"))
             hit = number in actual
-            reasons = item.get("reasons") or ["綜合模型"]
+            reasons = item.get("reasons") or ["\u7d9c\u5408\u6a21\u578b"]
             if not hit:
                 number_misses[number] += 1
             for reason in reasons:
@@ -594,13 +627,35 @@ def rolling_failure_profile(db_path=DB_PATH, limit=30):
         if late_hit_reasons.get(reason, 0) >= 2 or (stats["hit"] >= 2 and hit_rate >= 0.45):
             boosted.append({"reason": reason, "hit": stats["hit"], "miss": stats["miss"], "late_hit_count": late_hit_reasons.get(reason, 0), "hit_rate": round(hit_rate, 3)})
 
+    def avg(values, size):
+        sample = values[:size]
+        return round(sum(sample) / len(sample), 3) if sample else 0
+
+    recent_performance = {
+        "last3_top5_avg": avg(top5_values, 3),
+        "last3_top10_avg": avg(top10_values, 3),
+        "last3_top15_avg": avg(top15_values, 3),
+        "last5_top5_avg": avg(top5_values, 5),
+        "last5_top10_avg": avg(top10_values, 5),
+        "last5_top15_avg": avg(top15_values, 5),
+        "last10_top5_avg": avg(top5_values, 10),
+        "last10_top10_avg": avg(top10_values, 10),
+        "last10_top15_avg": avg(top15_values, 10),
+        "recent_slump": bool(len(top10_values) >= 5 and (avg(top10_values, 5) < 1.6 or avg(top5_values, 5) < 0.8)),
+        "critical_slump": bool(len(top10_values) >= 3 and (avg(top10_values, 3) < 1.4 or avg(top15_values, 3) < 1.8)),
+    }
+
     return {
         "sample_size": len(rows),
-        "policy": "daily_miss_review_rolls_into_next_prediction",
+        "policy": "daily_miss_review_rolls_into_next_prediction_with_slump_mode",
         "penalized_reasons": sorted(penalized, key=lambda item: (item["miss"], -item["hit"]), reverse=True)[:12],
         "boosted_reasons": sorted(boosted, key=lambda item: (item.get("late_hit_count", 0), item["hit"]), reverse=True)[:12],
         "repeated_failed_numbers": [{"number": n, "miss_count": c} for n, c in number_misses.most_common() if c >= 3][:12],
         "late_hit_numbers": [{"number": n, "late_hit_count": c} for n, c in late_hit_numbers.most_common()][:12],
+        "missed_actual_numbers": [{"number": n, "missed_count": c} for n, c in missed_actual_numbers.most_common()][:15],
+        "missed_actual_tails": [{"tail": n, "missed_count": c} for n, c in missed_actual_tails.most_common()][:10],
+        "missed_actual_zones": [{"zone": n, "missed_count": c} for n, c in missed_actual_zones.most_common()],
+        "recent_performance": recent_performance,
     }
 
 
@@ -611,18 +666,21 @@ def failure_review(db_path=DB_PATH):
     rolling_adjustment = rolling_failure_profile(db_path)
     severity = "normal"
     actions = []
-    if settled["top10_hits"] == 0:
+    recent_performance = rolling_adjustment.get("recent_performance", {})
+    if settled["top10_hits"] == 0 or recent_performance.get("critical_slump"):
         severity = "critical"
         actions = [
-            "\u964d\u4f4e\u77ed\u7dda\u71b1\u865f、\u62d6\u724c、\u76f8\u4f3c\u724c\u8207\u96d9\u751f\u724c\u6b0a\u91cd",
-            "\u63d0\u9ad8\u4e2d\u671f\u5747\u8861、\u907a\u6f0f\u88dc\u511f、\u5c3e\u6578\u5340\u9593\u8207\u5171\u73fe\u5206\u6563",
-            "\u5f37\u724c\u7d44\u52a0\u5165\u5340\u9593\u5206\u6563\u9650\u5236，\u907f\u514d\u96c6\u4e2d\u5728\u540c\u4e00\u6bb5\u8da8\u52e2",
+            "\u964d\u4f4e\u77ed\u7dda\u71b1\u865f\u3001\u62d6\u724c\u3001\u76f8\u4f3c\u724c\u8207\u96d9\u751f\u724c\u6b0a\u91cd",
+            "\u63d0\u9ad8\u4e2d\u671f\u5747\u8861\u3001\u907a\u6f0f\u88dc\u511f\u3001\u5c3e\u6578\u5340\u9593\u8207\u5171\u73fe\u5206\u6563",
+            "\u5f37\u724c\u7d44\u52a0\u5165\u5340\u9593\u5206\u6563\u9650\u5236\uff0c\u907f\u514d\u96c6\u4e2d\u5728\u540c\u4e00\u6bb5\u8da8\u52e2",
+            "\u555f\u7528\u8fd1\u671f\u5931\u6e96\u4fee\u6b63\u6a21\u5f0f\uff0c\u5c07\u5be6\u969b\u958b\u51fa\u4f46 Top10 \u6f0f\u6293\u7684\u865f\u78bc\u3001\u5c3e\u6578\u8207\u5340\u9593\u8f49\u5165\u4e0b\u671f\u88dc\u4f4d",
         ]
-    elif settled["top10_hits"] <= 1:
+    elif settled["top10_hits"] <= 1 or recent_performance.get("recent_slump"):
         severity = "warning"
         actions = [
             "\u5c0f\u5e45\u964d\u4f4e\u77ed\u7dda\u8ffd\u71b1\u6b0a\u91cd",
             "\u63d0\u9ad8\u4e2d\u671f\u8207\u5340\u9593\u5206\u6563\u6bd4\u91cd",
+            "\u555f\u7528\u8fd1\u671f Top10 \u88dc\u4f4d\uff0c\u5c07\u5f8c\u6bb5\u547d\u4e2d\u8207\u6f0f\u6293\u5be6\u958b\u865f\u78bc\u5f80\u524d\u63a8",
         ]
     return {
         "has_review": True,
@@ -1043,7 +1101,7 @@ def analyze(db_path=DB_PATH):
         industrial.setdefault("release_gate", {})["aerospace_status"] = "watch_only"
     analysis = {
         "generated_at": taipei_now().isoformat(timespec="seconds"),
-        "prediction_mode": "current_precision_stability_v35",
+        "prediction_mode": "current_precision_stability_v36_live_calibrated",
         "latest_draw": draws[-1],
         "windows": [window_summary(draws, size) for size in WINDOWS],
         "relationships": relationship_analysis(draws),
@@ -1089,7 +1147,10 @@ def main():
     save_analysis(analysis)
     print(f"\u5df2\u7522\u751f\u5206\u6790\u5831\u544a：{LATEST_MD}")
     print("\u5019\u9078 Top 10：" + " ".join(f"{x['number']:02d}" for x in analysis["candidates"][:10]))
-    print("\u53c3\u8003\u7d44\u5408 1：" + " ".join(f"{n:02d}" for n in analysis["suggested_sets"][0]))
+    if analysis["suggested_sets"]:
+        print("\u53c3\u8003\u7d44\u5408 1：" + " ".join(f"{n:02d}" for n in analysis["suggested_sets"][0]))
+    else:
+        print("\u53c3\u8003\u7d44\u5408\uff1a\u672c\u671f\u672a\u9054\u6b63\u5f0f\u767c\u5e03\u9580\u6abb\uff0c\u4e0d\u786c\u6e4a\u7522\u51fa")
 
 
 if __name__ == "__main__":
