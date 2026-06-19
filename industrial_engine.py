@@ -1656,6 +1656,7 @@ def adaptive_feature_weights(draws, review=None, rounds=360):
         "status": "evaluated",
         "method": "recent_90_and_long_walk_forward_feature_weight_calibration",
         "rounds": max((item["rounds"] for item in stats.values()), default=0),
+        "feature_report": feature_report,
         "top_boosted_features": [
             {"feature": name, **report}
             for name, report in ranked_features[:6]
@@ -1735,6 +1736,162 @@ def apply_lifecycle_weight_policy(weights, lifecycle):
             adjusted[feature] *= 0.45
     total = sum(adjusted.values()) or 1.0
     return {name: value / total for name, value in adjusted.items()}
+
+
+def apply_objective_feature_calibration(candidates, weight_calibration, review=None):
+    feature_report = weight_calibration.get("feature_report", {}) if weight_calibration else {}
+    if not feature_report:
+        return candidates, {
+            "status": "not_available",
+            "reason": "feature walk-forward report is missing",
+        }
+
+    baseline = {
+        5: DRAW_SIZE * 5 / NUMBER_MAX,
+        10: DRAW_SIZE * 10 / NUMBER_MAX,
+        15: DRAW_SIZE * 15 / NUMBER_MAX,
+    }
+    mode = slump_mode(review)
+    zero_hit_mode = zero_hit_failure_mode(review)
+    intensity = 1.28 if zero_hit_mode else 1.12 if mode == "critical" else 1.0 if mode == "warning" else 0.86
+    calibrated = []
+    promotions = []
+    demotions = []
+
+    for item in candidates:
+        row = dict(item)
+        sources = row.get("model_sources", [])
+        total_strength = 0.0
+        positive_strength = 0.0
+        negative_strength = 0.0
+        edge_sum = 0.0
+        source_edges = []
+
+        for source in sources:
+            feature = source.get("model")
+            if feature not in feature_report:
+                continue
+            report = feature_report[feature]
+            signal = float(source.get("signal", 0.0) or 0.0)
+            contribution = float(source.get("contribution", 0.0) or 0.0)
+            strength = max(0.02, signal * 0.58 + contribution * 9.0)
+            recent_edge = float(report.get("recent_weighted_edge", 0.0) or 0.0)
+            full_edge = float(report.get("full_weighted_edge", 0.0) or 0.0)
+            top5_edge = float(report.get("recent_top5_avg_hits", baseline[5]) or 0.0) - baseline[5]
+            top10_edge = float(report.get("recent_top10_avg_hits", baseline[10]) or 0.0) - baseline[10]
+            objective_edge = recent_edge * 0.46 + full_edge * 0.22 + top5_edge * 0.18 + top10_edge * 0.14
+            total_strength += strength
+            edge_sum += objective_edge * strength
+            if objective_edge > 0:
+                positive_strength += strength
+            else:
+                negative_strength += strength
+            source_edges.append({
+                "feature": feature,
+                "label": MODEL_SOURCE_LABELS.get(feature, feature),
+                "objective_edge": round(objective_edge, 4),
+                "recent_top5_avg_hits": report.get("recent_top5_avg_hits"),
+                "recent_top10_avg_hits": report.get("recent_top10_avg_hits"),
+                "strength": round(strength, 4),
+            })
+
+        if total_strength <= 0:
+            adjustment = -0.055
+            positive_ratio = 0.0
+            objective_edge = -0.03
+        else:
+            objective_edge = edge_sum / total_strength
+            positive_ratio = positive_strength / total_strength
+            adjustment = objective_edge * 1.85 * intensity
+            if positive_ratio < 0.34:
+                adjustment -= 0.052 * intensity
+            elif positive_ratio >= 0.72:
+                adjustment += 0.030 * intensity
+            if negative_strength > positive_strength * 1.35:
+                adjustment -= 0.030 * intensity
+
+        if row.get("repeat_guard") and not row["repeat_guard"].get("passed"):
+            adjustment = min(adjustment, -0.035)
+        if previous_guard_blocks_item(row):
+            adjustment = min(adjustment, -0.045)
+        adjustment = max(-0.18, min(0.16, adjustment))
+
+        base_score = float(row.get("score", 0.0) or 0.0)
+        new_score = max(0.0, min(1.0, base_score + adjustment))
+        objective_index = 50 + max(0.0, min(1.0, (objective_edge + 0.08) / 0.18)) * 49
+        blended_confidence = (50 + new_score * 45) * 0.72 + objective_index * 0.28
+        row["score"] = round(new_score, 4)
+        row["confidence_index"] = round(max(50.0, min(99.0, blended_confidence)), 1)
+        row["objective_feature_calibration"] = {
+            "status": "evaluated",
+            "objective_edge": round(objective_edge, 4),
+            "positive_source_ratio": round(positive_ratio, 3),
+            "positive_strength": round(positive_strength, 4),
+            "negative_strength": round(negative_strength, 4),
+            "score_adjustment": round(adjustment, 4),
+            "mode": mode,
+            "zero_hit_mode": zero_hit_mode,
+            "top_sources": sorted(source_edges, key=lambda x: (x["objective_edge"], x["strength"]), reverse=True)[:6],
+            "weak_sources": sorted(source_edges, key=lambda x: (x["objective_edge"], -x["strength"]))[:6],
+        }
+        if adjustment >= 0.035:
+            row["reasons"] = (row.get("reasons", []) + ["實戰有效模型升權"])[:4]
+            promotions.append({
+                "number": row["number"],
+                "adjustment": round(adjustment, 4),
+                "objective_edge": round(objective_edge, 4),
+                "positive_source_ratio": round(positive_ratio, 3),
+            })
+        elif adjustment <= -0.035:
+            row["reasons"] = (row.get("reasons", []) + ["實戰無效模型降權"])[:4]
+            demotions.append({
+                "number": row["number"],
+                "adjustment": round(adjustment, 4),
+                "objective_edge": round(objective_edge, 4),
+                "positive_source_ratio": round(positive_ratio, 3),
+            })
+        calibrated.append(row)
+
+    calibrated.sort(
+        key=lambda row: (
+            row.get("score", 0),
+            row.get("objective_feature_calibration", {}).get("objective_edge", -1),
+            row.get("hit_through_calibration", {}).get("posterior_hit_rate", BASE_PROBABILITY),
+            row.get("cross_validation", {}).get("passed_count", 0),
+            -row["number"],
+        ),
+        reverse=True,
+    )
+    for rank, row in enumerate(calibrated, 1):
+        row["rank"] = rank
+        probability_value = conservative_probability_percent(row["score"])
+        row["model_probability_percent"] = probability_value
+        confidence = confidence_profile(
+            row["score"],
+            row["confidence_index"],
+            probability_value,
+            row.get("model_sources", []),
+            row.get("cross_validation", {}),
+            rank,
+        )
+        row["confidence_profile"] = confidence
+        row["confidence_badges"] = confidence["badges"]
+        row["confidence_level"] = confidence["level"]
+        row["confidence_label"] = confidence["label"]
+        row["high_confidence"] = confidence["is_high_confidence"]
+
+    return calibrated, {
+        "status": "evaluated",
+        "method": "candidate_level_objective_feature_walk_forward_calibration",
+        "feature_count": len(feature_report),
+        "mode": mode,
+        "zero_hit_mode": zero_hit_mode,
+        "promotion_count": len(promotions),
+        "demotion_count": len(demotions),
+        "promotions": promotions[:12],
+        "demotions": demotions[:12],
+        "policy": "a number must be supported by features that recently beat baseline; weak feature consensus is penalized",
+    }
 
 
 def score_numbers(draws, review=None, include_dependency=True, weights_override=None):
@@ -2115,18 +2272,22 @@ def target_precision_score(item, selected=None, size=9, goal=3):
     edge_ratio = max(-1.0, min(1.0, (hit_rate - BASE_PROBABILITY) / BASE_PROBABILITY))
     zero_hit = item.get("zero_hit_recovery", {})
     zero_hit_score = float(zero_hit.get("recovery_score", 0.0) or 0.0)
+    objective = item.get("objective_feature_calibration", {})
+    objective_edge = float(objective.get("objective_edge", 0.0) or 0.0)
+    objective_score = max(0.0, min(1.0, (objective_edge + 0.08) / 0.18))
     cross = item.get("cross_validation", {})
     passed = int(cross.get("passed_count") or 0)
     total = int(cross.get("total_count") or 0) or 1
     stability = min(int(item.get("stability_count", 0) or 0), 5) / 5
     source_count = min(int(item.get("source_model_count", 0) or len(item.get("model_sources", []))), 8) / 8
     base = (
-        float(item.get("score", 0) or 0) * 0.40
-        + ((edge_ratio + 1.0) / 2.0) * 0.20
-        + zero_hit_score * 0.16
+        float(item.get("score", 0) or 0) * 0.34
+        + ((edge_ratio + 1.0) / 2.0) * 0.18
+        + objective_score * 0.18
+        + zero_hit_score * 0.14
         + (passed / total) * 0.12
-        + stability * 0.07
-        + source_count * 0.05
+        + stability * 0.08
+        + source_count * 0.06
     )
     penalty = diversity_penalty(selected, item["number"])
     zone_count = sum(1 for number in selected if zone_label(number) == zone_label(item["number"]))
@@ -2910,6 +3071,7 @@ def compute_industrial_analysis(draws, review=None):
     candidates, stability = stability_consensus(draws, base_candidates, review)
     candidates = apply_top10_boundary_promotion(candidates, review)
     candidates, precision_calibration = live_precision_calibration(candidates, review)
+    candidates, objective_feature_calibration = apply_objective_feature_calibration(candidates, weight_calibration, review)
     candidates, hit_through_calibration = apply_hit_through_calibration(draws, candidates, review)
     candidates, zero_hit_recovery = apply_zero_hit_recovery_mode(draws, candidates, review)
     candidates = apply_top10_boundary_promotion(candidates, review)
@@ -2941,7 +3103,7 @@ def compute_industrial_analysis(draws, review=None):
     unlikely = unlikely_number_analysis(draws, candidates, stability, review)
     promotion_audit = top10_promotion_audit(candidates, review)
     return {
-        "engine_version": "industrial_v8_zero_hit_recovery_coverage",
+        "engine_version": "industrial_v9_objective_feature_meta_calibration",
         "leakage_guard": True,
         "repeat_guard": repeat_guard(draws),
         "previous_prediction_guard": {
@@ -2956,6 +3118,7 @@ def compute_industrial_analysis(draws, review=None):
         "stability_consensus": stability,
         "adaptive_weight_calibration": weight_calibration,
         "live_precision_calibration": precision_calibration,
+        "objective_feature_calibration": objective_feature_calibration,
         "hit_through_calibration": hit_through_calibration,
         "zero_hit_recovery": zero_hit_recovery,
         "top10_promotion_audit": promotion_audit,
