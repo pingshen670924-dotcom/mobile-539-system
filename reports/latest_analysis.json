@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-19T23:55:29",
+  "generated_at": "2026-06-20T00:01:59",
   "prediction_mode": "current_precision_stability_v36_live_calibrated",
   "latest_draw": {
     "period": 115000149,
@@ -40249,7 +40249,7 @@
     "latest_date": "2026-06-19",
     "expected_latest_date": "2026-06-19",
     "lag_days": 0,
-    "checked_at": "2026-06-19T23:53:25"
+    "checked_at": "2026-06-19T23:58:22"
   },
   "research_kpi": {
     "status": "insufficient_samples",
