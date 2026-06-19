@@ -492,6 +492,7 @@ def build_report():
     precision_governor = industrial.get("precision_governor", {})
     weight_calibration = industrial.get("adaptive_weight_calibration", {})
     live_precision = industrial.get("live_precision_calibration", {})
+    hit_through = industrial.get("hit_through_calibration", {})
     model_lifecycle = industrial.get("model_lifecycle", {})
     rolling_adjustment = analysis.get("failure_review", {}).get("rolling_adjustment", {})
     rolling_windows = industrial_backtest.get("rolling_windows", {})
@@ -936,6 +937,7 @@ def build_html_report(markdown_text):
     precision_governor = industrial.get("precision_governor", {})
     weight_calibration = industrial.get("adaptive_weight_calibration", {})
     live_precision = industrial.get("live_precision_calibration", {})
+    hit_through = industrial.get("hit_through_calibration", {})
     model_lifecycle = industrial.get("model_lifecycle", {})
     rolling_adjustment = analysis.get("failure_review", {}).get("rolling_adjustment", {})
     rolling_windows = industrial_backtest.get("rolling_windows", {})
@@ -1466,6 +1468,33 @@ def build_html_report(markdown_text):
     if not live_precision_rows:
         live_precision_rows = "<tr><td colspan=\"5\">本期沒有觸發實戰校準升降權。</td></tr>"
 
+    hit_through_band_rows = ""
+    for band, item in (hit_through.get("rank_bands", {}) or {}).items():
+        hit_through_band_rows += (
+            "<tr>"
+            f"<td>{band}</td><td>{item.get('exposure')}</td><td>{item.get('hits')}</td>"
+            f"<td>{item.get('hit_rate')}</td><td>{item.get('edge_vs_baseline')}</td>"
+            "</tr>"
+        )
+    if not hit_through_band_rows:
+        hit_through_band_rows = "<tr><td colspan=\"5\">尚未產生命中穿透率校準資料。</td></tr>"
+
+    hit_through_rows = ""
+    for label, rows in [
+        ("升權", hit_through.get("promotions", [])),
+        ("降權", hit_through.get("demotions", [])),
+    ]:
+        for item in rows:
+            hit_through_rows += (
+                "<tr>"
+                f"<td>{label}</td><td>{int(item.get('number')):02d}</td>"
+                f"<td>{item.get('posterior_hit_rate')}</td><td>{item.get('exposure')}</td>"
+                f"<td>{item.get('adjustment')}</td>"
+                "</tr>"
+            )
+    if not hit_through_rows:
+        hit_through_rows = "<tr><td colspan=\"5\">本期沒有命中穿透率升降權資料。</td></tr>"
+
     top10_promotion_rows = ""
     for item in top10_promotion.get("promotion_candidates", []):
         top10_promotion_rows += (
@@ -1811,6 +1840,15 @@ def build_html_report(markdown_text):
       <p>\u72c0\u614b\uff1a{live_precision.get('status', '-')} / \u6a21\u5f0f\uff1a{live_precision.get('mode', '-')} / \u8fd15\u671f Top5 \u5e73\u5747\uff1a{live_precision.get('recent_top5_avg', '-')} / \u8fd15\u671f Top10 \u5e73\u5747\uff1a{live_precision.get('recent_top10_avg', '-')}</p>
       <p>\u4f5c\u7528\uff1a\u5c07\u4e0a\u671f\u672a\u547d\u4e2d\u3001\u8fd1\u671f\u6f0f\u6293\u865f\u3001Top11-15 \u904e\u5f80\u547d\u4e2d\u3001\u9023\u7e8c\u843d\u7a7a\u865f\u78bc\u5168\u90e8\u9032\u5165\u4eca\u65e5\u6392\u540d\u5347\u964d\u6b0a\u3002\u672c\u671f\u5347\u6b0a {live_precision.get('promotion_count', 0)} \u9846\uff0c\u964d\u6b0a {live_precision.get('demotion_count', 0)} \u9846\u3002</p>
       <table><thead><tr><th>\u52d5\u4f5c</th><th>\u865f\u78bc</th><th>\u539f\u6392\u540d</th><th>\u8abf\u6574\u5e45\u5ea6</th><th>\u6821\u6e96\u539f\u56e0</th></tr></thead><tbody>{live_precision_rows}</tbody></table>
+    </section>
+    <section class="band">
+      <h2>\u547d\u4e2d\u7a7f\u900f\u7387\u6821\u6e96\uff08\u6a23\u672c {hit_through.get('rounds', 0)} \u671f\uff09</h2>
+      <p>\u65b0\u589e\u908f\u8f2f\uff1a\u4e0d\u53ea\u770b\u6a21\u578b\u5206\u6578\uff0c\u6539\u6aa2\u67e5\u5404\u865f\u78bc\u904e\u53bb\u88ab\u6392\u9032 Top5 / Top10 / Top15 \u5f8c\u662f\u5426\u771f\u6b63\u7e8c\u547d\u4e2d\u3002\u7a7f\u900f\u7387\u4f4e\u65bc\u57fa\u6e96\u7684\u865f\u78bc\u6703\u964d\u6b0a\uff0c\u9ad8\u65bc\u57fa\u6e96\u7684\u865f\u78bc\u624d\u80fd\u5347\u6b0a\u3002</p>
+      <p>\u57fa\u6e96\u6a5f\u7387\uff1a{hit_through.get('baseline_probability', '-')} / \u5347\u6b0a {hit_through.get('promotion_count', 0)} \u9846 / \u964d\u6b0a {hit_through.get('demotion_count', 0)} \u9846\u3002</p>
+      <h3>\u6392\u540d\u5340\u9593\u7a7f\u900f\u7387</h3>
+      <table><thead><tr><th>\u6392\u540d\u5340\u9593</th><th>\u66dd\u96aa\u6b21\u6578</th><th>\u547d\u4e2d\u6578</th><th>\u547d\u4e2d\u7387</th><th>\u5c0d\u57fa\u6e96\u5dee\u503c</th></tr></thead><tbody>{hit_through_band_rows}</tbody></table>
+      <h3>\u672c\u671f\u7a7f\u900f\u7387\u5347\u964d\u6b0a</h3>
+      <table><thead><tr><th>\u52d5\u4f5c</th><th>\u865f\u78bc</th><th>\u5f8c\u9a57\u547d\u4e2d\u7387</th><th>\u66dd\u96aa\u6b21\u6578</th><th>\u5206\u6578\u8abf\u6574</th></tr></thead><tbody>{hit_through_rows}</tbody></table>
     </section>
     <section class="band">
       <h2>1\u4e2d1 / 5\u4e2d2 / 9\u4e2d3~5 \u6838\u5fc3\u5c08\u7528\u6a21\u578b</h2>

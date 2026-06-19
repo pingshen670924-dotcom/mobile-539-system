@@ -1222,6 +1222,203 @@ def live_precision_calibration(candidates, review=None):
     }
 
 
+def _posterior_rate(hits, exposure, prior_strength=24):
+    prior_hits = BASE_PROBABILITY * prior_strength
+    return (hits + prior_hits) / (exposure + prior_strength) if exposure + prior_strength else BASE_PROBABILITY
+
+
+def historical_hit_through_table(draws, rounds=360):
+    if len(draws) < 180:
+        return {
+            "status": "insufficient_data",
+            "rounds": 0,
+            "numbers": {},
+            "rank_bands": {},
+        }
+    start = max(140, len(draws) - rounds - 1)
+    number_stats = {
+        number: {
+            "top5_exposure": 0,
+            "top5_hits": 0,
+            "top10_exposure": 0,
+            "top10_hits": 0,
+            "top15_exposure": 0,
+            "top15_hits": 0,
+        }
+        for number in range(NUMBER_MIN, NUMBER_MAX + 1)
+    }
+    rank_bands = {
+        "1-5": {"exposure": 0, "hits": 0},
+        "6-10": {"exposure": 0, "hits": 0},
+        "11-15": {"exposure": 0, "hits": 0},
+    }
+    total = 0
+
+    for idx in range(start, len(draws) - 1):
+        train = draws[: idx + 1]
+        actual = set(draws[idx + 1]["numbers"])
+        historical_candidates, _ = score_numbers(train, None, include_dependency=False)
+        for rank, item in enumerate(historical_candidates[:15], 1):
+            number = item["number"]
+            hit = 1 if number in actual else 0
+            if rank <= 5:
+                number_stats[number]["top5_exposure"] += 1
+                number_stats[number]["top5_hits"] += hit
+                rank_bands["1-5"]["exposure"] += 1
+                rank_bands["1-5"]["hits"] += hit
+            if rank <= 10:
+                number_stats[number]["top10_exposure"] += 1
+                number_stats[number]["top10_hits"] += hit
+            if rank <= 15:
+                number_stats[number]["top15_exposure"] += 1
+                number_stats[number]["top15_hits"] += hit
+            if 6 <= rank <= 10:
+                rank_bands["6-10"]["exposure"] += 1
+                rank_bands["6-10"]["hits"] += hit
+            elif 11 <= rank <= 15:
+                rank_bands["11-15"]["exposure"] += 1
+                rank_bands["11-15"]["hits"] += hit
+        total += 1
+
+    calibrated_numbers = {}
+    for number, stat in number_stats.items():
+        top5_rate = _posterior_rate(stat["top5_hits"], stat["top5_exposure"])
+        top10_rate = _posterior_rate(stat["top10_hits"], stat["top10_exposure"])
+        top15_rate = _posterior_rate(stat["top15_hits"], stat["top15_exposure"])
+        blended = top5_rate * 0.42 + top10_rate * 0.38 + top15_rate * 0.20
+        calibrated_numbers[number] = {
+            **stat,
+            "top5_posterior_rate": round(top5_rate, 4),
+            "top10_posterior_rate": round(top10_rate, 4),
+            "top15_posterior_rate": round(top15_rate, 4),
+            "posterior_hit_rate": round(blended, 4),
+            "edge_vs_baseline": round(blended - BASE_PROBABILITY, 4),
+        }
+
+    band_report = {}
+    for band, stat in rank_bands.items():
+        exposure = stat["exposure"]
+        rate = stat["hits"] / exposure if exposure else 0.0
+        band_report[band] = {
+            **stat,
+            "hit_rate": round(rate, 4),
+            "edge_vs_baseline": round(rate - BASE_PROBABILITY, 4),
+        }
+
+    return {
+        "status": "evaluated",
+        "rounds": total,
+        "method": "number_level_hit_through_walk_forward",
+        "baseline_probability": round(BASE_PROBABILITY, 4),
+        "numbers": calibrated_numbers,
+        "rank_bands": band_report,
+    }
+
+
+def apply_hit_through_calibration(draws, candidates, review=None, rounds=360):
+    table = historical_hit_through_table(draws, rounds=rounds)
+    if table.get("status") != "evaluated":
+        return candidates, table
+    mode = slump_mode(review)
+    intensity = 1.28 if mode == "critical" else 1.12 if mode == "warning" else 0.92
+    baseline = BASE_PROBABILITY
+    adjusted = []
+    promotions = []
+    demotions = []
+
+    for item in candidates:
+        row = dict(item)
+        number = row["number"]
+        stats = table["numbers"].get(number, {})
+        exposure = (
+            stats.get("top5_exposure", 0)
+            + stats.get("top10_exposure", 0)
+            + stats.get("top15_exposure", 0)
+        )
+        reliability = min(1.0, exposure / 42)
+        hit_rate = float(stats.get("posterior_hit_rate", baseline))
+        edge = hit_rate - baseline
+        adjustment = max(-0.105, min(0.105, edge * 1.85 * intensity * max(0.35, reliability)))
+        if row.get("repeat_guard") and not row["repeat_guard"].get("passed"):
+            adjustment = min(adjustment, 0.0)
+        if previous_guard_blocks_item(row):
+            adjustment = min(adjustment, -0.035)
+
+        base_score = float(row.get("score", 0) or 0)
+        new_score = max(0.0, min(1.0, base_score + adjustment))
+        evidence_index = 50 + max(0.0, min(1.0, (hit_rate - 0.075) / 0.13)) * 49
+        blended_confidence = (50 + new_score * 49) * 0.72 + evidence_index * 0.28
+        row["score"] = round(new_score, 4)
+        row["confidence_index"] = round(max(50.0, min(99.0, blended_confidence)), 1)
+        row["hit_through_calibration"] = {
+            "status": "evaluated",
+            "posterior_hit_rate": round(hit_rate, 4),
+            "baseline_probability": round(baseline, 4),
+            "edge_vs_baseline": round(edge, 4),
+            "exposure": exposure,
+            "reliability": round(reliability, 3),
+            "score_adjustment": round(adjustment, 4),
+            "mode": mode,
+        }
+        if adjustment >= 0.035:
+            row["reasons"] = (row.get("reasons", []) + ["實戰命中穿透率升權"])[:4]
+            promotions.append({
+                "number": number,
+                "adjustment": round(adjustment, 4),
+                "posterior_hit_rate": round(hit_rate, 4),
+                "exposure": exposure,
+            })
+        elif adjustment <= -0.035:
+            row["reasons"] = (row.get("reasons", []) + ["實戰命中穿透率降權"])[:4]
+            demotions.append({
+                "number": number,
+                "adjustment": round(adjustment, 4),
+                "posterior_hit_rate": round(hit_rate, 4),
+                "exposure": exposure,
+            })
+        adjusted.append(row)
+
+    adjusted.sort(
+        key=lambda row: (
+            row.get("score", 0),
+            row.get("hit_through_calibration", {}).get("posterior_hit_rate", BASE_PROBABILITY),
+            row.get("stability_count", 0),
+            row.get("cross_validation", {}).get("passed_count", 0),
+            -row["number"],
+        ),
+        reverse=True,
+    )
+    for rank, row in enumerate(adjusted, 1):
+        row["rank"] = rank
+        probability_value = conservative_probability_percent(row["score"])
+        row["model_probability_percent"] = probability_value
+        confidence = confidence_profile(
+            row["score"],
+            row["confidence_index"],
+            probability_value,
+            row.get("model_sources", []),
+            row.get("cross_validation", {}),
+            rank,
+        )
+        row["confidence_profile"] = confidence
+        row["confidence_badges"] = confidence["badges"]
+        row["confidence_level"] = confidence["level"]
+        row["confidence_label"] = confidence["label"]
+        row["high_confidence"] = confidence["is_high_confidence"]
+
+    return adjusted, {
+        "status": "evaluated",
+        "method": "hit_through_calibration_after_live_precision",
+        "rounds": table.get("rounds", 0),
+        "rank_bands": table.get("rank_bands", {}),
+        "promotion_count": len(promotions),
+        "demotion_count": len(demotions),
+        "promotions": promotions[:12],
+        "demotions": demotions[:12],
+        "baseline_probability": round(BASE_PROBABILITY, 4),
+    }
+
+
 def adaptive_feature_weights(draws, review=None, rounds=360):
     base_weights = industrial_weights(review)
     if len(draws) < 160:
@@ -1772,8 +1969,70 @@ def stability_group(candidates, size, review=None):
     return sorted(selected)
 
 
+def target_precision_score(item, selected=None, size=9, goal=3):
+    selected = selected or []
+    hit = item.get("hit_through_calibration", {})
+    hit_rate = float(hit.get("posterior_hit_rate", BASE_PROBABILITY))
+    edge_ratio = max(-1.0, min(1.0, (hit_rate - BASE_PROBABILITY) / BASE_PROBABILITY))
+    cross = item.get("cross_validation", {})
+    passed = int(cross.get("passed_count") or 0)
+    total = int(cross.get("total_count") or 0) or 1
+    stability = min(int(item.get("stability_count", 0) or 0), 5) / 5
+    source_count = min(int(item.get("source_model_count", 0) or len(item.get("model_sources", []))), 8) / 8
+    base = (
+        float(item.get("score", 0) or 0) * 0.46
+        + ((edge_ratio + 1.0) / 2.0) * 0.22
+        + (passed / total) * 0.14
+        + stability * 0.10
+        + source_count * 0.08
+    )
+    penalty = diversity_penalty(selected, item["number"])
+    zone_count = sum(1 for number in selected if zone_label(number) == zone_label(item["number"]))
+    tail_count = sum(1 for number in selected if number % 10 == item["number"] % 10)
+    if size <= 5:
+        penalty += max(0, zone_count - 1) * 0.075
+        penalty += max(0, tail_count) * 0.055
+    else:
+        penalty += max(0, zone_count - 2) * 0.055
+        penalty += max(0, tail_count - 1) * 0.040
+    if item.get("repeat_guard") and not item["repeat_guard"].get("passed"):
+        penalty += 0.18
+    if previous_guard_blocks_item(item):
+        penalty += 0.22
+    if goal >= 3 and zone_count == 0:
+        base += 0.020
+    return base - penalty
+
+
+def target_precision_group(candidates, size, goal, review=None):
+    failed = failed_number_set(review)
+    pool = [
+        item for item in candidates[:30]
+        if item["number"] not in failed
+        and not previous_guard_blocks_item(item)
+    ]
+    if not pool:
+        return []
+    selected = []
+    while len(selected) < size and pool:
+        best = max(
+            pool,
+            key=lambda item: (
+                target_precision_score(item, selected, size=size, goal=goal),
+                item.get("score", 0),
+                item.get("hit_through_calibration", {}).get("posterior_hit_rate", BASE_PROBABILITY),
+                -item["number"],
+            ),
+        )
+        selected.append(best["number"])
+        pool.remove(best)
+    return sorted(selected)
+
+
 def group_by_variant(key, candidates, review=None, variant=None):
     if key == "strong_single":
+        if variant == "target_precision":
+            return target_precision_group(candidates, 1, 1, review)
         if variant == "single_precision":
             return single_precision_group(candidates, review)
         if variant == "top_rank":
@@ -1782,18 +2041,29 @@ def group_by_variant(key, candidates, review=None, variant=None):
             return stability_group(candidates, 1, review)
         return strong_single_group(candidates, review)
     if key == "five_hit_two":
+        if variant == "target_precision":
+            return target_precision_group(candidates, 5, 2, review)
+        if variant == "dedicated":
+            return five_hit_two_group(candidates, review)
         if variant == "top_rank":
             return top_rank_group(candidates, 5, review)
         if variant == "stability":
             return stability_group(candidates, 5, review)
-        return five_hit_two_group(candidates, review)
+        return target_precision_group(candidates, 5, 2, review)
     if key == "nine_hit_three":
+        if variant == "target_precision":
+            return target_precision_group(candidates, 9, 3, review)
+        if variant == "dedicated":
+            return nine_hit_three_group(candidates, review)
         if variant == "top_rank":
             return top_rank_group(candidates, 9, review)
         if variant == "stability":
             return stability_group(candidates, 9, review)
-        return nine_hit_three_group(candidates, review)
+        return target_precision_group(candidates, 9, 3, review)
     size_by_key = {"two_hit_one": 2, "three_hit_one": 3}
+    goal_by_key = {"two_hit_one": 1, "three_hit_one": 1}
+    if variant == "target_precision":
+        return target_precision_group(candidates, size_by_key.get(key, 5), goal_by_key.get(key, 1), review)
     return optimized_group(candidates, size_by_key.get(key, 5), review)
 
 
@@ -1943,9 +2213,11 @@ def pack_recent_governance(draws, rounds=360):
         "nine_hit_three": {"size": 9, "goal": 3, "min_pass_rate": 0.12, "min_avg_hits": 1.16},
     }
     pack_variants = {
-        "strong_single": ["single_precision", "dedicated", "top_rank", "stability"],
-        "five_hit_two": ["dedicated", "top_rank", "stability"],
-        "nine_hit_three": ["dedicated", "top_rank", "stability"],
+        "strong_single": ["target_precision", "single_precision", "dedicated", "top_rank", "stability"],
+        "two_hit_one": ["target_precision", "dedicated"],
+        "three_hit_one": ["target_precision", "dedicated"],
+        "five_hit_two": ["target_precision", "dedicated", "top_rank", "stability"],
+        "nine_hit_three": ["target_precision", "dedicated", "top_rank", "stability"],
     }
     start = max(120, len(draws) - rounds - 1)
     stats = {
@@ -2496,6 +2768,7 @@ def compute_industrial_analysis(draws, review=None):
     candidates, stability = stability_consensus(draws, base_candidates, review)
     candidates = apply_top10_boundary_promotion(candidates, review)
     candidates, precision_calibration = live_precision_calibration(candidates, review)
+    candidates, hit_through_calibration = apply_hit_through_calibration(draws, candidates, review)
     candidates = apply_top10_boundary_promotion(candidates, review)
     pack_governance = pack_recent_governance(draws)
     packs = strong_packs(candidates, review, pack_governance)
@@ -2525,7 +2798,7 @@ def compute_industrial_analysis(draws, review=None):
     unlikely = unlikely_number_analysis(draws, candidates, stability, review)
     promotion_audit = top10_promotion_audit(candidates, review)
     return {
-        "engine_version": "industrial_v6_precision_governor_strict_release",
+        "engine_version": "industrial_v7_hit_through_target_pack_optimizer",
         "leakage_guard": True,
         "repeat_guard": repeat_guard(draws),
         "previous_prediction_guard": {
@@ -2540,6 +2813,7 @@ def compute_industrial_analysis(draws, review=None):
         "stability_consensus": stability,
         "adaptive_weight_calibration": weight_calibration,
         "live_precision_calibration": precision_calibration,
+        "hit_through_calibration": hit_through_calibration,
         "top10_promotion_audit": promotion_audit,
         "dependency_analysis": {
             "method": "three_fold_conditional_lift_with_fdr",
