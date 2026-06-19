@@ -1419,6 +1419,145 @@ def apply_hit_through_calibration(draws, candidates, review=None, rounds=360):
     }
 
 
+def zero_hit_failure_mode(review):
+    if not review or not review.get("has_review"):
+        return False
+    settled = review.get("last_settled", {})
+    return int(settled.get("top15_hits") or 0) == 0
+
+
+def zero_hit_recovery_scores(draws, review=None):
+    if not zero_hit_failure_mode(review):
+        return {number: 0.0 for number in range(NUMBER_MIN, NUMBER_MAX + 1)}
+    latest_numbers = set(draws[-1]["numbers"])
+    latest_tails = Counter(number % 10 for number in latest_numbers)
+    latest_zones = Counter(zone_label(number) for number in latest_numbers)
+    omissions = omission(draws)
+    omission_norm = normalize({number: math.log1p(omissions[number]) for number in omissions})
+    transition_score = transition_scores(draws)[0]
+    shape_score = shape_follow_scores(draws)
+    previous_failed = failed_number_set(review)
+    previous_top15 = previous_prediction_set(review)
+    repeat_policy = repeat_guard(draws)
+    values = {}
+
+    for number in range(NUMBER_MIN, NUMBER_MAX + 1):
+        score = 0.0
+        if latest_tails.get(number % 10, 0):
+            score += 0.24 + min(0.16, latest_tails[number % 10] * 0.06)
+        if latest_zones.get(zone_label(number), 0):
+            score += 0.10 + min(0.12, latest_zones[zone_label(number)] * 0.025)
+        if any(abs(number - anchor) == 1 for anchor in latest_numbers):
+            score += 0.20
+        elif any(abs(number - anchor) == 2 for anchor in latest_numbers):
+            score += 0.13
+        score += transition_score.get(number, 0.0) * 0.20
+        score += shape_score.get(number, 0.0) * 0.14
+        score += omission_norm.get(number, 0.0) * 0.10
+        if number not in previous_top15:
+            score += 0.10
+        if number in previous_failed:
+            score -= 0.28
+        if number in latest_numbers:
+            if repeat_policy.get(number, {}).get("passed"):
+                score += 0.06
+            else:
+                score -= 0.20
+        values[number] = score
+    return normalize(values)
+
+
+def apply_zero_hit_recovery_mode(draws, candidates, review=None):
+    if not zero_hit_failure_mode(review):
+        return candidates, {
+            "status": "not_triggered",
+            "reason": "last settled prediction did not have Top15 zero hit",
+        }
+    recovery = zero_hit_recovery_scores(draws, review)
+    adjusted = []
+    promotions = []
+    demotions = []
+    previous_failed = failed_number_set(review)
+    latest_numbers = set(draws[-1]["numbers"])
+
+    for item in candidates:
+        row = dict(item)
+        number = row["number"]
+        recovery_score = recovery.get(number, 0.0)
+        adjustment = (recovery_score - 0.48) * 0.26
+        if number in previous_failed:
+            adjustment -= 0.06
+        if number in latest_numbers and row.get("repeat_guard") and not row["repeat_guard"].get("passed"):
+            adjustment = min(adjustment, -0.03)
+        if previous_guard_blocks_item(row):
+            adjustment = min(adjustment, -0.04)
+        adjustment = max(-0.16, min(0.16, adjustment))
+        base_score = float(row.get("score", 0) or 0)
+        new_score = max(0.0, min(1.0, base_score + adjustment))
+        row["score"] = round(new_score, 4)
+        row["confidence_index"] = round(max(50.0, min(99.0, 50 + new_score * 45)), 1)
+        row["zero_hit_recovery"] = {
+            "triggered": True,
+            "recovery_score": round(recovery_score, 4),
+            "score_adjustment": round(adjustment, 4),
+            "policy": "after_top15_zero_hit_switch_to_tail_neighbor_zone_drag_coverage",
+        }
+        if adjustment >= 0.035:
+            row["reasons"] = (row.get("reasons", []) + ["掛零後覆蓋升權"])[:4]
+            promotions.append({
+                "number": number,
+                "recovery_score": round(recovery_score, 4),
+                "adjustment": round(adjustment, 4),
+            })
+        elif adjustment <= -0.035:
+            row["reasons"] = (row.get("reasons", []) + ["掛零後失敗隔離"])[:4]
+            demotions.append({
+                "number": number,
+                "recovery_score": round(recovery_score, 4),
+                "adjustment": round(adjustment, 4),
+            })
+        adjusted.append(row)
+
+    adjusted.sort(
+        key=lambda row: (
+            row.get("score", 0),
+            row.get("zero_hit_recovery", {}).get("recovery_score", 0),
+            row.get("hit_through_calibration", {}).get("posterior_hit_rate", BASE_PROBABILITY),
+            row.get("stability_count", 0),
+            -row["number"],
+        ),
+        reverse=True,
+    )
+    for rank, row in enumerate(adjusted, 1):
+        row["rank"] = rank
+        probability_value = conservative_probability_percent(row["score"])
+        row["model_probability_percent"] = probability_value
+        confidence = confidence_profile(
+            row["score"],
+            row["confidence_index"],
+            probability_value,
+            row.get("model_sources", []),
+            row.get("cross_validation", {}),
+            rank,
+        )
+        row["confidence_profile"] = confidence
+        row["confidence_badges"] = confidence["badges"]
+        row["confidence_level"] = confidence["level"]
+        row["confidence_label"] = confidence["label"]
+        row["high_confidence"] = confidence["is_high_confidence"]
+
+    return adjusted, {
+        "status": "triggered",
+        "method": "top15_zero_hit_emergency_coverage_switch",
+        "last_actual_numbers": sorted(latest_numbers),
+        "promotion_count": len(promotions),
+        "demotion_count": len(demotions),
+        "promotions": promotions[:12],
+        "demotions": demotions[:12],
+        "policy": "do not reuse failed ranking after zero hit; rebalance by latest tails, neighbor numbers, zones, drag links, shape follow and omission",
+    }
+
+
 def adaptive_feature_weights(draws, review=None, rounds=360):
     base_weights = industrial_weights(review)
     if len(draws) < 160:
@@ -1974,17 +2113,20 @@ def target_precision_score(item, selected=None, size=9, goal=3):
     hit = item.get("hit_through_calibration", {})
     hit_rate = float(hit.get("posterior_hit_rate", BASE_PROBABILITY))
     edge_ratio = max(-1.0, min(1.0, (hit_rate - BASE_PROBABILITY) / BASE_PROBABILITY))
+    zero_hit = item.get("zero_hit_recovery", {})
+    zero_hit_score = float(zero_hit.get("recovery_score", 0.0) or 0.0)
     cross = item.get("cross_validation", {})
     passed = int(cross.get("passed_count") or 0)
     total = int(cross.get("total_count") or 0) or 1
     stability = min(int(item.get("stability_count", 0) or 0), 5) / 5
     source_count = min(int(item.get("source_model_count", 0) or len(item.get("model_sources", []))), 8) / 8
     base = (
-        float(item.get("score", 0) or 0) * 0.46
-        + ((edge_ratio + 1.0) / 2.0) * 0.22
-        + (passed / total) * 0.14
-        + stability * 0.10
-        + source_count * 0.08
+        float(item.get("score", 0) or 0) * 0.40
+        + ((edge_ratio + 1.0) / 2.0) * 0.20
+        + zero_hit_score * 0.16
+        + (passed / total) * 0.12
+        + stability * 0.07
+        + source_count * 0.05
     )
     penalty = diversity_penalty(selected, item["number"])
     zone_count = sum(1 for number in selected if zone_label(number) == zone_label(item["number"]))
@@ -2151,7 +2293,7 @@ def apply_top10_boundary_promotion(candidates, review=None):
         )
         replace_score = promoted[replace_index].get("score", 0) or 0
         item_score = item.get("score", 0) or 0
-        threshold = 0.86 if source_index < 18 else 0.82
+        threshold = 1.0
         if replace_score and item_score >= replace_score * threshold:
             promoted[replace_index], promoted[source_index] = promoted[source_index], promoted[replace_index]
     for rank, item in enumerate(promoted, 1):
@@ -2769,6 +2911,7 @@ def compute_industrial_analysis(draws, review=None):
     candidates = apply_top10_boundary_promotion(candidates, review)
     candidates, precision_calibration = live_precision_calibration(candidates, review)
     candidates, hit_through_calibration = apply_hit_through_calibration(draws, candidates, review)
+    candidates, zero_hit_recovery = apply_zero_hit_recovery_mode(draws, candidates, review)
     candidates = apply_top10_boundary_promotion(candidates, review)
     pack_governance = pack_recent_governance(draws)
     packs = strong_packs(candidates, review, pack_governance)
@@ -2798,7 +2941,7 @@ def compute_industrial_analysis(draws, review=None):
     unlikely = unlikely_number_analysis(draws, candidates, stability, review)
     promotion_audit = top10_promotion_audit(candidates, review)
     return {
-        "engine_version": "industrial_v7_hit_through_target_pack_optimizer",
+        "engine_version": "industrial_v8_zero_hit_recovery_coverage",
         "leakage_guard": True,
         "repeat_guard": repeat_guard(draws),
         "previous_prediction_guard": {
@@ -2814,6 +2957,7 @@ def compute_industrial_analysis(draws, review=None):
         "adaptive_weight_calibration": weight_calibration,
         "live_precision_calibration": precision_calibration,
         "hit_through_calibration": hit_through_calibration,
+        "zero_hit_recovery": zero_hit_recovery,
         "top10_promotion_audit": promotion_audit,
         "dependency_analysis": {
             "method": "three_fold_conditional_lift_with_fdr",

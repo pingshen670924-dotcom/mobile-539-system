@@ -4,39 +4,39 @@
   "target_period": 115000150,
   "target_expected_date": "2026-06-20",
   "top5": [
-    14,
-    3,
     11,
-    21,
-    38
+    3,
+    23,
+    17,
+    21
   ],
   "top10": [
-    14,
-    3,
     11,
+    3,
+    23,
+    17,
     21,
+    14,
+    35,
     38,
     19,
-    35,
-    17,
-    23,
-    34
+    9
   ],
   "top15": [
-    14,
-    3,
     11,
+    3,
+    23,
+    17,
     21,
+    14,
+    35,
     38,
     19,
-    35,
-    17,
-    23,
-    34,
-    18,
     9,
+    18,
+    34,
     32,
-    29,
+    6,
     39
   ],
   "actual_period": null,
@@ -48,7 +48,7 @@
   "top10_hit_numbers": [],
   "strong_pack_hits": {},
   "status": "pending",
-  "created_at": "2026-06-19T21:30:20",
+  "created_at": "2026-06-19T22:13:32",
   "settled_at": null,
-  "snapshot_count": 2
+  "snapshot_count": 5
 }
