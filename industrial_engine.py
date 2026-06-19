@@ -365,13 +365,26 @@ def previous_prediction_guard(number, values, review):
         values.get("freq_100", 0) >= 0.85,
         values.get("ewma_slow", 0) >= 0.85,
     ]
+    recovery_conditions = [
+        values.get("rank_error_correction", 0) >= 0.52,
+        values.get("missed_hit_recovery", 0) >= 0.52,
+        values.get("zone_coverage_recovery", 0) >= 0.56,
+        values.get("cross_consensus", 0) >= 0.62,
+    ]
     validated_dependency = values.get("validated_dependency", 0) >= 0.7
-    passed = validated_dependency and sum(strong_conditions) >= 2
+    strong_count = sum(strong_conditions)
+    recovery_count = sum(recovery_conditions)
+    passed = (
+        (validated_dependency and strong_count >= 2)
+        or recovery_count >= 2
+        or (strong_count >= 3 and values.get("cross_consensus", 0) >= 0.58)
+    )
     return {
         "passed": passed,
-        "decision": "exceptionally_strong_reentry" if passed else "blocked_previous_prediction",
+        "decision": "qualified_reentry_allowed" if passed else "soft_guard_previous_prediction",
         "validated_dependency": validated_dependency,
-        "strong_condition_count": sum(strong_conditions),
+        "strong_condition_count": strong_count,
+        "recovery_condition_count": recovery_count,
         "required_strong_conditions": 2,
     }
 
@@ -1108,8 +1121,14 @@ def live_precision_calibration(candidates, review=None):
                 adjustment -= 0.030 * slump_intensity
                 tags.append("failed_number_top10_escape")
         if guard and not guard.get("passed"):
-            adjustment -= 0.090
-            tags.append("previous_prediction_reentry_blocked")
+            recovery_count = int(guard.get("recovery_condition_count") or 0)
+            strong_count = int(guard.get("strong_condition_count") or 0)
+            if recovery_count >= 1 or strong_count >= 2 or number in late_hits or number in missed_actual:
+                adjustment -= 0.022
+                tags.append("previous_prediction_soft_guard")
+            else:
+                adjustment -= 0.060
+                tags.append("previous_prediction_reentry_blocked")
         if repeat_info and not repeat_info.get("passed"):
             adjustment -= 0.115
             tags.append("repeat_gate_blocked")
@@ -1404,10 +1423,16 @@ def score_numbers(draws, review=None, include_dependency=True, weights_override=
         raw = sum(values.get(name, 0) * weight for name, weight in weights.items())
         previous_policy = previous_prediction_guard(number, values, review)
         if previous_policy and not previous_policy["passed"]:
-            raw *= 0.03
-            reasons[number].append("\u6628\u65e5\u9810\u6e2c\u865f\u672a\u9054\u6975\u5f37\u91cd\u5165\u9580\u6abb")
+            recovery_count = int(previous_policy.get("recovery_condition_count") or 0)
+            strong_count = int(previous_policy.get("strong_condition_count") or 0)
+            if recovery_count >= 1 or strong_count >= 2:
+                raw *= 0.68 if mode == "critical" else 0.62
+                reasons[number].append("\u6628\u65e5\u9810\u6e2c號軟守門觀察")
+            else:
+                raw *= 0.42 if mode == "critical" else 0.36
+                reasons[number].append("\u6628\u65e5\u9810\u6e2c號未達重入門檻")
         elif previous_policy and previous_policy["passed"]:
-            reasons[number].append("\u6628\u65e5\u9810\u6e2c\u865f\u901a\u904e\u6975\u5f37\u91cd\u5165\u9580\u6abb")
+            reasons[number].append("\u6628\u65e5\u9810\u6e2c號通過重入驗算")
         if number in failed:
             raw *= 0.18
             reasons[number].append("\u4e0a\u671f\u5931\u6557\u6838\u5fc3\u865f\u78bc\u9694\u96e2")
@@ -1535,6 +1560,15 @@ def diversity_penalty(selected, candidate):
     return penalty
 
 
+def previous_guard_blocks_item(item):
+    guard = item.get("previous_prediction_guard")
+    if not guard or guard.get("passed"):
+        return False
+    recovery_count = int(guard.get("recovery_condition_count") or 0)
+    strong_count = int(guard.get("strong_condition_count") or 0)
+    return recovery_count == 0 and strong_count < 2
+
+
 def optimized_group(candidates, size, review=None):
     score_map = {item["number"]: item["score"] for item in candidates}
     failed = failed_number_set(review)
@@ -1559,8 +1593,7 @@ def strong_single_group(candidates, review=None):
         reasons = set(item.get("reasons", []))
         if number in repeated_failed_numbers:
             continue
-        guard = item.get("previous_prediction_guard")
-        if guard and not guard.get("passed"):
+        if previous_guard_blocks_item(item):
             continue
         score = item.get("score", 0)
         confidence = item.get("confidence_index", 0)
@@ -1585,8 +1618,7 @@ def single_precision_group(candidates, review=None):
         number = item["number"]
         if number in failed or number in repeated_failed_numbers:
             continue
-        guard = item.get("previous_prediction_guard")
-        if guard and not guard.get("passed"):
+        if previous_guard_blocks_item(item):
             continue
         reasons = set(item.get("reasons", []))
         precision_score = (
@@ -1615,7 +1647,7 @@ def five_hit_two_group(candidates, review=None):
     pool = [
         item for item in candidates[:24]
         if item["number"] not in failed
-        and not (item.get("previous_prediction_guard") and not item["previous_prediction_guard"].get("passed"))
+        and not previous_guard_blocks_item(item)
     ]
     score_map = {item["number"]: item["score"] for item in candidates}
     for item in pool:
@@ -1667,7 +1699,7 @@ def nine_hit_three_group(candidates, review=None):
     pool = [
         item["number"] for item in candidates[:24]
         if item["number"] not in failed
-        and not (item.get("previous_prediction_guard") and not item["previous_prediction_guard"].get("passed"))
+        and not previous_guard_blocks_item(item)
     ]
     selected = []
     while len(selected) < 9 and pool:
@@ -1707,8 +1739,7 @@ def top_rank_group(candidates, size, review=None):
         number = item["number"]
         if number in failed:
             continue
-        guard = item.get("previous_prediction_guard")
-        if guard and not guard.get("passed"):
+        if previous_guard_blocks_item(item):
             continue
         selected.append(number)
         if len(selected) >= size:
@@ -1733,8 +1764,7 @@ def stability_group(candidates, size, review=None):
         number = item["number"]
         if number in failed:
             continue
-        guard = item.get("previous_prediction_guard")
-        if guard and not guard.get("passed"):
+        if previous_guard_blocks_item(item):
             continue
         selected.append(number)
         if len(selected) >= size:
@@ -1774,9 +1804,21 @@ def top10_promotion_audit(candidates, review=None):
     missed_actual_numbers = {int(item.get("number")) for item in rolling.get("missed_actual_numbers", []) if item.get("number")}
     repeated_failed_numbers = {int(item.get("number")) for item in rolling.get("repeated_failed_numbers", []) if item.get("number")}
     promotions = []
+    blocked_by_repeat_guard = []
     for rank, item in enumerate(candidates[10:25], 11):
         reasons = set(item.get("reasons", []))
         if item["number"] in repeated_failed_numbers:
+            continue
+        repeat_info = item.get("repeat_guard")
+        if repeat_info and not repeat_info.get("passed"):
+            blocked_by_repeat_guard.append(
+                {
+                    "number": item["number"],
+                    "current_rank": rank,
+                    "score": item.get("score"),
+                    "reason": "latest-draw repeat did not pass repeat guard",
+                }
+            )
             continue
         should_promote = (
             bool(reasons & boosted_reasons)
@@ -1797,9 +1839,10 @@ def top10_promotion_audit(candidates, review=None):
                 }
             )
     return {
-        "policy": "promote_11_to_25_when_late_hit_missed_actual_or_stability_is_detected",
+        "policy": "promote_11_to_25_when_late_hit_missed_actual_or_stability_is_detected_and_repeat_guard_passes",
         "promotion_candidates": promotions,
         "promotion_count": len(promotions),
+        "blocked_by_repeat_guard": blocked_by_repeat_guard[:12],
     }
 
 
@@ -1816,7 +1859,7 @@ def apply_top10_boundary_promotion(candidates, review=None):
         item = promoted[source_index]
         if item["number"] in repeated_failed_numbers:
             continue
-        if item.get("previous_prediction_guard") and not item["previous_prediction_guard"].get("passed"):
+        if previous_guard_blocks_item(item):
             continue
         if item.get("repeat_guard") and not item["repeat_guard"].get("passed"):
             continue
@@ -1841,6 +1884,8 @@ def apply_top10_boundary_promotion(candidates, review=None):
         threshold = 0.86 if source_index < 18 else 0.82
         if replace_score and item_score >= replace_score * threshold:
             promoted[replace_index], promoted[source_index] = promoted[source_index], promoted[replace_index]
+    for rank, item in enumerate(promoted, 1):
+        item["rank"] = rank
     return promoted
 
 
@@ -2040,7 +2085,7 @@ def strong_packs(candidates, review=None, governance=None):
         avg_score = sum(score_map[n] for n in numbers) / len(numbers) if numbers else 0
         weak_numbers = [
             n for n in numbers
-            if candidate_map[n].get("previous_prediction_guard") and not candidate_map[n]["previous_prediction_guard"].get("passed")
+            if previous_guard_blocks_item(candidate_map[n])
         ]
         if recent_stat and not recent_stat.get("passed"):
             packs[key] = watch_pack(name, goal, numbers, score_map, "recent walk-forward pack performance did not pass official gate; output as daily research prediction")
@@ -2316,7 +2361,7 @@ def stability_consensus(draws, base_candidates, review=None):
     }
     previous_blocked = {
         item["number"] for item in base_candidates
-        if item.get("previous_prediction_guard") and not item["previous_prediction_guard"].get("passed")
+        if previous_guard_blocks_item(item)
     }
     ranked = sorted(
         range(NUMBER_MIN, NUMBER_MAX + 1),
@@ -2355,7 +2400,7 @@ def unlikely_number_analysis(draws, candidates, stability, review=None, limit=12
     latest_set = set(draws[-1]["numbers"])
     previous_blocked = {
         item["number"] for item in candidates
-        if item.get("previous_prediction_guard") and not item["previous_prediction_guard"].get("passed")
+        if previous_guard_blocks_item(item)
     }
     failed = failed_number_set(review)
     repeat_policy = repeat_guard(draws)
@@ -2451,6 +2496,7 @@ def compute_industrial_analysis(draws, review=None):
     candidates, stability = stability_consensus(draws, base_candidates, review)
     candidates = apply_top10_boundary_promotion(candidates, review)
     candidates, precision_calibration = live_precision_calibration(candidates, review)
+    candidates = apply_top10_boundary_promotion(candidates, review)
     pack_governance = pack_recent_governance(draws)
     packs = strong_packs(candidates, review, pack_governance)
     audit = industrial_backtest(draws)
@@ -2483,7 +2529,7 @@ def compute_industrial_analysis(draws, review=None):
         "leakage_guard": True,
         "repeat_guard": repeat_guard(draws),
         "previous_prediction_guard": {
-            "policy": "block_previous_top15_unless_validated_dependency_and_two_exceptional_conditions",
+            "policy": "prevent_exact_copy_but_allow_single-number_soft_reentry_when_recovery_or_cross_validation_passes",
             "previous_top15": sorted(previous),
             "reentry_passed": reentry_passed,
             "current_top10_overlap": top10_overlap,

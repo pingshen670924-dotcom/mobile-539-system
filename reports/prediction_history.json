@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-19T02:37:43",
+  "generated_at": "2026-06-19T11:09:10",
   "total_periods": 16,
   "settled_periods": 15,
   "pending_periods": 1,
@@ -24,9 +24,9 @@
         10,
         4,
         22,
+        15,
         37,
-        20,
-        15
+        31
       ],
       "top15": [
         8,
@@ -36,14 +36,14 @@
         10,
         4,
         22,
-        37,
-        20,
         15,
+        37,
         31,
+        20,
+        30,
         27,
         16,
-        34,
-        7
+        29
       ],
       "actual_period": null,
       "actual_date": null,
@@ -54,9 +54,9 @@
       "top10_hit_numbers": [],
       "strong_pack_hits": {},
       "status": "pending",
-      "created_at": "2026-06-18T21:52:57",
+      "created_at": "2026-06-19T10:59:00",
       "settled_at": null,
-      "snapshot_count": 6
+      "snapshot_count": 7
     },
     {
       "based_on_period": 115000147,
