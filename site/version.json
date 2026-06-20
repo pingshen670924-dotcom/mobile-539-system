@@ -1,8 +1,8 @@
 {
-  "version": "20260619181004",
-  "generated_at": "2026-06-20T02:09:27",
-  "mobile_built_at": "2026-06-19T18:10:04",
-  "latest_period": 115000149,
-  "latest_draw_date": "2026-06-19",
+  "version": "20260620150046",
+  "generated_at": "2026-06-20T23:00:06",
+  "mobile_built_at": "2026-06-20T15:00:46",
+  "latest_period": 115000150,
+  "latest_draw_date": "2026-06-20",
   "cache_policy": "network_first_no_store"
 }
