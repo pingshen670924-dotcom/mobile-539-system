@@ -1,4 +1,4 @@
-const CACHE="539-mobile-20260622194432";
+const CACHE="539-mobile-20260623094328";
 async function clearAllCaches(){
   const keys=await caches.keys();
   await Promise.all(keys.map(key=>caches.delete(key)));
@@ -8,5 +8,5 @@ self.addEventListener("activate",event=>{event.waitUntil(clearAllCaches().then((
 self.addEventListener("fetch",event=>{
   const req=event.request;
   if(req.method!=="GET") return;
-  event.respondWith(fetch(req,{cache:"no-store"}));
+  event.respondWith(fetch(req,{cache:"reload"}));
 });

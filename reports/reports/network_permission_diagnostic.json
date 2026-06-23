@@ -1,0 +1,47 @@
+﻿{
+    "checked_at":  "2026-06-17T16:54:44",
+    "passed":  7,
+    "failed":  1,
+    "results":  [
+                    {
+                        "name":  "TCP 443 api.taiwanlottery.com",
+                        "success":  true,
+                        "detail":  "DNS=True, TCP443=True"
+                    },
+                    {
+                        "name":  "TCP 443 www.taiwanlottery.com",
+                        "success":  true,
+                        "detail":  "DNS=True, TCP443=True"
+                    },
+                    {
+                        "name":  "TCP 443 github.com",
+                        "success":  true,
+                        "detail":  "DNS=True, TCP443=True"
+                    },
+                    {
+                        "name":  "TCP 443 pingshen670924-dotcom.github.io",
+                        "success":  true,
+                        "detail":  "DNS=True, TCP443=True"
+                    },
+                    {
+                        "name":  "Python HTTPS Taiwan Lottery",
+                        "success":  true,
+                        "detail":  "ok"
+                    },
+                    {
+                        "name":  "PowerShell HTTPS Taiwan Lottery",
+                        "success":  true,
+                        "detail":  "HTTP 200"
+                    },
+                    {
+                        "name":  "curl HTTPS Taiwan Lottery",
+                        "success":  true,
+                        "detail":  "HTTP/1.1 200 OK\r\nServer: HiNetCDN\r\nDate: Wed, 17 Jun 2026 08:54:46 GMT"
+                    },
+                    {
+                        "name":  "Codex sandbox outbound block rule",
+                        "success":  false,
+                        "detail":  "A Codex offline outbound block rule is visible. The installed Windows scheduled task can run outside this Codex sandbox, and the repair script can add normal firewall allow rules."
+                    }
+                ]
+}

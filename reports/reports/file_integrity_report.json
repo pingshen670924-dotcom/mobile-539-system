@@ -1,0 +1,665 @@
+{
+  "generated_at": "2026-06-22T11:47:00",
+  "status": "ok",
+  "checked_files": 99,
+  "failed_count": 0,
+  "warning_count": 0,
+  "files": [
+    {
+      "path": "539一鍵全自動啟動.bat",
+      "status": "ok",
+      "warnings": [],
+      "size": 153
+    },
+    {
+      "path": "aerospace_engine.py",
+      "status": "ok",
+      "warnings": [],
+      "size": 7941
+    },
+    {
+      "path": "analyze_539.py",
+      "status": "ok",
+      "warnings": [],
+      "size": 60029
+    },
+    {
+      "path": "auto_update_monitor.ps1",
+      "status": "ok",
+      "warnings": [],
+      "size": 1597
+    },
+    {
+      "path": "battle_report.py",
+      "status": "ok",
+      "warnings": [],
+      "size": 139709
+    },
+    {
+      "path": "build_tw539_release.ps1",
+      "status": "ok",
+      "warnings": [],
+      "size": 8234
+    },
+    {
+      "path": "cleanup_obsolete_runtime.ps1",
+      "status": "ok",
+      "warnings": [],
+      "size": 3523
+    },
+    {
+      "path": "cloud_entry.py",
+      "status": "ok",
+      "warnings": [],
+      "size": 1267
+    },
+    {
+      "path": "crowd_consensus.py",
+      "status": "ok",
+      "warnings": [],
+      "size": 21385
+    },
+    {
+      "path": "daily_integrity_audit.py",
+      "status": "ok",
+      "warnings": [],
+      "size": 6861
+    },
+    {
+      "path": "dashboard.py",
+      "status": "ok",
+      "warnings": [],
+      "size": 6443
+    },
+    {
+      "path": "health_check.py",
+      "status": "ok",
+      "warnings": [],
+      "size": 15233
+    },
+    {
+      "path": "industrial_engine.py",
+      "status": "ok",
+      "warnings": [],
+      "size": 142883
+    },
+    {
+      "path": "install_all_auto_tasks.ps1",
+      "status": "ok",
+      "warnings": [],
+      "size": 1132
+    },
+    {
+      "path": "install_app.ps1",
+      "status": "ok",
+      "warnings": [],
+      "size": 6226
+    },
+    {
+      "path": "install_daily_task.ps1",
+      "status": "ok",
+      "warnings": [],
+      "size": 1877
+    },
+    {
+      "path": "install_mobile_control.ps1",
+      "status": "ok",
+      "warnings": [],
+      "size": 1862
+    },
+    {
+      "path": "install_startup_folder.ps1",
+      "status": "ok",
+      "warnings": [],
+      "size": 1052
+    },
+    {
+      "path": "install_startup_task.ps1",
+      "status": "ok",
+      "warnings": [],
+      "size": 792
+    },
+    {
+      "path": "line_push.py",
+      "status": "ok",
+      "warnings": [],
+      "size": 6995
+    },
+    {
+      "path": "line_settings.example.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 130
+    },
+    {
+      "path": "main_one_click.ps1",
+      "status": "ok",
+      "warnings": [],
+      "size": 7329
+    },
+    {
+      "path": "mobile_server.py",
+      "status": "ok",
+      "warnings": [],
+      "size": 16725
+    },
+    {
+      "path": "model_competition.py",
+      "status": "ok",
+      "warnings": [],
+      "size": 14772
+    },
+    {
+      "path": "network_permission_diagnostic.ps1",
+      "status": "ok",
+      "warnings": [],
+      "size": 4552
+    },
+    {
+      "path": "pages_build.py",
+      "status": "ok",
+      "warnings": [],
+      "size": 10606
+    },
+    {
+      "path": "publish_free_github.ps1",
+      "status": "ok",
+      "warnings": [],
+      "size": 8730
+    },
+    {
+      "path": "README.md",
+      "status": "ok",
+      "warnings": [],
+      "size": 909
+    },
+    {
+      "path": "repair_network_permission.ps1",
+      "status": "ok",
+      "warnings": [],
+      "size": 2540
+    },
+    {
+      "path": "research_kpi.py",
+      "status": "ok",
+      "warnings": [],
+      "size": 3121
+    },
+    {
+      "path": "run_539_once.ps1",
+      "status": "ok",
+      "warnings": [],
+      "size": 6650
+    },
+    {
+      "path": "setup_line_push.ps1",
+      "status": "ok",
+      "warnings": [],
+      "size": 6084
+    },
+    {
+      "path": "system_file_check.py",
+      "status": "ok",
+      "warnings": [],
+      "size": 8600
+    },
+    {
+      "path": "uninstall_app.ps1",
+      "status": "ok",
+      "warnings": [],
+      "size": 1685
+    },
+    {
+      "path": "uninstall_startup_folder.ps1",
+      "status": "ok",
+      "warnings": [],
+      "size": 361
+    },
+    {
+      "path": "uninstall_startup_task.ps1",
+      "status": "ok",
+      "warnings": [],
+      "size": 336
+    },
+    {
+      "path": "update_539.py",
+      "status": "ok",
+      "warnings": [],
+      "size": 53319
+    },
+    {
+      "path": "手機戰報即時網址.txt",
+      "status": "ok",
+      "warnings": [],
+      "size": 68
+    },
+    {
+      "path": "手機戰報更新狀態.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 521
+    },
+    {
+      "path": "手機獨立版網址.txt",
+      "status": "ok",
+      "warnings": [],
+      "size": 109
+    },
+    {
+      "path": "手機雲端版網址.txt",
+      "status": "ok",
+      "warnings": [],
+      "size": 109
+    },
+    {
+      "path": "手機雲端發布狀態.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 360
+    },
+    {
+      "path": "打開最新手機版.html",
+      "status": "ok",
+      "warnings": [],
+      "size": 809
+    },
+    {
+      "path": "網路權限診斷.ps1",
+      "status": "ok",
+      "warnings": [],
+      "size": 293
+    },
+    {
+      "path": "data\\539.csv",
+      "status": "ok",
+      "warnings": [],
+      "size": 711241
+    },
+    {
+      "path": "data\\mobile_access_token.txt",
+      "status": "ok",
+      "warnings": [],
+      "size": 14
+    },
+    {
+      "path": "data\\網路人氣人工匯入.csv",
+      "status": "ok",
+      "warnings": [],
+      "size": 307
+    },
+    {
+      "path": "data\\網路大神來源清單.csv",
+      "status": "ok",
+      "warnings": [],
+      "size": 1128
+    },
+    {
+      "path": "reports\\539最新強化戰報.html",
+      "status": "ok",
+      "warnings": [],
+      "size": 94865
+    },
+    {
+      "path": "reports\\539每期預測對比.html",
+      "status": "ok",
+      "warnings": [],
+      "size": 6353
+    },
+    {
+      "path": "reports\\cleanup_obsolete_runtime.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 321
+    },
+    {
+      "path": "reports\\crowd_consensus.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 7593
+    },
+    {
+      "path": "reports\\daily_integrity_audit.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 3728
+    },
+    {
+      "path": "reports\\daily_integrity_audit.md",
+      "status": "ok",
+      "warnings": [],
+      "size": 1940
+    },
+    {
+      "path": "reports\\dashboard.html",
+      "status": "ok",
+      "warnings": [],
+      "size": 5675
+    },
+    {
+      "path": "reports\\file_integrity_report.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 14170
+    },
+    {
+      "path": "reports\\file_integrity_report.md",
+      "status": "ok",
+      "warnings": [],
+      "size": 338
+    },
+    {
+      "path": "reports\\health_status.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 6532
+    },
+    {
+      "path": "reports\\health_status.md",
+      "status": "ok",
+      "warnings": [],
+      "size": 526
+    },
+    {
+      "path": "reports\\latest_analysis.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1236391
+    },
+    {
+      "path": "reports\\latest_analysis.md",
+      "status": "ok",
+      "warnings": [],
+      "size": 6761
+    },
+    {
+      "path": "reports\\latest_battle_report.html",
+      "status": "ok",
+      "warnings": [],
+      "size": 94865
+    },
+    {
+      "path": "reports\\latest_battle_report.md",
+      "status": "ok",
+      "warnings": [],
+      "size": 23141
+    },
+    {
+      "path": "reports\\latest_battle_report.txt",
+      "status": "ok",
+      "warnings": [],
+      "size": 23141
+    },
+    {
+      "path": "reports\\line_push_status.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 152
+    },
+    {
+      "path": "reports\\model_competition.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 28661
+    },
+    {
+      "path": "reports\\model_competition.md",
+      "status": "ok",
+      "warnings": [],
+      "size": 3117
+    },
+    {
+      "path": "reports\\monthly_prediction_review.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 20657
+    },
+    {
+      "path": "reports\\network_permission_diagnostic.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 2042
+    },
+    {
+      "path": "reports\\network_permission_diagnostic.txt",
+      "status": "ok",
+      "warnings": [],
+      "size": 937
+    },
+    {
+      "path": "reports\\prediction_history.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 40640
+    },
+    {
+      "path": "site\\clear-cache.html",
+      "status": "ok",
+      "warnings": [],
+      "size": 1210
+    },
+    {
+      "path": "site\\crowd_consensus.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 8334
+    },
+    {
+      "path": "site\\health_status.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 6532
+    },
+    {
+      "path": "site\\index.html",
+      "status": "ok",
+      "warnings": [],
+      "size": 98219
+    },
+    {
+      "path": "site\\latest.html",
+      "status": "ok",
+      "warnings": [],
+      "size": 744
+    },
+    {
+      "path": "site\\latest_analysis.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1236391
+    },
+    {
+      "path": "site\\model_competition.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 28661
+    },
+    {
+      "path": "site\\prediction-history.html",
+      "status": "ok",
+      "warnings": [],
+      "size": 6353
+    },
+    {
+      "path": "site\\prediction_history.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 40640
+    },
+    {
+      "path": "site\\version.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 235
+    },
+    {
+      "path": "reports\\history\\period_115000133.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1849
+    },
+    {
+      "path": "reports\\history\\period_115000134.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1881
+    },
+    {
+      "path": "reports\\history\\period_115000135.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1871
+    },
+    {
+      "path": "reports\\history\\period_115000136.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1876
+    },
+    {
+      "path": "reports\\history\\period_115000137.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1887
+    },
+    {
+      "path": "reports\\history\\period_115000138.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1856
+    },
+    {
+      "path": "reports\\history\\period_115000139.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1826
+    },
+    {
+      "path": "reports\\history\\period_115000140.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1655
+    },
+    {
+      "path": "reports\\history\\period_115000141.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1600
+    },
+    {
+      "path": "reports\\history\\period_115000142.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1884
+    },
+    {
+      "path": "reports\\history\\period_115000143.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1865
+    },
+    {
+      "path": "reports\\history\\period_115000145.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1889
+    },
+    {
+      "path": "reports\\history\\period_115000146.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1880
+    },
+    {
+      "path": "reports\\history\\period_115000147.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1880
+    },
+    {
+      "path": "reports\\history\\period_115000148.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1865
+    },
+    {
+      "path": "reports\\history\\period_115000149.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1862
+    },
+    {
+      "path": "reports\\history\\period_115000150.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1876
+    },
+    {
+      "path": "reports\\history\\period_115000151.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 767
+    }
+  ],
+  "data_consistency": {
+    "status": "ok",
+    "csv_latest": {
+      "period": 115000150,
+      "draw_date": "2026-06-20",
+      "numbers": [
+        4,
+        11,
+        24,
+        25,
+        31
+      ]
+    },
+    "checks": [
+      {
+        "name": "analysis_matches_csv_latest_draw",
+        "status": "ok",
+        "csv_latest": {
+          "period": 115000150,
+          "draw_date": "2026-06-20",
+          "numbers": [
+            4,
+            11,
+            24,
+            25,
+            31
+          ]
+        },
+        "analysis_latest": {
+          "period": 115000150,
+          "draw_date": "2026-06-20",
+          "numbers": [
+            4,
+            11,
+            24,
+            25,
+            31
+          ]
+        }
+      },
+      {
+        "name": "health_matches_csv_latest_draw",
+        "status": "ok",
+        "csv_latest": {
+          "period": 115000150,
+          "draw_date": "2026-06-20",
+          "numbers": [
+            4,
+            11,
+            24,
+            25,
+            31
+          ]
+        },
+        "health_latest": {
+          "period": 115000150,
+          "draw_date": "2026-06-20",
+          "freshness_status": "fresh"
+        }
+      }
+    ]
+  }
+}

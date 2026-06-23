@@ -640,6 +640,21 @@ def rank_error_correction_scores(review):
         for item in rolling.get("missed_actual_zones", [])
         if item.get("zone")
     }
+    monthly_recall = {
+        int(item.get("number")): int(item.get("missed_count", 0))
+        for item in rolling.get("monthly_recall_numbers", [])
+        if item.get("number")
+    }
+    monthly_tails = {
+        int(item.get("tail")): int(item.get("missed_count", 0))
+        for item in rolling.get("monthly_recall_tails", [])
+        if item.get("tail") is not None
+    }
+    monthly_zones = {
+        str(item.get("zone")): int(item.get("missed_count", 0))
+        for item in rolling.get("monthly_recall_zones", [])
+        if item.get("zone")
+    }
     recent = rolling.get("recent_performance", {})
     slump_multiplier = 1.35 if recent.get("critical_slump") else 1.18 if recent.get("recent_slump") else 1.0
     settled = review.get("last_settled", {})
@@ -661,6 +676,8 @@ def rank_error_correction_scores(review):
             score += min(1.0, late_hits[number] / 5) * 0.85
         if number in missed_actual:
             score += min(1.0, missed_actual[number] / 5) * 0.72
+        if number in monthly_recall:
+            score += min(1.0, monthly_recall[number] / 4) * 0.54
         if number in last_top10_misses:
             score += 0.42
         if number % 10 in late_tails:
@@ -675,6 +692,10 @@ def rank_error_correction_scores(review):
             score += min(0.32, missed_actual_tails[number % 10] * 0.055)
         if zone_label(number) in missed_actual_zones:
             score += min(0.24, missed_actual_zones[zone_label(number)] * 0.035)
+        if number % 10 in monthly_tails:
+            score += min(0.22, monthly_tails[number % 10] * 0.032)
+        if zone_label(number) in monthly_zones:
+            score += min(0.18, monthly_zones[zone_label(number)] * 0.026)
         if any(1 <= abs(number - anchor) <= 2 for anchor in late_hits):
             score += 0.14
         if any(1 <= abs(number - anchor) <= 2 for anchor in missed_actual):
@@ -1059,6 +1080,9 @@ def live_precision_calibration(candidates, review=None):
     repeated_failed_numbers = {int(number) for number in repeated_failed}
     missed_tails = _count_map(rolling.get("missed_actual_tails", []), "tail", "missed_count")
     missed_zones = _label_count_map(rolling.get("missed_actual_zones", []), "zone", "missed_count")
+    monthly_recall = _count_map(rolling.get("monthly_recall_numbers", []), "number", "missed_count")
+    monthly_tails = _count_map(rolling.get("monthly_recall_tails", []), "tail", "missed_count")
+    monthly_zones = _label_count_map(rolling.get("monthly_recall_zones", []), "zone", "missed_count")
     boosted_reasons = _string_set(rolling.get("boosted_reasons", []), "reason")
     penalized_reasons = _string_set(rolling.get("penalized_reasons", []), "reason")
     slump_intensity = 1.0 if mode == "warning" else 1.35 if mode == "critical" else 0.65
@@ -1089,14 +1113,16 @@ def live_precision_calibration(candidates, review=None):
         if top5_slump and original_rank <= 5 and stability < 5 and passed < 8:
             adjustment -= 0.055 * slump_intensity
             tags.append("recent_top5_slump_penalty")
-        if top5_slump and original_rank <= 3 and number not in late_hits and number not in missed_actual:
+        if top5_slump and original_rank <= 3 and number not in late_hits and number not in missed_actual and number not in monthly_recall:
             adjustment -= 0.022 * slump_intensity
             tags.append("front_rank_overconfidence_penalty")
         if top10_slump and 6 <= original_rank <= 20:
             boundary_factor = 1.0 if original_rank <= 15 else 0.72
             adjustment += 0.024 * boundary_factor * slump_intensity
             tags.append("top10_boundary_recovery")
-        if 11 <= original_rank <= 25 and number not in repeated_failed_numbers and (number in late_hits or number in missed_actual or stability >= 4):
+        if 11 <= original_rank <= 25 and (
+            number not in repeated_failed_numbers or number in monthly_recall or number in missed_actual
+        ) and (number in late_hits or number in missed_actual or number in monthly_recall or stability >= 4):
             depth_factor = 1.0 if original_rank <= 15 else 0.68
             adjustment += 0.064 * depth_factor * slump_intensity
             tags.append("late_band_front_pull")
@@ -1107,16 +1133,29 @@ def live_precision_calibration(candidates, review=None):
         if number in missed_actual:
             adjustment += min(0.145, 0.026 * missed_actual[number]) * slump_intensity
             tags.append("missed_actual_number_recovered")
+        if number in monthly_recall:
+            adjustment += min(0.118, 0.022 * monthly_recall[number]) * slump_intensity
+            tags.append("monthly_recall_number_recovered")
         if number % 10 in missed_tails:
             adjustment += min(0.040, 0.006 * missed_tails[number % 10]) * slump_intensity
             tags.append("missed_tail_recovered")
         if zone_label(number) in missed_zones:
             adjustment += min(0.034, 0.004 * missed_zones[zone_label(number)]) * slump_intensity
             tags.append("missed_zone_recovered")
+        if number % 10 in monthly_tails:
+            adjustment += min(0.030, 0.004 * monthly_tails[number % 10]) * slump_intensity
+            tags.append("monthly_tail_recovered")
+        if zone_label(number) in monthly_zones:
+            adjustment += min(0.026, 0.0035 * monthly_zones[zone_label(number)]) * slump_intensity
+            tags.append("monthly_zone_recovered")
 
         if number in repeated_failed:
-            adjustment -= min(0.245, 0.032 * repeated_failed[number]) * (1.22 if top10_slump else 1.0)
-            tags.append("repeated_failed_number_penalty")
+            if number in late_hits or number in missed_actual or number in monthly_recall:
+                adjustment -= min(0.110, 0.014 * repeated_failed[number]) * (1.10 if top10_slump else 0.92)
+                tags.append("repeated_failed_softened_by_recovery")
+            else:
+                adjustment -= min(0.245, 0.032 * repeated_failed[number]) * (1.22 if top10_slump else 1.0)
+                tags.append("repeated_failed_number_penalty")
             if original_rank <= 10:
                 adjustment -= 0.030 * slump_intensity
                 tags.append("failed_number_top10_escape")
@@ -1227,7 +1266,45 @@ def _posterior_rate(hits, exposure, prior_strength=24):
     return (hits + prior_hits) / (exposure + prior_strength) if exposure + prior_strength else BASE_PROBABILITY
 
 
-def historical_hit_through_table(draws, rounds=360):
+def fast_hit_through_candidates(train):
+    windows = [5, 10, 20, 50, 100]
+    latest_numbers = set(train[-1]["numbers"])
+    latest_tails = Counter(number % 10 for number in latest_numbers)
+    latest_zones = Counter(zone_label(number) for number in latest_numbers)
+    recent_counts = {}
+    for window in windows:
+        counter = Counter()
+        for draw in train[-window:]:
+            counter.update(draw["numbers"])
+        recent_counts[window] = counter
+    rows = []
+    for number in range(NUMBER_MIN, NUMBER_MAX + 1):
+        omission_count = 120
+        for offset, draw in enumerate(reversed(train[-140:]), 0):
+            if number in draw["numbers"]:
+                omission_count = offset
+                break
+        score = (
+            recent_counts[5][number] * 0.095
+            + recent_counts[10][number] * 0.070
+            + recent_counts[20][number] * 0.046
+            + recent_counts[50][number] * 0.021
+            + recent_counts[100][number] * 0.010
+            + min(1.0, math.log1p(omission_count) / math.log1p(120)) * 0.105
+            + latest_tails.get(number % 10, 0) * 0.035
+            + latest_zones.get(zone_label(number), 0) * 0.025
+            + (0.052 if any(abs(number - anchor) == 1 for anchor in latest_numbers) else 0.0)
+            + (0.028 if any(abs(number - anchor) == 2 for anchor in latest_numbers) else 0.0)
+            - (0.035 if number in latest_numbers else 0.0)
+        )
+        rows.append({"number": number, "score": round(score, 6)})
+    rows.sort(key=lambda row: (row["score"], -row["number"]), reverse=True)
+    for rank, row in enumerate(rows, 1):
+        row["rank"] = rank
+    return rows
+
+
+def historical_hit_through_table(draws, rounds=220):
     if len(draws) < 180:
         return {
             "status": "insufficient_data",
@@ -1257,7 +1334,7 @@ def historical_hit_through_table(draws, rounds=360):
     for idx in range(start, len(draws) - 1):
         train = draws[: idx + 1]
         actual = set(draws[idx + 1]["numbers"])
-        historical_candidates, _ = score_numbers(train, None, include_dependency=False)
+        historical_candidates = fast_hit_through_candidates(train)
         for rank, item in enumerate(historical_candidates[:15], 1):
             number = item["number"]
             hit = 1 if number in actual else 0
@@ -1308,15 +1385,15 @@ def historical_hit_through_table(draws, rounds=360):
     return {
         "status": "evaluated",
         "rounds": total,
-        "method": "number_level_hit_through_walk_forward",
+        "method": "fast_number_level_hit_through_walk_forward",
         "baseline_probability": round(BASE_PROBABILITY, 4),
         "numbers": calibrated_numbers,
         "rank_bands": band_report,
     }
 
 
-def apply_hit_through_calibration(draws, candidates, review=None, rounds=360):
-    table = historical_hit_through_table(draws, rounds=rounds)
+def apply_hit_through_calibration(draws, candidates, review=None, rounds=220):
+    table = historical_hit_through_table(draws, rounds=min(rounds, 220))
     if table.get("status") != "evaluated":
         return candidates, table
     mode = slump_mode(review)
@@ -1361,7 +1438,7 @@ def apply_hit_through_calibration(draws, candidates, review=None, rounds=360):
             "mode": mode,
         }
         if adjustment >= 0.035:
-            row["reasons"] = (row.get("reasons", []) + ["實戰命中穿透率升權"])[:4]
+            row["reasons"] = (row.get("reasons", []) + ["\u5be6\u6230\u547d\u4e2d\u7a7f\u900f\u7387\u5347\u6b0a"])[:4]
             promotions.append({
                 "number": number,
                 "adjustment": round(adjustment, 4),
@@ -1369,7 +1446,7 @@ def apply_hit_through_calibration(draws, candidates, review=None, rounds=360):
                 "exposure": exposure,
             })
         elif adjustment <= -0.035:
-            row["reasons"] = (row.get("reasons", []) + ["實戰命中穿透率降權"])[:4]
+            row["reasons"] = (row.get("reasons", []) + ["\u5be6\u6230\u547d\u4e2d\u7a7f\u900f\u7387\u964d\u6b0a"])[:4]
             demotions.append({
                 "number": number,
                 "adjustment": round(adjustment, 4),
@@ -1503,14 +1580,14 @@ def apply_zero_hit_recovery_mode(draws, candidates, review=None):
             "policy": "after_top15_zero_hit_switch_to_tail_neighbor_zone_drag_coverage",
         }
         if adjustment >= 0.035:
-            row["reasons"] = (row.get("reasons", []) + ["掛零後覆蓋升權"])[:4]
+            row["reasons"] = (row.get("reasons", []) + ["\u639b\u96f6\u5f8c\u8986\u84cb\u5347\u6b0a"])[:4]
             promotions.append({
                 "number": number,
                 "recovery_score": round(recovery_score, 4),
                 "adjustment": round(adjustment, 4),
             })
         elif adjustment <= -0.035:
-            row["reasons"] = (row.get("reasons", []) + ["掛零後失敗隔離"])[:4]
+            row["reasons"] = (row.get("reasons", []) + ["\u639b\u96f6\u5f8c\u5931\u6557\u9694\u96e2"])[:4]
             demotions.append({
                 "number": number,
                 "recovery_score": round(recovery_score, 4),
@@ -1555,6 +1632,212 @@ def apply_zero_hit_recovery_mode(draws, candidates, review=None):
         "promotions": promotions[:12],
         "demotions": demotions[:12],
         "policy": "do not reuse failed ranking after zero hit; rebalance by latest tails, neighbor numbers, zones, drag links, shape follow and omission",
+    }
+
+
+def recall_emergency_active(review=None):
+    if not review or not review.get("has_review"):
+        return False
+    rolling = review.get("rolling_adjustment", {}) or {}
+    recent = rolling.get("recent_performance", {}) or {}
+    monthly = rolling.get("monthly_review", {}) or review.get("monthly_review", {}) or {}
+    last5_top5 = float(recent.get("last5_top5_avg", 9) or 0)
+    last5_top10 = float(recent.get("last5_top10_avg", 9) or 0)
+    late_or_missing = float(monthly.get("late_or_missing_rate", 0) or 0)
+    return bool(
+        recent.get("critical_slump")
+        or last5_top5 < 0.55
+        or last5_top10 < 1.15
+        or late_or_missing >= 0.55
+    )
+
+
+def recall_signal_maps(review=None):
+    rolling = (review or {}).get("rolling_adjustment", {}) or {}
+    return {
+        "late_numbers": _count_map(rolling.get("late_hit_numbers", []), "number", "late_hit_count"),
+        "missed_numbers": _count_map(rolling.get("missed_actual_numbers", []), "number", "missed_count"),
+        "monthly_numbers": _count_map(rolling.get("monthly_recall_numbers", []), "number", "missed_count"),
+        "repeated_failed": _count_map(rolling.get("repeated_failed_numbers", []), "number", "miss_count"),
+        "missed_tails": _count_map(rolling.get("missed_actual_tails", []), "tail", "missed_count"),
+        "monthly_tails": _count_map(rolling.get("monthly_recall_tails", []), "tail", "missed_count"),
+        "missed_zones": _label_count_map(rolling.get("missed_actual_zones", []), "zone", "missed_count"),
+        "monthly_zones": _label_count_map(rolling.get("monthly_recall_zones", []), "zone", "missed_count"),
+    }
+
+
+def recall_priority_score(item, review=None):
+    maps = recall_signal_maps(review)
+    number = int(item["number"])
+    tail = number % 10
+    zone = zone_label(number)
+    number_signal = (
+        maps["late_numbers"].get(number, 0) * 1.55
+        + maps["missed_numbers"].get(number, 0) * 1.35
+        + maps["monthly_numbers"].get(number, 0) * 1.05
+    )
+    tail_signal = maps["missed_tails"].get(tail, 0) + maps["monthly_tails"].get(tail, 0) * 0.72
+    zone_signal = maps["missed_zones"].get(zone, 0) + maps["monthly_zones"].get(zone, 0) * 0.72
+    number_score = min(1.0, number_signal / 13.0)
+    tail_score = min(1.0, tail_signal / 22.0)
+    zone_score = min(1.0, zone_signal / 42.0)
+    hit_rate = float((item.get("hit_through_calibration") or {}).get("posterior_hit_rate", BASE_PROBABILITY) or BASE_PROBABILITY)
+    hit_score = max(0.0, min(1.0, (hit_rate - 0.075) / 0.13))
+    cross = item.get("cross_validation", {})
+    cross_score = (int(cross.get("passed_count") or 0) / max(int(cross.get("total_count") or 0), 1))
+    stability_score = min(int(item.get("stability_count", 0) or 0), 5) / 5
+    base_score = float(item.get("score", 0) or 0)
+    priority = (
+        base_score * 0.34
+        + number_score * 0.26
+        + tail_score * 0.09
+        + zone_score * 0.09
+        + hit_score * 0.10
+        + cross_score * 0.07
+        + stability_score * 0.05
+    )
+    repeated_count = maps["repeated_failed"].get(number, 0)
+    if repeated_count >= 6 and number_score < 0.35:
+        priority -= min(0.18, repeated_count * 0.018)
+    if item.get("repeat_guard") and not item["repeat_guard"].get("passed"):
+        priority -= 0.22
+    if previous_guard_blocks_item(item) and number_score < 0.40:
+        priority -= 0.16
+    return max(0.0, min(1.0, priority))
+
+
+def apply_slump_recall_coverage_mode(draws, candidates, review=None):
+    if not recall_emergency_active(review):
+        return candidates, {
+            "status": "not_triggered",
+            "reason": "recent prediction maturity is not in emergency recall mode",
+        }
+    rolling = (review or {}).get("rolling_adjustment", {}) or {}
+    recent = rolling.get("recent_performance", {}) or {}
+    maps = recall_signal_maps(review)
+    adjusted = []
+    promotions = []
+    demotions = []
+    intensity = 1.42 if recent.get("critical_slump") else 1.18
+    for item in candidates:
+        row = dict(item)
+        number = int(row["number"])
+        priority = recall_priority_score(row, review)
+        adjustment = (priority - 0.50) * 0.24 * intensity
+        if row.get("rank", 99) <= 5 and priority < 0.52:
+            adjustment -= 0.035 * intensity
+        if maps["repeated_failed"].get(number, 0) >= 6 and priority < 0.55:
+            adjustment -= 0.045 * intensity
+        if number in maps["missed_numbers"] or number in maps["monthly_numbers"] or number in maps["late_numbers"]:
+            adjustment += 0.026 * intensity
+        adjustment = max(-0.17, min(0.18, adjustment))
+        base_score = float(row.get("score", 0) or 0)
+        new_score = max(0.0, min(1.0, base_score + adjustment))
+        row["score"] = round(new_score, 4)
+        row["confidence_index"] = round(max(50.0, min(99.0, 50 + new_score * 47)), 1)
+        row["slump_recall_coverage"] = {
+            "status": "triggered",
+            "priority_score": round(priority, 4),
+            "score_adjustment": round(adjustment, 4),
+            "mode": "critical" if recent.get("critical_slump") else "warning",
+        }
+        if adjustment >= 0.035:
+            row["reasons"] = (row.get("reasons", []) + ["\u4f4e\u8ff7\u53ec\u56de\u8986\u84cb"])[:4]
+            promotions.append({
+                "number": number,
+                "priority_score": round(priority, 4),
+                "adjustment": round(adjustment, 4),
+            })
+        elif adjustment <= -0.035:
+            row["reasons"] = (row.get("reasons", []) + ["\u4f4e\u8ff7\u5931\u6548\u964d\u6b0a"])[:4]
+            demotions.append({
+                "number": number,
+                "priority_score": round(priority, 4),
+                "adjustment": round(adjustment, 4),
+            })
+        adjusted.append(row)
+
+    adjusted.sort(
+        key=lambda row: (
+            row.get("score", 0),
+            row.get("slump_recall_coverage", {}).get("priority_score", 0),
+            row.get("hit_through_calibration", {}).get("posterior_hit_rate", BASE_PROBABILITY),
+            row.get("cross_validation", {}).get("passed_count", 0),
+            -row["number"],
+        ),
+        reverse=True,
+    )
+
+    priority_zones = [
+        zone for zone, _ in sorted(
+            {
+                **maps["missed_zones"],
+                **{zone: maps["missed_zones"].get(zone, 0) + maps["monthly_zones"].get(zone, 0) for zone in maps["monthly_zones"]},
+            }.items(),
+            key=lambda pair: pair[1],
+            reverse=True,
+        )
+    ]
+    coverage_swaps = []
+    for zone in priority_zones[:4]:
+        top10 = adjusted[:10]
+        if any(zone_label(item["number"]) == zone for item in top10):
+            continue
+        candidate_index = next(
+            (
+                index for index, item in enumerate(adjusted[10:30], 10)
+                if zone_label(item["number"]) == zone
+                and recall_priority_score(item, review) >= 0.46
+                and not previous_guard_blocks_item(item)
+                and not (item.get("repeat_guard") and not item["repeat_guard"].get("passed"))
+            ),
+            None,
+        )
+        if candidate_index is None:
+            continue
+        replace_index = min(
+            range(6, min(10, len(adjusted))),
+            key=lambda index: (
+                recall_priority_score(adjusted[index], review),
+                adjusted[index].get("score", 0),
+            ),
+        )
+        coverage_swaps.append({
+            "zone": zone,
+            "promoted": adjusted[candidate_index]["number"],
+            "replaced": adjusted[replace_index]["number"],
+        })
+        adjusted[replace_index], adjusted[candidate_index] = adjusted[candidate_index], adjusted[replace_index]
+
+    for rank, row in enumerate(adjusted, 1):
+        row["rank"] = rank
+        probability_value = conservative_probability_percent(row["score"])
+        row["model_probability_percent"] = probability_value
+        confidence = confidence_profile(
+            row["score"],
+            row["confidence_index"],
+            probability_value,
+            row.get("model_sources", []),
+            row.get("cross_validation", {}),
+            rank,
+        )
+        row["confidence_profile"] = confidence
+        row["confidence_badges"] = confidence["badges"]
+        row["confidence_level"] = confidence["level"]
+        row["confidence_label"] = confidence["label"]
+        row["high_confidence"] = confidence["is_high_confidence"]
+
+    return adjusted, {
+        "status": "triggered",
+        "method": "recent_slump_recall_coverage_switch",
+        "recent_top5_avg": recent.get("last5_top5_avg"),
+        "recent_top10_avg": recent.get("last5_top10_avg"),
+        "promotion_count": len(promotions),
+        "demotion_count": len(demotions),
+        "coverage_swaps": coverage_swaps,
+        "promotions": promotions[:12],
+        "demotions": demotions[:12],
+        "policy": "when recent Top5/Top10 maturity collapses, rebalance by missed numbers, missed tails, missed zones and verified recall instead of trusting stale front-rank signals",
     }
 
 
@@ -1835,7 +2118,7 @@ def apply_objective_feature_calibration(candidates, weight_calibration, review=N
             "weak_sources": sorted(source_edges, key=lambda x: (x["objective_edge"], -x["strength"]))[:6],
         }
         if adjustment >= 0.035:
-            row["reasons"] = (row.get("reasons", []) + ["實戰有效模型升權"])[:4]
+            row["reasons"] = (row.get("reasons", []) + ["\u5be6\u6230\u6709\u6548\u6a21\u578b\u5347\u6b0a"])[:4]
             promotions.append({
                 "number": row["number"],
                 "adjustment": round(adjustment, 4),
@@ -1843,7 +2126,7 @@ def apply_objective_feature_calibration(candidates, weight_calibration, review=N
                 "positive_source_ratio": round(positive_ratio, 3),
             })
         elif adjustment <= -0.035:
-            row["reasons"] = (row.get("reasons", []) + ["實戰無效模型降權"])[:4]
+            row["reasons"] = (row.get("reasons", []) + ["\u5be6\u6230\u7121\u6548\u6a21\u578b\u964d\u6b0a"])[:4]
             demotions.append({
                 "number": row["number"],
                 "adjustment": round(adjustment, 4),
@@ -1906,6 +2189,9 @@ def score_numbers(draws, review=None, include_dependency=True, weights_override=
     missed_actual_numbers = {int(item.get("number")) for item in rolling.get("missed_actual_numbers", []) if item.get("number")}
     missed_actual_tails = {int(item.get("tail")) for item in rolling.get("missed_actual_tails", []) if item.get("tail") is not None}
     missed_actual_zones = {str(item.get("zone")) for item in rolling.get("missed_actual_zones", []) if item.get("zone")}
+    monthly_recall_numbers = {int(item.get("number")) for item in rolling.get("monthly_recall_numbers", []) if item.get("number")}
+    monthly_recall_tails = {int(item.get("tail")) for item in rolling.get("monthly_recall_tails", []) if item.get("tail") is not None}
+    monthly_recall_zones = {str(item.get("zone")) for item in rolling.get("monthly_recall_zones", []) if item.get("zone")}
     mode = slump_mode(review)
     latest_set = set(draws[-1]["numbers"])
     repeat_policy = repeat_guard(draws)
@@ -1920,15 +2206,26 @@ def score_numbers(draws, review=None, include_dependency=True, weights_override=
             strong_count = int(previous_policy.get("strong_condition_count") or 0)
             if recovery_count >= 1 or strong_count >= 2:
                 raw *= 0.68 if mode == "critical" else 0.62
-                reasons[number].append("\u6628\u65e5\u9810\u6e2c號軟守門觀察")
+                reasons[number].append("\u6628\u65e5\u9810\u6e2c\u865f\u8edf\u5b88\u9580\u89c0\u5bdf")
             else:
                 raw *= 0.42 if mode == "critical" else 0.36
-                reasons[number].append("\u6628\u65e5\u9810\u6e2c號未達重入門檻")
+                reasons[number].append("\u6628\u65e5\u9810\u6e2c\u865f\u672a\u9054\u91cd\u5165\u9580\u6abb")
         elif previous_policy and previous_policy["passed"]:
-            reasons[number].append("\u6628\u65e5\u9810\u6e2c號通過重入驗算")
+            reasons[number].append("\u6628\u65e5\u9810\u6e2c\u865f\u901a\u904e\u91cd\u5165\u9a57\u7b97")
         if number in failed:
-            raw *= 0.18
-            reasons[number].append("\u4e0a\u671f\u5931\u6557\u6838\u5fc3\u865f\u78bc\u9694\u96e2")
+            reentry_signal = (
+                number in late_hit_numbers
+                or number in missed_actual_numbers
+                or values.get("rank_error_correction", 0) >= 0.58
+                or values.get("missed_hit_recovery", 0) >= 0.58
+                or values.get("zone_coverage_recovery", 0) >= 0.62
+            )
+            if reentry_signal:
+                raw *= 0.76 if mode == "critical" else 0.70
+                reasons[number].append("\u5931\u6557\u865f\u56de\u88dc\u9a57\u7b97")
+            else:
+                raw *= 0.34 if mode == "critical" else 0.30
+                reasons[number].append("\u4e0a\u671f\u5931\u6557\u6838\u5fc3\u865f\u78bc\u8edf\u9694\u96e2")
         if values["omission"] >= 0.7:
             reasons[number].append("\u907a\u6f0f\u88dc\u511f")
         if values["pair"] >= 0.7:
@@ -1989,9 +2286,15 @@ def score_numbers(draws, review=None, include_dependency=True, weights_override=
         if number in missed_actual_numbers and values["rank_error_correction"] >= 0.52:
             raw *= 1.26 if mode == "critical" else 1.18
             reasons[number].append("\u6efe\u52d5\u6aa2\u8a0e\u6f0f\u6293\u5be6\u958b\u865f\u88dc\u4f4d")
+        if number in monthly_recall_numbers and values["rank_error_correction"] >= 0.45:
+            raw *= 1.18 if mode == "critical" else 1.12
+            reasons[number].append("\u6708\u5ea6\u6f0f\u6293\u865f\u56de\u62c9")
         elif (number % 10 in missed_actual_tails or zone_label(number) in missed_actual_zones) and mode in {"warning", "critical"}:
             raw *= 1.08
             reasons[number].append("\u6efe\u52d5\u6aa2\u8a0e\u6f0f\u6293\u5c3e\u6578\u5340\u9593\u88dc\u4f4d")
+        if (number % 10 in monthly_recall_tails or zone_label(number) in monthly_recall_zones) and mode in {"warning", "critical"}:
+            raw *= 1.055
+            reasons[number].append("\u6708\u5ea6\u5c3e\u6578\u5340\u9593\u56de\u62c9")
         if reason_set & penalized_reasons:
             raw *= 0.76 if mode == "critical" else 0.8 if mode == "warning" else 0.84
             reasons[number].append("\u6efe\u52d5\u6aa2\u8a0e\u672a\u547d\u4e2d\u4f86\u6e90\u964d\u6b0a")
@@ -2062,6 +2365,55 @@ def previous_guard_blocks_item(item):
     return recovery_count == 0 and strong_count < 2
 
 
+def failed_number_reentry_allowed(item, review=None):
+    number = int(item.get("number"))
+    rolling = (review or {}).get("rolling_adjustment", {})
+    late_hit_numbers = {
+        int(row.get("number"))
+        for row in rolling.get("late_hit_numbers", [])
+        if row.get("number")
+    }
+    missed_actual_numbers = {
+        int(row.get("number"))
+        for row in rolling.get("missed_actual_numbers", [])
+        if row.get("number")
+    }
+    monthly_recall_numbers = {
+        int(row.get("number"))
+        for row in rolling.get("monthly_recall_numbers", [])
+        if row.get("number")
+    }
+    repeated_failed = {
+        int(row.get("number")): int(row.get("miss_count", 0))
+        for row in rolling.get("repeated_failed_numbers", [])
+        if row.get("number")
+    }
+    if number in missed_actual_numbers or number in late_hit_numbers or number in monthly_recall_numbers:
+        return True
+    reasons = set(item.get("reasons", []))
+    recovery_reasons = {"\u6392\u540d\u932f\u4f4d\u4fee\u6b63", "\u6f0f\u547d\u4e2d\u56de\u6536", "\u7a69\u5b9a\u5171\u8b58", "\u5171\u73fe\u95dc\u806f", "\u5206\u5340\u8986\u84cb\u56de\u88dc"}
+    objective_edge = float((item.get("objective_feature_calibration") or {}).get("objective_edge", 0.0) or 0.0)
+    hit_rate = float((item.get("hit_through_calibration") or {}).get("posterior_hit_rate", BASE_PROBABILITY) or BASE_PROBABILITY)
+    guard = item.get("previous_prediction_guard") or {}
+    recovery_count = int(guard.get("recovery_condition_count") or 0)
+    strong_count = int(guard.get("strong_condition_count") or 0)
+    repeated_count = repeated_failed.get(number, 0)
+    strong_reentry = (
+        item.get("score", 0) >= 0.62
+        and (
+            objective_edge >= 0.035
+            or hit_rate >= BASE_PROBABILITY + 0.025
+            or item.get("stability_count", 0) >= 4
+            or bool(reasons & recovery_reasons)
+            or recovery_count >= 1
+            or strong_count >= 2
+        )
+    )
+    if repeated_count >= 8 and not (objective_edge >= 0.06 or hit_rate >= BASE_PROBABILITY + 0.04):
+        return False
+    return strong_reentry
+
+
 def optimized_group(candidates, size, review=None):
     score_map = {item["number"]: item["score"] for item in candidates}
     failed = failed_number_set(review)
@@ -2109,7 +2461,9 @@ def single_precision_group(candidates, review=None):
     ranked = []
     for original_rank, item in enumerate(candidates[:24], 1):
         number = item["number"]
-        if number in failed or number in repeated_failed_numbers:
+        if number in failed and not failed_number_reentry_allowed(item, review):
+            continue
+        if number in repeated_failed_numbers and not failed_number_reentry_allowed(item, review):
             continue
         if previous_guard_blocks_item(item):
             continue
@@ -2138,8 +2492,8 @@ def five_hit_two_group(candidates, review=None):
     ]
     selected = []
     pool = [
-        item for item in candidates[:24]
-        if item["number"] not in failed
+        item for item in candidates[:30]
+        if not (item["number"] in failed and not failed_number_reentry_allowed(item, review))
         and not previous_guard_blocks_item(item)
     ]
     score_map = {item["number"]: item["score"] for item in candidates}
@@ -2190,8 +2544,8 @@ def nine_hit_three_group(candidates, review=None):
     ]
     score_map = {item["number"]: item["score"] for item in candidates}
     pool = [
-        item["number"] for item in candidates[:24]
-        if item["number"] not in failed
+        item["number"] for item in candidates[:30]
+        if not (item["number"] in failed and not failed_number_reentry_allowed(item, review))
         and not previous_guard_blocks_item(item)
     ]
     selected = []
@@ -2230,7 +2584,7 @@ def top_rank_group(candidates, size, review=None):
     selected = []
     for item in candidates:
         number = item["number"]
-        if number in failed:
+        if number in failed and not failed_number_reentry_allowed(item, review):
             continue
         if previous_guard_blocks_item(item):
             continue
@@ -2311,7 +2665,7 @@ def target_precision_group(candidates, size, goal, review=None):
     failed = failed_number_set(review)
     pool = [
         item for item in candidates[:30]
-        if item["number"] not in failed
+        if not (item["number"] in failed and not failed_number_reentry_allowed(item, review))
         and not previous_guard_blocks_item(item)
     ]
     if not pool:
@@ -2332,8 +2686,76 @@ def target_precision_group(candidates, size, goal, review=None):
     return sorted(selected)
 
 
+def slump_recall_group(candidates, size, goal, review=None):
+    failed = failed_number_set(review)
+    pool = [
+        item for item in candidates[:39]
+        if not (item["number"] in failed and not failed_number_reentry_allowed(item, review))
+        and not previous_guard_blocks_item(item)
+        and not (item.get("repeat_guard") and not item["repeat_guard"].get("passed"))
+    ]
+    if not pool:
+        return []
+    selected = []
+    max_zone = 2 if size <= 5 else 3
+    max_tail = 1 if size <= 5 else 2
+    while len(selected) < size and pool:
+        best = max(
+            pool,
+            key=lambda item: (
+                recall_priority_score(item, review)
+                + float(item.get("score", 0) or 0) * 0.28
+                + float((item.get("hit_through_calibration") or {}).get("posterior_hit_rate", BASE_PROBABILITY)) * 0.18
+                - diversity_penalty(selected, item["number"]) * (1.55 if goal >= 2 else 1.05)
+                - (0.09 if sum(1 for n in selected if zone_label(n) == zone_label(item["number"])) >= max_zone else 0)
+                - (0.07 if sum(1 for n in selected if n % 10 == item["number"] % 10) >= max_tail else 0),
+                item.get("cross_validation", {}).get("passed_count", 0),
+                -item["number"],
+            ),
+        )
+        selected.append(best["number"])
+        pool.remove(best)
+
+    maps = recall_signal_maps(review)
+    priority_zones = [
+        zone for zone, _ in sorted(
+            {
+                **maps["missed_zones"],
+                **{zone: maps["missed_zones"].get(zone, 0) + maps["monthly_zones"].get(zone, 0) for zone in maps["monthly_zones"]},
+            }.items(),
+            key=lambda pair: pair[1],
+            reverse=True,
+        )
+    ]
+    score_map = {item["number"]: recall_priority_score(item, review) + float(item.get("score", 0) or 0) * 0.25 for item in candidates}
+    for zone in priority_zones[:4]:
+        if len(selected) < min(size, 4):
+            break
+        if any(zone_label(number) == zone for number in selected):
+            continue
+        zone_item = next(
+            (
+                item for item in candidates[:39]
+                if zone_label(item["number"]) == zone
+                and item["number"] not in selected
+                and recall_priority_score(item, review) >= 0.42
+                and not previous_guard_blocks_item(item)
+            ),
+            None,
+        )
+        if not zone_item:
+            continue
+        replace_number = min(selected, key=lambda number: score_map.get(number, 0))
+        if score_map.get(zone_item["number"], 0) >= score_map.get(replace_number, 0) * 0.72:
+            selected.remove(replace_number)
+            selected.append(zone_item["number"])
+    return sorted(selected[:size])
+
+
 def group_by_variant(key, candidates, review=None, variant=None):
     if key == "strong_single":
+        if variant == "slump_recall":
+            return slump_recall_group(candidates, 1, 1, review)
         if variant == "target_precision":
             return target_precision_group(candidates, 1, 1, review)
         if variant == "single_precision":
@@ -2344,6 +2766,8 @@ def group_by_variant(key, candidates, review=None, variant=None):
             return stability_group(candidates, 1, review)
         return strong_single_group(candidates, review)
     if key == "five_hit_two":
+        if variant == "slump_recall":
+            return slump_recall_group(candidates, 5, 2, review)
         if variant == "target_precision":
             return target_precision_group(candidates, 5, 2, review)
         if variant == "dedicated":
@@ -2354,6 +2778,8 @@ def group_by_variant(key, candidates, review=None, variant=None):
             return stability_group(candidates, 5, review)
         return target_precision_group(candidates, 5, 2, review)
     if key == "nine_hit_three":
+        if variant == "slump_recall":
+            return slump_recall_group(candidates, 9, 3, review)
         if variant == "target_precision":
             return target_precision_group(candidates, 9, 3, review)
         if variant == "dedicated":
@@ -2365,6 +2791,8 @@ def group_by_variant(key, candidates, review=None, variant=None):
         return target_precision_group(candidates, 9, 3, review)
     size_by_key = {"two_hit_one": 2, "three_hit_one": 3}
     goal_by_key = {"two_hit_one": 1, "three_hit_one": 1}
+    if variant == "slump_recall":
+        return slump_recall_group(candidates, size_by_key.get(key, 5), goal_by_key.get(key, 1), review)
     if variant == "target_precision":
         return target_precision_group(candidates, size_by_key.get(key, 5), goal_by_key.get(key, 1), review)
     return optimized_group(candidates, size_by_key.get(key, 5), review)
@@ -2430,7 +2858,7 @@ def apply_top10_boundary_promotion(candidates, review=None):
     promoted = list(candidates)
     for source_index in range(10, min(25, len(promoted))):
         item = promoted[source_index]
-        if item["number"] in repeated_failed_numbers:
+        if item["number"] in repeated_failed_numbers and not failed_number_reentry_allowed(item, review):
             continue
         if previous_guard_blocks_item(item):
             continue
@@ -2454,7 +2882,7 @@ def apply_top10_boundary_promotion(candidates, review=None):
         )
         replace_score = promoted[replace_index].get("score", 0) or 0
         item_score = item.get("score", 0) or 0
-        threshold = 1.0
+        threshold = 0.90 if (item["number"] in late_hit_numbers or item["number"] in missed_actual_numbers) else 0.96 if item.get("stability_count", 0) >= 4 else 1.0
         if replace_score and item_score >= replace_score * threshold:
             promoted[replace_index], promoted[source_index] = promoted[source_index], promoted[replace_index]
     for rank, item in enumerate(promoted, 1):
@@ -2516,11 +2944,11 @@ def pack_recent_governance(draws, rounds=360):
         "nine_hit_three": {"size": 9, "goal": 3, "min_pass_rate": 0.12, "min_avg_hits": 1.16},
     }
     pack_variants = {
-        "strong_single": ["target_precision", "single_precision", "dedicated", "top_rank", "stability"],
-        "two_hit_one": ["target_precision", "dedicated"],
-        "three_hit_one": ["target_precision", "dedicated"],
-        "five_hit_two": ["target_precision", "dedicated", "top_rank", "stability"],
-        "nine_hit_three": ["target_precision", "dedicated", "top_rank", "stability"],
+        "strong_single": ["target_precision", "single_precision", "slump_recall", "dedicated", "top_rank", "stability"],
+        "two_hit_one": ["target_precision", "slump_recall", "dedicated"],
+        "three_hit_one": ["target_precision", "slump_recall", "dedicated"],
+        "five_hit_two": ["target_precision", "slump_recall", "dedicated", "top_rank", "stability"],
+        "nine_hit_three": ["target_precision", "slump_recall", "dedicated", "top_rank", "stability"],
     }
     start = max(120, len(draws) - rounds - 1)
     stats = {
@@ -2609,6 +3037,14 @@ def strong_packs(candidates, review=None, governance=None):
     qualified_numbers = {item["number"] for item in strict_pool}
     governance = governance or {"pack_stats": {}}
     pack_stats = governance.get("pack_stats", {})
+    variant_labels = {
+        "target_precision": "target_precision_gate",
+        "single_precision": "single_precision_gate",
+        "slump_recall": "slump_recall_coverage",
+        "dedicated": "dedicated_goal_model",
+        "top_rank": "top_rank_baseline",
+        "stability": "stability_consensus",
+    }
 
     def pack(name, goal, numbers):
         if not numbers:
@@ -2640,6 +3076,8 @@ def strong_packs(candidates, review=None, governance=None):
     for key, (name, goal, size, min_avg_score, min_stability) in specs.items():
         recent_stat = pack_stats.get(key, {})
         variant = recent_stat.get("best_variant", "dedicated")
+        if recall_emergency_active(review) and key in {"two_hit_one", "three_hit_one", "five_hit_two", "nine_hit_three"}:
+            variant = "slump_recall"
         allowed_pool = [
             item for item in candidates[:30]
             if item["number"] in qualified_numbers or (
@@ -2653,6 +3091,8 @@ def strong_packs(candidates, review=None, governance=None):
                 fallback_numbers = top_rank_group(fallback_pool, size, review)
             packs[key] = watch_pack(name, goal, fallback_numbers, score_map, "strict confidence pool failed; output as daily research prediction")
             packs[key]["governance"] = recent_stat
+            packs[key]["selection_variant"] = variant
+            packs[key]["selection_model"] = variant_labels.get(variant, variant)
             continue
         numbers = group_by_variant(key, allowed_pool, review, variant)
         if not numbers and allowed_pool:
@@ -2671,6 +3111,8 @@ def strong_packs(candidates, review=None, governance=None):
         else:
             packs[key] = pack(name, goal, sorted(numbers))
         packs[key]["governance"] = recent_stat
+        packs[key]["selection_variant"] = variant
+        packs[key]["selection_model"] = variant_labels.get(variant, variant)
 
     wheel = build_covering_wheel(packs["nine_hit_three"].get("numbers", []), ticket_size=5, cover_size=3, max_tickets=12)
     packs["nine_hit_three"]["wheel_tickets"] = wheel["tickets"]
@@ -2694,6 +3136,124 @@ def pack_probability(pool_size, hit_goal):
         "pool_size": pool_size,
         "probability": round(favorable / total, 6) if total else 0,
         "odds_1_in": round(total / favorable, 2) if favorable else None,
+    }
+
+
+def decisive_battle_decision(candidates, packs, release_gate, slump_recall, unlikely):
+    def pack_numbers(key, fallback_size):
+        numbers = list((packs.get(key, {}) or {}).get("numbers") or [])
+        if numbers:
+            return sorted(int(number) for number in numbers)
+        return sorted(int(item["number"]) for item in candidates[:fallback_size])
+
+    def number_profile(number):
+        item = next((row for row in candidates if int(row["number"]) == int(number)), {})
+        return {
+            "number": int(number),
+            "rank": item.get("rank"),
+            "score": item.get("score"),
+            "probability_percent": item.get("model_probability_percent"),
+            "confidence": item.get("confidence_index"),
+            "sources": item.get("model_sources", []),
+            "selection_model": (packs.get("strong_single", {}) or {}).get("selection_model"),
+        }
+
+    top10 = [int(item["number"]) for item in candidates[:10]]
+    top15 = [int(item["number"]) for item in candidates[:15]]
+    avoid_numbers = [int(item["number"]) for item in (unlikely.get("numbers", []) or [])[:10]]
+    status = release_gate.get("status")
+    main_targets_passed = bool(release_gate.get("main_targets_passed"))
+    recent_passed = bool(release_gate.get("recent_performance_passed"))
+    slump_triggered = slump_recall.get("status") == "triggered"
+    release_light = release_gate.get("precision_governor_release_light")
+    if status == "official" and main_targets_passed and recent_passed:
+        grade = "A"
+        action = "execute_primary_plan"
+    elif slump_triggered or release_light in {"yellow", "green"}:
+        grade = "B"
+        action = "execute_slump_recall_control_plan"
+    else:
+        grade = "C"
+        action = "execute_defensive_control_plan"
+
+    primary_single = pack_numbers("strong_single", 1)[:1]
+    primary_two = pack_numbers("two_hit_one", 2)[:2]
+    primary_three = pack_numbers("three_hit_one", 3)[:3]
+    primary_five = pack_numbers("five_hit_two", 5)[:5]
+    primary_nine = pack_numbers("nine_hit_three", 9)[:9]
+    attack_core = []
+    for group in [primary_single, primary_two, primary_three, primary_five, primary_nine, top10]:
+        for number in group:
+            if number not in attack_core and number not in avoid_numbers[:5]:
+                attack_core.append(number)
+    attack_core = attack_core[:10]
+    if len(attack_core) < 10:
+        for number in top15:
+            if number not in attack_core and number not in avoid_numbers[:5]:
+                attack_core.append(number)
+            if len(attack_core) >= 10:
+                break
+    high_confidence_numbers = []
+    for item in candidates[:15]:
+        number = int(item["number"])
+        recall_score = item.get("slump_recall_coverage", {}).get("priority_score", 0)
+        cross_passed = item.get("cross_validation", {}).get("passed_count", 0)
+        if number in avoid_numbers[:5]:
+            continue
+        if (
+            number in attack_core
+            and (
+                item.get("high_confidence")
+                or float(item.get("score", 0) or 0) >= 0.78
+                or float(recall_score or 0) >= 0.62
+                or int(cross_passed or 0) >= 3
+            )
+        ):
+            high_confidence_numbers.append({
+                "number": number,
+                "rank": item.get("rank"),
+                "score": item.get("score"),
+                "probability_percent": item.get("model_probability_percent"),
+                "confidence": item.get("confidence_index"),
+                "recall_priority": round(float(recall_score or 0), 4),
+                "cross_validation_passed": cross_passed,
+                "reason": "high_score_or_recall_or_cross_validation",
+        })
+        if len(high_confidence_numbers) >= 5:
+            break
+    if not high_confidence_numbers:
+        for number in attack_core[:3]:
+            item = next((row for row in candidates if int(row["number"]) == int(number)), {})
+            high_confidence_numbers.append({
+                "number": int(number),
+                "rank": item.get("rank"),
+                "score": item.get("score"),
+                "probability_percent": item.get("model_probability_percent"),
+                "confidence": item.get("confidence_index"),
+                "recall_priority": round(float(item.get("slump_recall_coverage", {}).get("priority_score", 0) or 0), 4),
+                "cross_validation_passed": item.get("cross_validation", {}).get("passed_count", 0),
+                "reason": "decisive_attack_core_fallback",
+            })
+
+    return {
+        "status": "decisive",
+        "action": action,
+        "grade": grade,
+        "policy": "always_output_model_decision_when_data_is_fresh",
+        "primary_single": primary_single,
+        "two_hit_one": primary_two,
+        "three_hit_one": primary_three,
+        "five_hit_two": primary_five,
+        "nine_hit_three": primary_nine,
+        "attack_core_top10": attack_core[:10],
+        "backup_top15": top15,
+        "defensive_avoid": avoid_numbers[:10],
+        "high_confidence_numbers": high_confidence_numbers,
+        "slump_recall_triggered": slump_triggered,
+        "main_targets_passed": main_targets_passed,
+        "recent_performance_passed": recent_passed,
+        "release_gate_status": status,
+        "number_profiles": [number_profile(number) for number in attack_core[:10]],
     }
 
 
@@ -3074,6 +3634,7 @@ def compute_industrial_analysis(draws, review=None):
     candidates, objective_feature_calibration = apply_objective_feature_calibration(candidates, weight_calibration, review)
     candidates, hit_through_calibration = apply_hit_through_calibration(draws, candidates, review)
     candidates, zero_hit_recovery = apply_zero_hit_recovery_mode(draws, candidates, review)
+    candidates, slump_recall_coverage = apply_slump_recall_coverage_mode(draws, candidates, review)
     candidates = apply_top10_boundary_promotion(candidates, review)
     pack_governance = pack_recent_governance(draws)
     packs = strong_packs(candidates, review, pack_governance)
@@ -3102,8 +3663,22 @@ def compute_industrial_analysis(draws, review=None):
     )
     unlikely = unlikely_number_analysis(draws, candidates, stability, review)
     promotion_audit = top10_promotion_audit(candidates, review)
+    release_gate = {
+        "status": release_status,
+        "precision_governor_release_light": pack_governance.get("release_light"),
+        "precision_governor_allowed_pack_count": pack_governance.get("allowed_pack_count"),
+        "main_targets_required": ["five_hit_two", "nine_hit_three"],
+        "main_targets_passed": main_target_passed,
+        "top10_retention_required": 0.6,
+        "backtest_edge_required": 0,
+        "actual_backtest_edge": round(edge, 4),
+        "recent_windows_required": [60, 120],
+        "recent_edges": recent_edges,
+        "recent_performance_passed": recent_passed,
+    }
+    decisive_decision = decisive_battle_decision(candidates, packs, release_gate, slump_recall_coverage, unlikely)
     return {
-        "engine_version": "industrial_v9_objective_feature_meta_calibration",
+        "engine_version": "industrial_v13_decisive_confidence_battle_plan",
         "leakage_guard": True,
         "repeat_guard": repeat_guard(draws),
         "previous_prediction_guard": {
@@ -3121,6 +3696,7 @@ def compute_industrial_analysis(draws, review=None):
         "objective_feature_calibration": objective_feature_calibration,
         "hit_through_calibration": hit_through_calibration,
         "zero_hit_recovery": zero_hit_recovery,
+        "slump_recall_coverage": slump_recall_coverage,
         "top10_promotion_audit": promotion_audit,
         "dependency_analysis": {
             "method": "three_fold_conditional_lift_with_fdr",
@@ -3129,19 +3705,8 @@ def compute_industrial_analysis(draws, review=None):
             "lag_profile": lag_profile,
             "warning": "\u95dc\u806f\u4e0d\u7b49\u65bc\u56e0\u679c\uff0c\u53ea\u5141\u8a31\u901a\u904e\u5206\u6bb5\u9a57\u8b49\u7684\u9023\u52d5\u9032\u5165\u6a21\u578b",
         },
-        "release_gate": {
-            "status": release_status,
-            "precision_governor_release_light": pack_governance.get("release_light"),
-            "precision_governor_allowed_pack_count": pack_governance.get("allowed_pack_count"),
-            "main_targets_required": ["five_hit_two", "nine_hit_three"],
-            "main_targets_passed": main_target_passed,
-            "top10_retention_required": 0.6,
-            "backtest_edge_required": 0,
-            "actual_backtest_edge": round(edge, 4),
-            "recent_windows_required": [60, 120],
-            "recent_edges": recent_edges,
-            "recent_performance_passed": recent_passed,
-        },
+        "release_gate": release_gate,
+        "decisive_battle_decision": decisive_decision,
         "weights": {key: round(value, 4) for key, value in weights.items()},
         "model_lifecycle": lifecycle,
         "backtest": audit,

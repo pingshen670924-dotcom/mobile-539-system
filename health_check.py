@@ -89,6 +89,26 @@ def short_last_run_message(message):
     return message
 
 
+def last_run_is_external_only_warning(last_run, health):
+    if health.get("data_freshness", {}).get("status") != "fresh":
+        return False
+    if health.get("analysis_sync", {}).get("status") != "synced":
+        return False
+    if last_run.get("status") == "success":
+        return True
+    message = last_run.get("message") or ""
+    external_markers = [
+        "WinError 10013",
+        "Codex",
+        "download failed",
+        "Couldn't connect to server",
+        "Unable to connect",
+        "\u7121\u6cd5\u9023\u63a5\u81f3\u9060\u7aef\u4f3a\u670d\u5668",
+        "\u5916\u9023\u9650\u5236",
+    ]
+    return last_run.get("status") == "warning" and any(marker in message for marker in external_markers)
+
+
 def expected_latest_draw_date(now=None):
     now = now or datetime.now()
     candidate = now.date()
@@ -258,7 +278,11 @@ def build_health():
     last_run = health.get("last_run", {})
     if last_run.get("status") != "success":
         message = last_run.get("message") or ""
-        if health.get("data_freshness", {}).get("status") == "fresh" and ("WinError 10013" in message or "Codex" in message):
+        if last_run_is_external_only_warning(last_run, health):
+            health["external_risk"] = TEXT["sandbox_risk"]
+            health["notices"].append(TEXT["sandbox_message"])
+            health["notices"].append("last update had external download warnings, but data and analysis are synced")
+        elif health.get("data_freshness", {}).get("status") == "fresh" and ("WinError 10013" in message or "Codex" in message):
             health["external_risk"] = TEXT["sandbox_risk"]
             health["notices"].append(TEXT["sandbox_message"])
         else:

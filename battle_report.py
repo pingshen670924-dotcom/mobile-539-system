@@ -43,7 +43,13 @@ def fmt_numbers(numbers):
 def atomic_write_text(path, text):
     temp_path = path.with_name(path.name + ".tmp")
     temp_path.write_text(text, encoding="utf-8")
-    temp_path.replace(path)
+    try:
+        temp_path.replace(path)
+        return path
+    except PermissionError:
+        fallback = path.with_name(f"{path.stem}_{taipei_now().strftime('%Y%m%d%H%M%S')}{path.suffix}")
+        temp_path.replace(fallback)
+        return fallback
 
 
 def official_status_label(status):
@@ -493,13 +499,16 @@ def build_report():
     weight_calibration = industrial.get("adaptive_weight_calibration", {})
     live_precision = industrial.get("live_precision_calibration", {})
     hit_through = industrial.get("hit_through_calibration", {})
+    slump_recall = industrial.get("slump_recall_coverage", {})
+    decisive_decision = industrial.get("decisive_battle_decision", {})
     model_lifecycle = industrial.get("model_lifecycle", {})
     rolling_adjustment = analysis.get("failure_review", {}).get("rolling_adjustment", {})
+    monthly_review = analysis.get("failure_review", {}).get("monthly_review", {}) or rolling_adjustment.get("monthly_review", {})
     rolling_windows = industrial_backtest.get("rolling_windows", {})
     unlikely = industrial.get("unlikely_number_analysis", {})
     unlikely_backtest = industrial.get("unlikely_backtest", {})
     freshness = resolved_data_freshness(analysis, health, latest)
-    release_label = "\u6b63\u5f0f\u4e3b\u63a8" if release_gate.get("status") == "official" else "\u50c5\u4f9b\u89c0\u5bdf\uff0c\u4e0d\u5217\u6b63\u5f0f\u4e3b\u63a8"
+    release_label = "\u6b63\u5f0f\u4e3b\u63a8" if release_gate.get("status") == "official" else "\u660e\u78ba\u4f5c\u6230\u98a8\u63a7\u7d1a"
     settled_prediction = latest_settled_prediction()
     pending_prediction = latest_pending_prediction()
     latest_draw_date = latest.get("draw_date", "")
@@ -547,6 +556,23 @@ def build_report():
         "",
         "## " + ("\u4eca\u65e5\u5f37\u724c" if release_gate.get("status") == "official" else "\u4eca\u65e5\u89c0\u5bdf\u5019\u9078\uff08\u4e0d\u5217\u6b63\u5f0f\u4e3b\u63a8\uff09"),
     ]
+    decision_action_label = {
+        "execute_primary_plan": "明確執行主攻方案",
+        "execute_slump_recall_control_plan": "明確執行低迷召回風控方案",
+        "execute_defensive_control_plan": "明確執行防守型風控方案",
+    }.get(decisive_decision.get("action"), "明確執行本期模型方案")
+    lines.extend([
+        "",
+        "## 本期明確作戰答案",
+        f"- 作戰結論：{decision_action_label} / 等級 {decisive_decision.get('grade', '-')}",
+        f"- 明確獨支：{fmt_numbers(decisive_decision.get('primary_single', [])) or '-'}",
+        f"- 明確2中1：{fmt_numbers(decisive_decision.get('two_hit_one', [])) or '-'}",
+        f"- 明確3中1：{fmt_numbers(decisive_decision.get('three_hit_one', [])) or '-'}",
+        f"- 明確5中2：{fmt_numbers(decisive_decision.get('five_hit_two', [])) or '-'}",
+        f"- 明確9中3：{fmt_numbers(decisive_decision.get('nine_hit_three', [])) or '-'}",
+        f"- 高機率信心牌：{fmt_numbers([item.get('number') for item in decisive_decision.get('high_confidence_numbers', [])]) or '-'}",
+        f"- 防守避開：{fmt_numbers(decisive_decision.get('defensive_avoid', [])[:10]) or '-'}",
+    ])
 
     pack_order = [
         ("strong_single", "\u6700\u5f37\u55ae\u652f"),
@@ -938,8 +964,11 @@ def build_html_report(markdown_text):
     weight_calibration = industrial.get("adaptive_weight_calibration", {})
     live_precision = industrial.get("live_precision_calibration", {})
     hit_through = industrial.get("hit_through_calibration", {})
+    slump_recall = industrial.get("slump_recall_coverage", {})
+    decisive_decision = industrial.get("decisive_battle_decision", {})
     model_lifecycle = industrial.get("model_lifecycle", {})
     rolling_adjustment = analysis.get("failure_review", {}).get("rolling_adjustment", {})
+    monthly_review = analysis.get("failure_review", {}).get("monthly_review", {}) or rolling_adjustment.get("monthly_review", {})
     rolling_windows = industrial_backtest.get("rolling_windows", {})
     unlikely = industrial.get("unlikely_number_analysis", {})
     unlikely_backtest = industrial.get("unlikely_backtest", {})
@@ -989,6 +1018,40 @@ def build_html_report(markdown_text):
             "</section>"
         )
 
+    decision_action_label = {
+        "execute_primary_plan": "明確執行主攻方案",
+        "execute_slump_recall_control_plan": "明確執行低迷召回風控方案",
+        "execute_defensive_control_plan": "明確執行防守型風控方案",
+    }.get(decisive_decision.get("action"), "明確執行本期模型方案")
+    decision_grade_label = {
+        "A": "A級主攻",
+        "B": "B級強化作戰",
+        "C": "C級防守作戰",
+    }.get(decisive_decision.get("grade"), "模型作戰")
+    decision_core_numbers = decisive_decision.get("attack_core_top10") or [item.get("number") for item in candidates[:10]]
+    decision_avoid_numbers = decisive_decision.get("defensive_avoid") or []
+    decision_high_confidence_rows = ""
+    confidence_reason_label = {
+        "high_score_or_recall_or_cross_validation": "高分 / 低迷召回 / 交叉驗證達標",
+        "decisive_attack_core_fallback": "決策核心補位，本期必列信心牌",
+    }
+    for item in decisive_decision.get("high_confidence_numbers", []):
+        decision_high_confidence_rows += (
+            "<tr class=\"hot-main hot-very-high\">"
+            f"<td>{red_circle(item.get('number'))}</td>"
+            f"<td>{item.get('rank', '-')}</td>"
+            f"<td>{item.get('probability_percent', '-')}%</td>"
+            f"<td>{item.get('score', '-')}</td>"
+            f"<td>{item.get('confidence', '-')}</td>"
+            f"<td>{item.get('recall_priority', '-')}</td>"
+            f"<td>{item.get('cross_validation_passed', 0)}</td>"
+            f"<td>{confidence_reason_label.get(item.get('reason'), item.get('reason', '-'))}</td>"
+            "<td>紅圈高機率信心牌；本期攻擊核心優先關注，仍需依風控分批使用</td>"
+            "</tr>"
+        )
+    if not decision_high_confidence_rows:
+        decision_high_confidence_rows = "<tr><td colspan=\"9\">本期尚未取得高機率信心牌資料，請先重新執行分析。</td></tr>"
+
     pack_order = [
         ("strong_single", "\u6700\u5f37\u55ae\u652f"),
         ("two_hit_one", "\u6700\u5f372\u4e2d1"),
@@ -1005,18 +1068,26 @@ def build_html_report(markdown_text):
             odds = probability.get("odds_1_in")
             status = pack.get("status", "released")
             reason = pack.get("withheld_reason", "")
+            variant_label = {
+                "target_precision": "目標精準模型",
+                "single_precision": "獨支精準模型",
+                "slump_recall": "低迷召回覆蓋",
+                "dedicated": "專用模型",
+                "top_rank": "總分排名",
+                "stability": "穩定共識",
+            }.get(pack.get("selection_variant") or pack.get("governance", {}).get("best_variant"), pack.get("selection_model") or "-")
             if data_is_fresh:
                 status_label = {
                     "released": "\u6b63\u5f0f\u4e3b\u63a8",
-                    "research_prediction": "\u4eca\u65e5\u4f5c\u6230\u9810\u6e2c\uff08\u7814\u7a76\u7d1a\uff09",
-                    "withheld": "\u672a\u7522\u51fa",
+                    "research_prediction": "\u660e\u78ba\u4f5c\u6230\u98a8\u63a7\u7d1a",
+                    "withheld": "\u660e\u78ba\u4e0d\u51fa\u724c",
                 }.get(status, status)
             else:
-                status_label = "\u8cc7\u6599\u904e\u671f\u89c0\u5bdf\uff0c\u7981\u6b62\u6b63\u5f0f\u4e3b\u63a8"
+                status_label = "\u8cc7\u6599\u904e\u671f\uff0c\u660e\u78ba\u66ab\u505c\u51fa\u724c"
             sub = (
-                f"\u72c0\u614b {status_label} / \u7406\u8ad6\u6a5f\u7387 {probability.get('probability')} / 1\u4e2d{odds}"
+                f"\u72c0\u614b {status_label} / \u4f86\u6e90 {variant_label} / \u7406\u8ad6\u6a5f\u7387 {probability.get('probability')} / 1\u4e2d{odds}"
                 if odds
-                else f"\u72c0\u614b {status_label} / {reason}"
+                else f"\u72c0\u614b {status_label} / \u4f86\u6e90 {variant_label} / {reason}"
             )
             pack_cards.append(card(label, fmt_numbers(pack.get("numbers", [])) or "\u672a\u767c\u5e03", sub))
             gov = pack.get("governance", {})
@@ -1025,11 +1096,6 @@ def build_html_report(markdown_text):
             decision_reason = reason or "\u9054\u5230\u767c\u5e03\u9580\u6abb"
             if not data_is_fresh:
                 decision_reason = "\u8cc7\u6599\u672a\u66f4\u65b0\u5230\u61c9\u6709\u65e5\u671f\uff0c\u50c5\u4fdd\u7559\u7814\u7a76\u89c0\u5bdf"
-            variant_label = {
-                "dedicated": "\u5c08\u7528\u6a21\u578b",
-                "top_rank": "\u7e3d\u5206\u6392\u540d",
-                "stability": "\u7a69\u5b9a\u5171\u8b58",
-            }.get(gov.get("best_variant"), gov.get("best_variant", "-"))
             pack_governance_rows += (
                 "<tr>"
                 f"<td>{label}</td><td>{status_label}</td><td>{number_text}</td>"
@@ -1432,15 +1498,92 @@ def build_html_report(markdown_text):
     if not rolling_number_rows:
         rolling_number_rows = "<tr><td colspan=\"3\">目前沒有達到連續落空隔離門檻的號碼。</td></tr>"
 
+    monthly_rank_rows = ""
+    rank_bucket_labels = {
+        "01-05": "Top1-5",
+        "06-10": "Top6-10",
+        "11-15": "Top11-15",
+        "16-25": "Top16-25",
+        "26-39": "Top26-39",
+        "missing": "候選外",
+    }
+    rank_buckets = monthly_review.get("rank_buckets", {}) or {}
+    rank_total = sum(int(value or 0) for value in rank_buckets.values()) or 1
+    for key in ["01-05", "06-10", "11-15", "16-25", "26-39", "missing"]:
+        count = int(rank_buckets.get(key, 0) or 0)
+        monthly_rank_rows += (
+            "<tr>"
+            f"<td>{rank_bucket_labels[key]}</td><td>{count}</td><td>{round(count / rank_total, 3)}</td>"
+            "</tr>"
+        )
+    if not monthly_rank_rows:
+        monthly_rank_rows = "<tr><td colspan=\"3\">本月尚無排名分布資料。</td></tr>"
+
+    monthly_daily_rows = ""
+    for item in monthly_review.get("daily_reviews", [])[-18:]:
+        ranks = item.get("actual_ranks", {}) or {}
+        rank_text = "、".join(
+            f"{int(number):02d}:{rank if rank is not None else '外'}"
+            for number, rank in sorted(((int(k), v) for k, v in ranks.items()), key=lambda pair: pair[0])
+        )
+        monthly_daily_rows += (
+            "<tr>"
+            f"<td>{item.get('actual_date')}</td><td>{item.get('target_period')}</td>"
+            f"<td>{fmt_numbers(item.get('actual_numbers', []))}</td>"
+            f"<td>{item.get('top5_hits')}</td><td>{item.get('top10_hits')}</td><td>{item.get('top15_hits')}</td>"
+            f"<td>{rank_text}</td><td>{fmt_numbers(item.get('missed_top10', []))}</td>"
+            "</tr>"
+        )
+    if not monthly_daily_rows:
+        monthly_daily_rows = "<tr><td colspan=\"8\">本月尚無已結算預測。</td></tr>"
+
+    monthly_missed_rows = ""
+    for item in monthly_review.get("missed_top10_numbers", [])[:12]:
+        monthly_missed_rows += (
+            "<tr>"
+            f"<td>{int(item.get('number')):02d}</td><td>{item.get('missed_count')}</td><td>月度漏抓回拉觀察</td>"
+            "</tr>"
+        )
+    if not monthly_missed_rows:
+        monthly_missed_rows = "<tr><td colspan=\"3\">本月沒有可用漏抓號碼資料。</td></tr>"
+
+    monthly_pack_rows = ""
+    pack_label_map = {
+        "strong_single": "最強單支",
+        "two_hit_one": "最強2中1",
+        "three_hit_one": "最強3中1",
+        "five_hit_two": "最強5中2",
+        "nine_hit_three": "最強9中3",
+    }
+    for key, item in (monthly_review.get("pack_summary", {}) or {}).items():
+        monthly_pack_rows += (
+            "<tr>"
+            f"<td>{pack_label_map.get(key, key)}</td><td>{item.get('rounds')}</td>"
+            f"<td>{item.get('pass_rate')}</td><td>{item.get('avg_hits')}</td><td>{item.get('zero_hit_rate')}</td>"
+            "</tr>"
+        )
+    if not monthly_pack_rows:
+        monthly_pack_rows = "<tr><td colspan=\"5\">本月尚無強牌包結算資料。</td></tr>"
+
+    monthly_plan_rows = ""
+    for item in monthly_review.get("adjustment_plan", []):
+        monthly_plan_rows += f"<li>{item}</li>"
+    if not monthly_plan_rows:
+        monthly_plan_rows = "<li>本月樣本不足，暫不啟用月度校正。</li>"
+
     calibration_tag_labels = {
         "recent_top5_slump_penalty": "近5期 Top5 低迷降權",
         "top10_boundary_recovery": "Top10 邊界回補",
         "late_band_front_pull": "11-15 名前拉",
         "late_hit_number_recovered": "後段命中號回補",
         "missed_actual_number_recovered": "漏抓實開號回補",
+        "monthly_recall_number_recovered": "月度漏抓號回拉",
         "missed_tail_recovered": "漏抓尾數回補",
+        "monthly_tail_recovered": "月度尾數回拉",
         "missed_zone_recovered": "漏抓區間回補",
+        "monthly_zone_recovered": "月度區間回拉",
         "repeated_failed_number_penalty": "連續落空降權",
+        "repeated_failed_softened_by_recovery": "回補訊號軟化落空懲罰",
         "previous_prediction_reentry_blocked": "昨日預測重入未過",
         "repeat_gate_blocked": "連莊守門未過",
         "winning_source_boost": "命中來源升權",
@@ -1467,6 +1610,32 @@ def build_html_report(markdown_text):
             )
     if not live_precision_rows:
         live_precision_rows = "<tr><td colspan=\"5\">本期沒有觸發實戰校準升降權。</td></tr>"
+
+    slump_recall_rows = ""
+    for label, rows in [
+        ("召回升權", slump_recall.get("promotions", [])),
+        ("失效降權", slump_recall.get("demotions", [])),
+    ]:
+        for item in rows:
+            slump_recall_rows += (
+                "<tr>"
+                f"<td>{label}</td><td>{int(item.get('number')):02d}</td>"
+                f"<td>{item.get('priority_score')}</td><td>{item.get('adjustment')}</td>"
+                "</tr>"
+            )
+    if not slump_recall_rows:
+        slump_recall_rows = "<tr><td colspan=\"4\">本期沒有觸發低迷召回升降權。</td></tr>"
+
+    slump_recall_swap_rows = ""
+    for item in slump_recall.get("coverage_swaps", []):
+        slump_recall_swap_rows += (
+            "<tr>"
+            f"<td>{item.get('zone')}</td><td>{int(item.get('promoted')):02d}</td>"
+            f"<td>{int(item.get('replaced')):02d}</td>"
+            "</tr>"
+        )
+    if not slump_recall_swap_rows:
+        slump_recall_swap_rows = "<tr><td colspan=\"3\">本期 Top10 分區覆蓋沒有強制替換。</td></tr>"
 
     hit_through_band_rows = ""
     for band, item in (hit_through.get("rank_bands", {}) or {}).items():
@@ -1556,9 +1725,9 @@ def build_html_report(markdown_text):
     release_status = release_gate.get("status", "watch_only")
     if not data_is_fresh and release_status == "official":
         release_status = "data_stale_watch_only"
-    release_label = "\u6b63\u5f0f\u4e3b\u63a8" if release_status == "official" else "\u50c5\u4f9b\u89c0\u5bdf\uff0c\u7981\u6b62\u6b63\u5f0f\u4e3b\u63a8"
+    release_label = "\u6b63\u5f0f\u4e3b\u63a8" if release_status == "official" else "\u660e\u78ba\u4f5c\u6230\u98a8\u63a7\u7d1a"
     freshness_label = "\u8cc7\u6599\u5df2\u66f4\u65b0" if freshness.get("status") == "fresh" else "\u8cc7\u6599\u904e\u671f\uff0c\u7981\u6b62\u9810\u6e2c"
-    observation_note = "" if release_status == "official" else "\u672c\u5340\u70ba\u89c0\u5bdf\u5019\u9078\uff0c\u8cc7\u6599\u6216\u767c\u5e03\u9580\u6abb\u672a\u901a\u904e"
+    observation_note = "" if release_status == "official" else "\u672c\u5340\u70ba\u660e\u78ba\u4f5c\u6230\u98a8\u63a7\u7d1a\uff1a\u865f\u78bc\u7167\u5e38\u8f38\u51fa\uff0c\u4f46\u56de\u6e2c\u98a8\u63a7\u6703\u63d0\u9ad8\u4fdd\u5b88\u6aa2\u67e5"
     official_status = official_status_label(official_status_code)
     pending_summary = (
         f"\u9810\u6e2c\u4f9d\u64da\u671f {pending_prediction.get('based_on_period', '\u7121')} / "
@@ -1776,6 +1945,21 @@ def build_html_report(markdown_text):
         <div class="dateitem"><strong>\u4e0a\u671f\u6aa2\u8a0e\u958b\u734e\u65e5</strong><span>{settled_prediction.get('actual_date', '-')}</span></div>
       </div>
     </section>
+    <section class="band hotbox">
+      <h2>本期明確作戰答案（資料日 {latest_data_date} / 目標日 {pending_target_date}）</h2>
+      <p><strong>{decision_action_label}</strong> / 等級：{decision_grade_label} / 低迷召回：{decisive_decision.get('slump_recall_triggered')} / 近期回測通過：{decisive_decision.get('recent_performance_passed')}</p>
+      <div class="grid">
+        {card('明確獨支', fmt_numbers(decisive_decision.get('primary_single', [])) or '-', '本期一號核心')}
+        {card('明確2中1', fmt_numbers(decisive_decision.get('two_hit_one', [])) or '-', '本期雙核心')}
+        {card('明確3中1', fmt_numbers(decisive_decision.get('three_hit_one', [])) or '-', '本期三核心')}
+        {card('明確5中2', fmt_numbers(decisive_decision.get('five_hit_two', [])) or '-', '本期五號攻擊組')}
+        {card('明確9中3', fmt_numbers(decisive_decision.get('nine_hit_three', [])) or '-', '本期九號覆蓋組')}
+        {card('防守避開', fmt_numbers(decision_avoid_numbers[:10]) or '-', '低分與弱訊號風控')}
+      </div>
+      <h3>高機率信心牌特別強調</h3>
+      <table><thead><tr><th>號碼</th><th>排名</th><th>保守機率</th><th>分數</th><th>信心</th><th>召回優先分</th><th>交叉通過</th><th>明確原因</th><th>備註</th></tr></thead><tbody>{decision_high_confidence_rows}</tbody></table>
+      <p>本期攻擊核心 Top10：{fmt_numbers(decision_core_numbers)}</p>
+    </section>
     <section class="band notice">
       <h2>\u672c\u671f\u767c\u5e03\u7d50\u8ad6\uff08\u8cc7\u6599\u65e5 {latest_data_date} / \u76ee\u6a19\u65e5 {pending_target_date}\uff09</h2>
       <p><span class="status {'fresh' if freshness.get('status') == 'fresh' else 'blocked'}">{freshness_label}</span>
@@ -1825,6 +2009,22 @@ def build_html_report(markdown_text):
       <table><thead><tr><th>\u9810\u6e2c -> \u958b\u734e</th><th>\u865f\u78bc</th><th>\u539f\u6392\u540d</th><th>\u5206\u6578</th><th>\u4fe1\u5fc3</th><th>\u4f86\u6e90</th></tr></thead><tbody>{late_rank_detail_rows}</tbody></table>
     </section>
     <section class="band">
+      <h2>\u672c\u6708\u9810\u6e2c\u7e3d\u6aa2\u8a0e\uff08{monthly_review.get('month', '')} / \u5df2\u7d50\u7b97 {monthly_review.get('sample_size', 0)} \u671f\uff09</h2>
+      <p>\u72c0\u614b\uff1a{monthly_review.get('status', '-')} / Top5 \u5e73\u5747 {monthly_review.get('top5_avg_hits', '-')} / Top10 \u5e73\u5747 {monthly_review.get('top10_avg_hits', '-')} / Top15 \u5e73\u5747 {monthly_review.get('top15_avg_hits', '-')}</p>
+      <p>\u8a3a\u65b7\uff1a{monthly_review.get('diagnosis', '')}</p>
+      <p>\u524d\u6bb5\u547d\u4e2d\u7387\uff1a{monthly_review.get('front_hit_rate', '-')} / Top16 \u4ee5\u5f8c\u6216\u5019\u9078\u5916\u6bd4\u7387\uff1a{monthly_review.get('late_or_missing_rate', '-')}</p>
+      <h3>\u672c\u6708\u547d\u4e2d\u6392\u540d\u5206\u5e03</h3>
+      <table><thead><tr><th>\u6392\u540d\u5340\u9593</th><th>\u547d\u4e2d\u6578</th><th>\u6bd4\u7387</th></tr></thead><tbody>{monthly_rank_rows}</tbody></table>
+      <h3>\u672c\u6708\u6bcf\u671f\u7d50\u7b97</h3>
+      <table><thead><tr><th>\u958b\u734e\u65e5</th><th>\u671f\u5225</th><th>\u5be6\u958b</th><th>Top5</th><th>Top10</th><th>Top15</th><th>\u5be6\u958b\u6392\u540d</th><th>Top10 \u6f0f\u6293</th></tr></thead><tbody>{monthly_daily_rows}</tbody></table>
+      <h3>\u672c\u6708\u6f0f\u6293\u865f\u78bc\u56de\u62c9\u540d\u55ae</h3>
+      <table><thead><tr><th>\u865f\u78bc</th><th>\u6f0f\u6293\u6b21\u6578</th><th>\u4e0b\u671f\u8abf\u6574</th></tr></thead><tbody>{monthly_missed_rows}</tbody></table>
+      <h3>\u672c\u6708\u5f37\u724c\u5305\u8868\u73fe</h3>
+      <table><thead><tr><th>\u985e\u578b</th><th>\u671f\u6578</th><th>\u9054\u6a19\u7387</th><th>\u5e73\u5747\u547d\u4e2d</th><th>\u96f6\u547d\u4e2d\u7387</th></tr></thead><tbody>{monthly_pack_rows}</tbody></table>
+      <h3>\u6708\u5ea6\u6efe\u52d5\u6700\u4f73\u65b9\u6848</h3>
+      <ul>{monthly_plan_rows}</ul>
+    </section>
+    <section class="band">
       <h2>\u6bcf\u65e5\u6aa2\u8a0e\u5f8c\u6efe\u52d5\u8abf\u6574\uff08\u6a23\u672c {rolling_adjustment.get('sample_size', 0)} \u671f\uff09</h2>
       <p>\u6b63\u78ba\u908f\u8f2f\uff1a\u4e0d\u56fa\u5b9a\u6b0a\u91cd\uff0c\u6539\u7528\u547d\u4e2d\u4f86\u6e90\u3001\u672a\u547d\u4e2d\u4f86\u6e90\u3001\u6392\u540d\u504f\u4f4e\u8207\u9023\u7e8c\u843d\u7a7a\u865f\u78bc\u9032\u884c\u4e0b\u671f\u5c0f\u5e45\u6efe\u52d5\u8abf\u6574\u3002</p>
       <p>\u653f\u7b56\uff1a{rolling_adjustment.get('policy', '-')}</p>
@@ -1840,6 +2040,14 @@ def build_html_report(markdown_text):
       <p>\u72c0\u614b\uff1a{live_precision.get('status', '-')} / \u6a21\u5f0f\uff1a{live_precision.get('mode', '-')} / \u8fd15\u671f Top5 \u5e73\u5747\uff1a{live_precision.get('recent_top5_avg', '-')} / \u8fd15\u671f Top10 \u5e73\u5747\uff1a{live_precision.get('recent_top10_avg', '-')}</p>
       <p>\u4f5c\u7528\uff1a\u5c07\u4e0a\u671f\u672a\u547d\u4e2d\u3001\u8fd1\u671f\u6f0f\u6293\u865f\u3001Top11-15 \u904e\u5f80\u547d\u4e2d\u3001\u9023\u7e8c\u843d\u7a7a\u865f\u78bc\u5168\u90e8\u9032\u5165\u4eca\u65e5\u6392\u540d\u5347\u964d\u6b0a\u3002\u672c\u671f\u5347\u6b0a {live_precision.get('promotion_count', 0)} \u9846\uff0c\u964d\u6b0a {live_precision.get('demotion_count', 0)} \u9846\u3002</p>
       <table><thead><tr><th>\u52d5\u4f5c</th><th>\u865f\u78bc</th><th>\u539f\u6392\u540d</th><th>\u8abf\u6574\u5e45\u5ea6</th><th>\u6821\u6e96\u539f\u56e0</th></tr></thead><tbody>{live_precision_rows}</tbody></table>
+    </section>
+    <section class="band notice">
+      <h2>低迷召回覆蓋急救模型（目標 {pending_target_date}）</h2>
+      <p>狀態：{slump_recall.get('status', '-')} / 方法：{slump_recall.get('method', '-')} / 近5期 Top5 平均：{slump_recall.get('recent_top5_avg', '-')} / 近5期 Top10 平均：{slump_recall.get('recent_top10_avg', '-')}</p>
+      <p>用途：當近期命中率掉到不合格區間時，不再只相信原本前排名，而是把本月漏抓號、上期未命中、尾數漏抓、分區漏抓與命中穿透率重新計入分數。升權 {slump_recall.get('promotion_count', 0)} 顆，降權 {slump_recall.get('demotion_count', 0)} 顆。</p>
+      <table><thead><tr><th>動作</th><th>號碼</th><th>召回優先分</th><th>分數調整</th></tr></thead><tbody>{slump_recall_rows}</tbody></table>
+      <h3>Top10 分區覆蓋替換</h3>
+      <table><thead><tr><th>缺口分區</th><th>補入號碼</th><th>替換號碼</th></tr></thead><tbody>{slump_recall_swap_rows}</tbody></table>
     </section>
     <section class="band">
       <h2>\u547d\u4e2d\u7a7f\u900f\u7387\u6821\u6e96\uff08\u6a23\u672c {hit_through.get('rounds', 0)} \u671f\uff09</h2>
@@ -2070,7 +2278,7 @@ def build_html_report(markdown_text):
       }};
       compactPanel(
         panels.prediction,
-        /重要日期|本期發布|日期基準|下期預測專區|精準度治理器|候選 Top 15|低機率/,
+        /重要日期|明確作戰|高機率信心牌|本期發布|日期基準|下期預測專區|精準度治理器|候選 Top 15|低機率/,
         "進階預測細節"
       );
       compactPanel(
@@ -2080,7 +2288,7 @@ def build_html_report(markdown_text):
       );
       compactPanel(
         panels.models,
-        /模型回測與改善規劃|自動權重校準|近期穩定度回測|進階預測模型/,
+        /模型回測與改善規劃|自動權重校準|近期穩定度回測|低迷召回|進階預測模型/,
         "進階模型細節"
       );
     }})();

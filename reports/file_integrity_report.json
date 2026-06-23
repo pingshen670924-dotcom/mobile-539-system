@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-06-18T14:54:59",
+  "generated_at": "2026-06-22T15:40:06",
   "status": "ok",
-  "checked_files": 95,
+  "checked_files": 172,
   "failed_count": 0,
   "warning_count": 0,
   "files": [
@@ -21,7 +21,7 @@
       "path": "analyze_539.py",
       "status": "ok",
       "warnings": [],
-      "size": 48487
+      "size": 60026
     },
     {
       "path": "auto_update_monitor.ps1",
@@ -33,7 +33,7 @@
       "path": "battle_report.py",
       "status": "ok",
       "warnings": [],
-      "size": 131484
+      "size": 147256
     },
     {
       "path": "build_tw539_release.ps1",
@@ -75,13 +75,13 @@
       "path": "health_check.py",
       "status": "ok",
       "warnings": [],
-      "size": 14207
+      "size": 15233
     },
     {
       "path": "industrial_engine.py",
       "status": "ok",
       "warnings": [],
-      "size": 107905
+      "size": 163416
     },
     {
       "path": "install_all_auto_tasks.ps1",
@@ -99,7 +99,7 @@
       "path": "install_daily_task.ps1",
       "status": "ok",
       "warnings": [],
-      "size": 1629
+      "size": 1877
     },
     {
       "path": "install_mobile_control.ps1",
@@ -135,13 +135,13 @@
       "path": "main_one_click.ps1",
       "status": "ok",
       "warnings": [],
-      "size": 7236
+      "size": 7329
     },
     {
       "path": "mobile_server.py",
       "status": "ok",
       "warnings": [],
-      "size": 16653
+      "size": 18520
     },
     {
       "path": "model_competition.py",
@@ -159,7 +159,7 @@
       "path": "pages_build.py",
       "status": "ok",
       "warnings": [],
-      "size": 10606
+      "size": 10766
     },
     {
       "path": "publish_free_github.ps1",
@@ -189,7 +189,7 @@
       "path": "run_539_once.ps1",
       "status": "ok",
       "warnings": [],
-      "size": 6590
+      "size": 6650
     },
     {
       "path": "setup_line_push.ps1",
@@ -225,7 +225,7 @@
       "path": "update_539.py",
       "status": "ok",
       "warnings": [],
-      "size": 47215
+      "size": 53319
     },
     {
       "path": "手機戰報即時網址.txt",
@@ -273,7 +273,7 @@
       "path": "data\\539.csv",
       "status": "ok",
       "warnings": [],
-      "size": 710802
+      "size": 711241
     },
     {
       "path": "data\\mobile_access_token.txt",
@@ -297,13 +297,13 @@
       "path": "reports\\539最新強化戰報.html",
       "status": "ok",
       "warnings": [],
-      "size": 82068
+      "size": 103245
     },
     {
       "path": "reports\\539每期預測對比.html",
       "status": "ok",
       "warnings": [],
-      "size": 5506
+      "size": 6354
     },
     {
       "path": "reports\\cleanup_obsolete_runtime.json",
@@ -321,73 +321,73 @@
       "path": "reports\\daily_integrity_audit.json",
       "status": "ok",
       "warnings": [],
-      "size": 3486
+      "size": 3725
     },
     {
       "path": "reports\\daily_integrity_audit.md",
       "status": "ok",
       "warnings": [],
-      "size": 1783
+      "size": 1937
     },
     {
       "path": "reports\\dashboard.html",
       "status": "ok",
       "warnings": [],
-      "size": 5316
+      "size": 5675
     },
     {
       "path": "reports\\file_integrity_report.json",
       "status": "ok",
       "warnings": [],
-      "size": 13507
+      "size": 24490
     },
     {
       "path": "reports\\file_integrity_report.md",
       "status": "ok",
       "warnings": [],
-      "size": 396
+      "size": 397
     },
     {
       "path": "reports\\health_status.json",
       "status": "ok",
       "warnings": [],
-      "size": 6223
+      "size": 6474
     },
     {
       "path": "reports\\health_status.md",
       "status": "ok",
       "warnings": [],
-      "size": 470
+      "size": 526
     },
     {
       "path": "reports\\latest_analysis.json",
       "status": "ok",
       "warnings": [],
-      "size": 666996
+      "size": 1289187
     },
     {
       "path": "reports\\latest_analysis.md",
       "status": "ok",
       "warnings": [],
-      "size": 6446
+      "size": 6747
     },
     {
       "path": "reports\\latest_battle_report.html",
       "status": "ok",
       "warnings": [],
-      "size": 82068
+      "size": 103245
     },
     {
       "path": "reports\\latest_battle_report.md",
       "status": "ok",
       "warnings": [],
-      "size": 22007
+      "size": 23396
     },
     {
       "path": "reports\\latest_battle_report.txt",
       "status": "ok",
       "warnings": [],
-      "size": 22007
+      "size": 23396
     },
     {
       "path": "reports\\line_push_status.json",
@@ -399,13 +399,19 @@
       "path": "reports\\model_competition.json",
       "status": "ok",
       "warnings": [],
-      "size": 28657
+      "size": 28661
     },
     {
       "path": "reports\\model_competition.md",
       "status": "ok",
       "warnings": [],
       "size": 3117
+    },
+    {
+      "path": "reports\\monthly_prediction_review.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 20657
     },
     {
       "path": "reports\\network_permission_diagnostic.json",
@@ -423,7 +429,7 @@
       "path": "reports\\prediction_history.json",
       "status": "ok",
       "warnings": [],
-      "size": 33569
+      "size": 40642
     },
     {
       "path": "site\\clear-cache.html",
@@ -441,13 +447,13 @@
       "path": "site\\health_status.json",
       "status": "ok",
       "warnings": [],
-      "size": 6223
+      "size": 6474
     },
     {
       "path": "site\\index.html",
       "status": "ok",
       "warnings": [],
-      "size": 85422
+      "size": 106761
     },
     {
       "path": "site\\latest.html",
@@ -459,31 +465,55 @@
       "path": "site\\latest_analysis.json",
       "status": "ok",
       "warnings": [],
-      "size": 666996
+      "size": 1289187
     },
     {
       "path": "site\\model_competition.json",
       "status": "ok",
       "warnings": [],
-      "size": 28657
+      "size": 28661
     },
     {
       "path": "site\\prediction-history.html",
       "status": "ok",
       "warnings": [],
-      "size": 5506
+      "size": 6354
     },
     {
       "path": "site\\prediction_history.json",
       "status": "ok",
       "warnings": [],
-      "size": 33569
+      "size": 40642
     },
     {
       "path": "site\\version.json",
       "status": "ok",
       "warnings": [],
       "size": 235
+    },
+    {
+      "path": "data\\data\\539.csv",
+      "status": "ok",
+      "warnings": [],
+      "size": 711241
+    },
+    {
+      "path": "data\\data\\mobile_access_token.txt",
+      "status": "ok",
+      "warnings": [],
+      "size": 14
+    },
+    {
+      "path": "data\\data\\網路人氣人工匯入.csv",
+      "status": "ok",
+      "warnings": [],
+      "size": 307
+    },
+    {
+      "path": "data\\data\\網路大神來源清單.csv",
+      "status": "ok",
+      "warnings": [],
+      "size": 1128
     },
     {
       "path": "reports\\history\\period_115000133.json",
@@ -573,20 +603,452 @@
       "path": "reports\\history\\period_115000148.json",
       "status": "ok",
       "warnings": [],
-      "size": 768
+      "size": 1865
+    },
+    {
+      "path": "reports\\history\\period_115000149.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1862
+    },
+    {
+      "path": "reports\\history\\period_115000150.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1876
+    },
+    {
+      "path": "reports\\history\\period_115000151.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 769
+    },
+    {
+      "path": "reports\\reports\\539最新強化戰報.html",
+      "status": "ok",
+      "warnings": [],
+      "size": 94865
+    },
+    {
+      "path": "reports\\reports\\539每期預測對比.html",
+      "status": "ok",
+      "warnings": [],
+      "size": 6353
+    },
+    {
+      "path": "reports\\reports\\cleanup_obsolete_runtime.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 321
+    },
+    {
+      "path": "reports\\reports\\crowd_consensus.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 7593
+    },
+    {
+      "path": "reports\\reports\\daily_integrity_audit.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 3728
+    },
+    {
+      "path": "reports\\reports\\daily_integrity_audit.md",
+      "status": "ok",
+      "warnings": [],
+      "size": 1940
+    },
+    {
+      "path": "reports\\reports\\dashboard.html",
+      "status": "ok",
+      "warnings": [],
+      "size": 5675
+    },
+    {
+      "path": "reports\\reports\\file_integrity_report.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 14067
+    },
+    {
+      "path": "reports\\reports\\file_integrity_report.md",
+      "status": "ok",
+      "warnings": [],
+      "size": 396
+    },
+    {
+      "path": "reports\\reports\\health_status.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 6532
+    },
+    {
+      "path": "reports\\reports\\health_status.md",
+      "status": "ok",
+      "warnings": [],
+      "size": 526
+    },
+    {
+      "path": "reports\\reports\\latest_analysis.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1236391
+    },
+    {
+      "path": "reports\\reports\\latest_analysis.md",
+      "status": "ok",
+      "warnings": [],
+      "size": 6761
+    },
+    {
+      "path": "reports\\reports\\latest_battle_report.html",
+      "status": "ok",
+      "warnings": [],
+      "size": 94865
+    },
+    {
+      "path": "reports\\reports\\latest_battle_report.md",
+      "status": "ok",
+      "warnings": [],
+      "size": 23141
+    },
+    {
+      "path": "reports\\reports\\latest_battle_report.txt",
+      "status": "ok",
+      "warnings": [],
+      "size": 23141
+    },
+    {
+      "path": "reports\\reports\\line_push_status.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 152
+    },
+    {
+      "path": "reports\\reports\\model_competition.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 28661
+    },
+    {
+      "path": "reports\\reports\\model_competition.md",
+      "status": "ok",
+      "warnings": [],
+      "size": 3117
+    },
+    {
+      "path": "reports\\reports\\monthly_prediction_review.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 20657
+    },
+    {
+      "path": "reports\\reports\\network_permission_diagnostic.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 2042
+    },
+    {
+      "path": "reports\\reports\\network_permission_diagnostic.txt",
+      "status": "ok",
+      "warnings": [],
+      "size": 937
+    },
+    {
+      "path": "reports\\reports\\prediction_history.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 40640
+    },
+    {
+      "path": "reports\\history\\history\\period_115000133.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1849
+    },
+    {
+      "path": "reports\\history\\history\\period_115000134.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1881
+    },
+    {
+      "path": "reports\\history\\history\\period_115000135.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1871
+    },
+    {
+      "path": "reports\\history\\history\\period_115000136.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1876
+    },
+    {
+      "path": "reports\\history\\history\\period_115000137.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1887
+    },
+    {
+      "path": "reports\\history\\history\\period_115000138.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1856
+    },
+    {
+      "path": "reports\\history\\history\\period_115000139.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1826
+    },
+    {
+      "path": "reports\\history\\history\\period_115000140.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1655
+    },
+    {
+      "path": "reports\\history\\history\\period_115000141.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1600
+    },
+    {
+      "path": "reports\\history\\history\\period_115000142.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1884
+    },
+    {
+      "path": "reports\\history\\history\\period_115000143.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1865
+    },
+    {
+      "path": "reports\\history\\history\\period_115000145.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1889
+    },
+    {
+      "path": "reports\\history\\history\\period_115000146.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1880
+    },
+    {
+      "path": "reports\\history\\history\\period_115000147.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1880
+    },
+    {
+      "path": "reports\\history\\history\\period_115000148.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1865
+    },
+    {
+      "path": "reports\\history\\history\\period_115000149.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1862
+    },
+    {
+      "path": "reports\\history\\history\\period_115000150.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1876
+    },
+    {
+      "path": "reports\\history\\history\\period_115000151.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 767
+    },
+    {
+      "path": "reports\\reports\\history\\period_115000133.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1849
+    },
+    {
+      "path": "reports\\reports\\history\\period_115000134.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1881
+    },
+    {
+      "path": "reports\\reports\\history\\period_115000135.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1871
+    },
+    {
+      "path": "reports\\reports\\history\\period_115000136.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1876
+    },
+    {
+      "path": "reports\\reports\\history\\period_115000137.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1887
+    },
+    {
+      "path": "reports\\reports\\history\\period_115000138.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1856
+    },
+    {
+      "path": "reports\\reports\\history\\period_115000139.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1826
+    },
+    {
+      "path": "reports\\reports\\history\\period_115000140.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1655
+    },
+    {
+      "path": "reports\\reports\\history\\period_115000141.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1600
+    },
+    {
+      "path": "reports\\reports\\history\\period_115000142.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1884
+    },
+    {
+      "path": "reports\\reports\\history\\period_115000143.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1865
+    },
+    {
+      "path": "reports\\reports\\history\\period_115000145.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1889
+    },
+    {
+      "path": "reports\\reports\\history\\period_115000146.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1880
+    },
+    {
+      "path": "reports\\reports\\history\\period_115000147.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1880
+    },
+    {
+      "path": "reports\\reports\\history\\period_115000148.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1865
+    },
+    {
+      "path": "reports\\reports\\history\\period_115000149.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1862
+    },
+    {
+      "path": "reports\\reports\\history\\period_115000150.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1876
+    },
+    {
+      "path": "reports\\reports\\history\\period_115000151.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 767
+    },
+    {
+      "path": "site\\site\\clear-cache.html",
+      "status": "ok",
+      "warnings": [],
+      "size": 1210
+    },
+    {
+      "path": "site\\site\\crowd_consensus.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 8334
+    },
+    {
+      "path": "site\\site\\health_status.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 6532
+    },
+    {
+      "path": "site\\site\\index.html",
+      "status": "ok",
+      "warnings": [],
+      "size": 98219
+    },
+    {
+      "path": "site\\site\\latest.html",
+      "status": "ok",
+      "warnings": [],
+      "size": 744
+    },
+    {
+      "path": "site\\site\\latest_analysis.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1236391
+    },
+    {
+      "path": "site\\site\\model_competition.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 28661
+    },
+    {
+      "path": "site\\site\\prediction-history.html",
+      "status": "ok",
+      "warnings": [],
+      "size": 6353
+    },
+    {
+      "path": "site\\site\\prediction_history.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 40640
+    },
+    {
+      "path": "site\\site\\version.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 235
     }
   ],
   "data_consistency": {
     "status": "ok",
     "csv_latest": {
-      "period": 115000147,
-      "draw_date": "2026-06-17",
+      "period": 115000150,
+      "draw_date": "2026-06-20",
       "numbers": [
-        8,
-        10,
-        15,
-        16,
-        37
+        4,
+        11,
+        24,
+        25,
+        31
       ]
     },
     "checks": [
@@ -594,25 +1056,25 @@
         "name": "analysis_matches_csv_latest_draw",
         "status": "ok",
         "csv_latest": {
-          "period": 115000147,
-          "draw_date": "2026-06-17",
+          "period": 115000150,
+          "draw_date": "2026-06-20",
           "numbers": [
-            8,
-            10,
-            15,
-            16,
-            37
+            4,
+            11,
+            24,
+            25,
+            31
           ]
         },
         "analysis_latest": {
-          "period": 115000147,
-          "draw_date": "2026-06-17",
+          "period": 115000150,
+          "draw_date": "2026-06-20",
           "numbers": [
-            8,
-            10,
-            15,
-            16,
-            37
+            4,
+            11,
+            24,
+            25,
+            31
           ]
         }
       },
@@ -620,19 +1082,19 @@
         "name": "health_matches_csv_latest_draw",
         "status": "ok",
         "csv_latest": {
-          "period": 115000147,
-          "draw_date": "2026-06-17",
+          "period": 115000150,
+          "draw_date": "2026-06-20",
           "numbers": [
-            8,
-            10,
-            15,
-            16,
-            37
+            4,
+            11,
+            24,
+            25,
+            31
           ]
         },
         "health_latest": {
-          "period": 115000147,
-          "draw_date": "2026-06-17",
+          "period": 115000150,
+          "draw_date": "2026-06-20",
           "freshness_status": "fresh"
         }
       }

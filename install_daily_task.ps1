@@ -21,7 +21,24 @@ try {
     -Argument $ActionArguments `
     -WorkingDirectory $ScriptDir
 
-  $TriggerTimes = @("21:05", "21:35", "22:05", "22:35", "23:05", "23:35")
+  $TriggerTimes = @(
+    "20:55",
+    "21:00",
+    "21:10",
+    "21:20",
+    "21:30",
+    "21:40",
+    "21:50",
+    "22:05",
+    "22:20",
+    "22:35",
+    "22:50",
+    "23:05",
+    "23:20",
+    "23:35",
+    "23:50",
+    "00:10"
+  )
   $Triggers = @(
     foreach ($TimeText in $TriggerTimes) {
       New-ScheduledTaskTrigger -Daily -At $TimeText
@@ -41,7 +58,8 @@ try {
     -Force | Out-Null
 
   Write-Host "Scheduled task installed: $TaskName"
-  Write-Host "Daily triggers: 21:05, 21:35, 22:05, 22:35, 23:05, 23:35"
+  Write-Host "Daily triggers: $($TriggerTimes -join ', ')"
+  Write-Host "Each run keeps retrying internally for up to 35 minutes when the official draw is late."
   Write-Host "This task runs independently from the Codex offline sandbox."
   exit 0
 } catch {

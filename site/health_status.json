@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-06-22T19:44:32",
+  "generated_at": "2026-06-23T09:43:27",
   "database_exists": true,
   "backup_count": 1,
-  "latest_backup": "/home/runner/work/mobile-539-system/mobile-539-system/backups/539_20260622_194004.sqlite",
+  "latest_backup": "C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\TW539預測系統_20260622_第05版_一鍵版\\TW539Core\\backups\\539_20260623_093843.sqlite",
   "log_exists": true,
   "latest_analysis_exists": true,
   "status": "ok",
@@ -28,29 +28,29 @@
       34
     ],
     "source": "taiwanlottery_latest_result",
-    "fetched_at": "2026-06-22T19:40:07"
+    "fetched_at": "2026-06-23T09:38:43"
   },
   "data_freshness": {
     "status": "fresh",
     "latest_date": "2026-06-22",
-    "expected_latest_date": "2026-06-20"
+    "expected_latest_date": "2026-06-22"
   },
   "last_run": {
     "run_type": "latest",
-    "started_at": "2026-06-22T19:40:04",
-    "finished_at": "2026-06-22T19:40:07",
+    "started_at": "2026-06-23T09:38:43",
+    "finished_at": "2026-06-23T09:38:44",
     "status": "success",
     "message": "{\"rows\": 5895, \"invalid_periods\": [], \"duplicate_periods\": [], \"latest_period\": 115000151, \"latest_date\": \"2026-06-22\"}"
   },
   "pending_predictions": 1,
   "settled_predictions": 18,
-  "prediction_snapshots": 142,
+  "prediction_snapshots": 148,
   "prediction_performance": {
     "settled": 18,
-    "top5_avg_hits": 0.722,
+    "top5_avg_hits": 0.778,
     "top10_avg_hits": 1.333,
     "top15_avg_hits": 1.833,
-    "set_avg_hits": 0.667,
+    "set_avg_hits": 0.64,
     "strong_pack_stats": {
       "strong_single": {
         "rounds": 18,
@@ -64,8 +64,8 @@
       },
       "three_hit_one": {
         "rounds": 18,
-        "pass_rate": 0.333,
-        "avg_hits": 0.444
+        "pass_rate": 0.389,
+        "avg_hits": 0.5
       },
       "five_hit_two": {
         "rounds": 18,
@@ -74,8 +74,8 @@
       },
       "nine_hit_three": {
         "rounds": 18,
-        "pass_rate": 0.222,
-        "avg_hits": 1.222
+        "pass_rate": 0.167,
+        "avg_hits": 1.167
       }
     },
     "research_kpi": {
@@ -106,13 +106,13 @@
           "minimum_hits": 3,
           "maximum_hits": 5,
           "settled_samples": 18,
-          "successes": 4,
-          "target_band_successes": 4,
+          "successes": 3,
+          "target_band_successes": 3,
           "over_target_successes": 0,
-          "failures": 14,
-          "pass_rate": 0.2222,
-          "wilson_lower_95": 0.09,
-          "average_hits": 1.2222,
+          "failures": 15,
+          "pass_rate": 0.1667,
+          "wilson_lower_95": 0.0584,
+          "average_hits": 1.1667,
           "met_in_observed_samples": false
         },
         "five_hit_two": {
@@ -134,13 +134,13 @@
           "minimum_hits": 1,
           "maximum_hits": 3,
           "settled_samples": 18,
-          "successes": 6,
-          "target_band_successes": 6,
+          "successes": 7,
+          "target_band_successes": 7,
           "over_target_successes": 0,
-          "failures": 12,
-          "pass_rate": 0.3333,
-          "wilson_lower_95": 0.1628,
-          "average_hits": 0.4444,
+          "failures": 11,
+          "pass_rate": 0.3889,
+          "wilson_lower_95": 0.203,
+          "average_hits": 0.5,
           "met_in_observed_samples": false
         },
         "two_hit_one": {
@@ -201,8 +201,8 @@
   },
   "mobile": {
     "status": "built",
-    "version": "20260622173325",
-    "mobile_built_at": "2026-06-22T17:33:25",
+    "version": "20260623094311",
+    "mobile_built_at": "2026-06-23T09:43:11",
     "latest_period": 115000151,
     "latest_draw_date": "2026-06-22"
   }

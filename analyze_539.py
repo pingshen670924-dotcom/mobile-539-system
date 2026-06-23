@@ -18,12 +18,37 @@ REPORT_DIR = BASE_DIR / "reports"
 DB_PATH = DATA_DIR / "539.sqlite"
 LATEST_JSON = REPORT_DIR / "latest_analysis.json"
 LATEST_MD = REPORT_DIR / "latest_analysis.md"
+MONTHLY_REVIEW_JSON = REPORT_DIR / "monthly_prediction_review.json"
 WINDOWS = [5, 10, 20, 50, 100]
 TAIPEI_TZ = ZoneInfo("Asia/Taipei")
 
 
 def taipei_now():
     return datetime.now(TAIPEI_TZ).replace(tzinfo=None)
+
+
+def expected_latest_draw_date(now=None):
+    now = now or taipei_now()
+    candidate = now.date()
+    if now.time().hour < 21:
+        candidate -= timedelta(days=1)
+    while candidate.weekday() == 6:
+        candidate -= timedelta(days=1)
+    return candidate.isoformat()
+
+
+def build_data_freshness(latest_date, now=None):
+    now = now or taipei_now()
+    expected = expected_latest_draw_date(now)
+    latest = datetime.strptime(latest_date, "%Y-%m-%d").date()
+    expected_date = datetime.strptime(expected, "%Y-%m-%d").date()
+    return {
+        "status": "fresh" if latest >= expected_date else "stale",
+        "latest_date": latest_date,
+        "expected_latest_date": expected,
+        "lag_days": max((expected_date - latest).days, 0),
+        "checked_at": now.isoformat(timespec="seconds"),
+    }
 
 DEFAULT_MODEL_WEIGHTS = {
     "heat_short": 0.24,
@@ -431,6 +456,17 @@ def score_numbers(draws, model_weights=None, failure_review_data=None):
 
     if failure_review_data and failure_review_data.get("severity") == "critical":
         settled = failure_review_data.get("last_settled", {})
+        rolling = failure_review_data.get("rolling_adjustment", {})
+        monthly_recall_numbers = {
+            int(item.get("number"))
+            for item in rolling.get("monthly_recall_numbers", [])
+            if item.get("number")
+        }
+        daily_recall_numbers = {
+            int(item.get("number"))
+            for item in rolling.get("missed_actual_numbers", [])
+            if item.get("number")
+        }
         failed_numbers = set((settled.get("candidate_numbers") or [])[:10])
         for pack in (settled.get("strong_pack_hits") or {}).values():
             if not pack.get("passed"):
@@ -439,8 +475,12 @@ def score_numbers(draws, model_weights=None, failure_review_data=None):
         failed_numbers -= actual_numbers
         for n in failed_numbers:
             if 1 <= n <= 39:
-                score[n] *= 0.35
-                reasons[n].append("\u4e0a\u671f\u5931\u6557\u61f2\u7f70")
+                if n in monthly_recall_numbers or n in daily_recall_numbers:
+                    score[n] *= 0.78
+                    reasons[n].append("\u6708\u5ea6\u6f0f\u6293\u56de\u88dc")
+                else:
+                    score[n] *= 0.48
+                    reasons[n].append("\u4e0a\u671f\u5931\u6557\u8edf\u61f2\u7f70")
 
     ranked = rank_values(score)
     max_score = max(score.values())
@@ -549,7 +589,205 @@ def latest_settled_prediction(db_path=DB_PATH):
     }
 
 
+def number_zone_label(number):
+    if number <= 10:
+        return "01-10"
+    if number <= 20:
+        return "11-20"
+    if number <= 30:
+        return "21-30"
+    return "31-39"
+
+
+def rank_bucket(rank):
+    if rank is None:
+        return "missing"
+    if rank <= 5:
+        return "01-05"
+    if rank <= 10:
+        return "06-10"
+    if rank <= 15:
+        return "11-15"
+    if rank <= 25:
+        return "16-25"
+    return "26-39"
+
+
+def month_prediction_review(db_path=DB_PATH, month=None):
+    now = taipei_now()
+    month = month or now.strftime("%Y-%m")
+    start = datetime.strptime(month + "-01", "%Y-%m-%d").date()
+    if start.month == 12:
+        end = start.replace(year=start.year + 1, month=1)
+    else:
+        end = start.replace(month=start.month + 1)
+    try:
+        with sqlite3.connect(db_path) as conn:
+            rows = conn.execute(
+                """
+                SELECT based_on_period,based_on_date,target_period,actual_period,actual_date,
+                       actual_numbers_json,candidates_json,strong_pack_hits_json,
+                       top5_hits,top10_hits,top15_hits
+                FROM predictions_539
+                WHERE status='settled' AND actual_date >= ? AND actual_date < ?
+                ORDER BY actual_date
+                """,
+                (start.isoformat(), end.isoformat()),
+            ).fetchall()
+    except sqlite3.OperationalError:
+        rows = []
+
+    if not rows:
+        return {
+            "month": month,
+            "sample_size": 0,
+            "status": "no_settled_predictions",
+            "diagnosis": "\u672c\u6708\u5c1a\u7121\u5df2\u7d50\u7b97\u9810\u6e2c\uff0c\u7121\u6cd5\u505a\u6708\u5ea6\u6821\u6b63\u3002",
+            "daily_reviews": [],
+            "adjustment_plan": [],
+        }
+
+    top5_values = []
+    top10_values = []
+    top15_values = []
+    rank_buckets = Counter()
+    missed_top10_numbers = Counter()
+    missed_top15_numbers = Counter()
+    missed_tails = Counter()
+    missed_zones = Counter()
+    source_hits = Counter()
+    source_misses = Counter()
+    pack_stats = defaultdict(lambda: {"rounds": 0, "passes": 0, "hits": 0, "zero_hits": 0})
+    daily_reviews = []
+
+    for row in rows:
+        candidates = json.loads(row[6] or "[]")
+        candidate_numbers = [int(item.get("number")) for item in candidates if item.get("number")]
+        actual_numbers = [int(number) for number in json.loads(row[5] or "[]")]
+        actual_set = set(actual_numbers)
+        ranks = {
+            number: (candidate_numbers.index(number) + 1 if number in candidate_numbers else None)
+            for number in actual_numbers
+        }
+        for number, rank in ranks.items():
+            rank_buckets[rank_bucket(rank)] += 1
+        top10_set = set(candidate_numbers[:10])
+        top15_set = set(candidate_numbers[:15])
+        for number in actual_set - top10_set:
+            missed_top10_numbers[number] += 1
+            missed_tails[number % 10] += 1
+            missed_zones[number_zone_label(number)] += 1
+        for number in actual_set - top15_set:
+            missed_top15_numbers[number] += 1
+
+        for item in candidates[:15]:
+            number = int(item.get("number"))
+            hit = number in actual_set
+            for reason in item.get("reasons") or ["\u7d9c\u5408\u6a21\u578b"]:
+                if hit:
+                    source_hits[reason] += 1
+                else:
+                    source_misses[reason] += 1
+
+        pack_hits = json.loads(row[7] or "{}")
+        for key, item in pack_hits.items():
+            pack_stats[key]["rounds"] += 1
+            pack_stats[key]["passes"] += 1 if item.get("passed") else 0
+            hits = int(item.get("hits", 0) or 0)
+            pack_stats[key]["hits"] += hits
+            pack_stats[key]["zero_hits"] += 1 if hits == 0 else 0
+
+        top5_values.append(int(row[8] or 0))
+        top10_values.append(int(row[9] or 0))
+        top15_values.append(int(row[10] or 0))
+        daily_reviews.append({
+            "actual_date": row[4],
+            "target_period": row[2],
+            "actual_numbers": actual_numbers,
+            "top5_hits": int(row[8] or 0),
+            "top10_hits": int(row[9] or 0),
+            "top15_hits": int(row[10] or 0),
+            "actual_ranks": ranks,
+            "missed_top10": sorted(actual_set - top10_set),
+            "missed_top15": sorted(actual_set - top15_set),
+        })
+
+    sample_size = len(rows)
+    avg_top5 = round(sum(top5_values) / sample_size, 3)
+    avg_top10 = round(sum(top10_values) / sample_size, 3)
+    avg_top15 = round(sum(top15_values) / sample_size, 3)
+    rank_total = sum(rank_buckets.values()) or 1
+    front_hit_rate = round((rank_buckets["01-05"] + rank_buckets["06-10"]) / rank_total, 3)
+    late_or_missing_rate = round(
+        (rank_buckets["16-25"] + rank_buckets["26-39"] + rank_buckets["missing"]) / rank_total,
+        3,
+    )
+    if avg_top10 < 1.5 or late_or_missing_rate >= 0.55:
+        status = "critical_recall_gap"
+        diagnosis = "\u672c\u6708\u4e3b\u8981\u554f\u984c\u662f\u53ec\u56de\u7387\u4e0d\u8db3\uff1a\u5be6\u958b\u865f\u5927\u91cf\u843d\u5728 Top15 \u5f8c\u6bb5\u6216\u5019\u9078\u5916\uff0c\u5fc5\u9808\u512a\u5148\u4fee\u6b63\u6392\u5e8f\u56de\u62c9\u8207\u5305\u7d44\u5408\u8986\u84cb\u3002"
+    elif avg_top10 < 1.8:
+        status = "warning_rank_gap"
+        diagnosis = "\u672c\u6708 Top10 \u547d\u4e2d\u504f\u4f4e\uff0c\u9700\u8981\u63d0\u9ad8\u5f8c\u6bb5\u547d\u4e2d\u865f\u56de\u62c9\u8207\u5206\u5340\u8986\u84cb\u3002"
+    else:
+        status = "stable_watch"
+        diagnosis = "\u672c\u6708 Top10 \u547d\u4e2d\u63a5\u8fd1\u53ef\u89c0\u5bdf\u5340\u9593\uff0c\u6301\u7e8c\u7528\u6708\u5ea6\u8cc7\u6599\u5fae\u8abf\u3002"
+
+    source_rows = []
+    for reason in set(source_hits) | set(source_misses):
+        hit = source_hits[reason]
+        miss = source_misses[reason]
+        total = hit + miss
+        source_rows.append({
+            "reason": reason,
+            "hit": hit,
+            "miss": miss,
+            "hit_rate": round(hit / total, 3) if total else 0,
+        })
+    source_rows.sort(key=lambda item: (item["hit_rate"], item["hit"], -item["miss"]), reverse=True)
+
+    pack_summary = {}
+    for key, item in pack_stats.items():
+        rounds = item["rounds"] or 1
+        pack_summary[key] = {
+            "rounds": item["rounds"],
+            "pass_rate": round(item["passes"] / rounds, 3),
+            "avg_hits": round(item["hits"] / rounds, 3),
+            "zero_hit_rate": round(item["zero_hits"] / rounds, 3),
+        }
+
+    adjustment_plan = [
+        "\u6708\u5ea6\u6a21\u5f0f\uff1a\u4ee5\u672c\u6708\u6f0f\u6293\u5be6\u958b\u865f\u3001\u5c3e\u6578\u3001\u5340\u9593\u512a\u5148\u505a\u6392\u5e8f\u56de\u62c9\uff0c\u4e0d\u518d\u53ea\u4f9d\u4e0a\u4e00\u671f\u7d50\u679c\u8df3\u52d5\u3002",
+        "Top10 \u56de\u62c9\uff1a\u672c\u6708\u91cd\u8907\u6f0f\u6293\u7684\u865f\u78bc\u82e5\u540c\u6642\u5177\u5099\u5206\u5340/\u5c3e\u6578/\u5171\u73fe\u6216\u547d\u4e2d\u7a7f\u900f\u7387\u652f\u6490\uff0c\u5141\u8a31\u9032\u5165 Top10 \u908a\u754c\u5019\u9078\u3002",
+        "5\u4e2d2/9\u4e2d3\uff1a\u964d\u4f4e\u524d\u6bb5\u6392\u540d\u55ae\u4e00\u8def\u5f91\u4f9d\u8cf4\uff0c\u6539\u7528\u5206\u5340\u8986\u84cb\u8207\u5c3e\u6578\u5206\u6563\u88dc\u8db3\u3002",
+        "\u932f\u6bba\u63a7\u5236\uff1a\u4e0a\u671f\u5931\u6557\u865f\u4e0d\u518d\u786c\u6bba\uff0c\u53ea\u6709\u9023\u7e8c\u843d\u7a7a\u4e14\u7121\u6708\u5ea6\u56de\u88dc\u8a0a\u865f\u624d\u91cd\u964d\u6b0a\u3002",
+    ]
+
+    return {
+        "month": month,
+        "sample_size": sample_size,
+        "status": status,
+        "diagnosis": diagnosis,
+        "top5_avg_hits": avg_top5,
+        "top10_avg_hits": avg_top10,
+        "top15_avg_hits": avg_top15,
+        "front_hit_rate": front_hit_rate,
+        "late_or_missing_rate": late_or_missing_rate,
+        "rank_buckets": dict(rank_buckets),
+        "daily_reviews": daily_reviews,
+        "missed_top10_numbers": [{"number": n, "missed_count": c} for n, c in missed_top10_numbers.most_common(15)],
+        "missed_top15_numbers": [{"number": n, "missed_count": c} for n, c in missed_top15_numbers.most_common(15)],
+        "missed_tails": [{"tail": n, "missed_count": c} for n, c in missed_tails.most_common(10)],
+        "missed_zones": [{"zone": n, "missed_count": c} for n, c in missed_zones.most_common()],
+        "source_performance": source_rows[:12],
+        "pack_summary": pack_summary,
+        "best_days": sorted(daily_reviews, key=lambda item: (item["top10_hits"], item["top15_hits"]), reverse=True)[:5],
+        "worst_days": sorted(daily_reviews, key=lambda item: (item["top10_hits"], item["top15_hits"]))[:5],
+        "adjustment_plan": adjustment_plan,
+    }
+
+
 def rolling_failure_profile(db_path=DB_PATH, limit=30):
+    monthly_review = month_prediction_review(db_path)
     try:
         with sqlite3.connect(db_path) as conn:
             rows = conn.execute(
@@ -565,11 +803,15 @@ def rolling_failure_profile(db_path=DB_PATH, limit=30):
     except sqlite3.OperationalError:
         return {
             "sample_size": 0,
+            "monthly_review": monthly_review,
             "penalized_reasons": [],
             "boosted_reasons": [],
             "repeated_failed_numbers": [],
             "late_hit_numbers": [],
             "missed_actual_numbers": [],
+            "monthly_recall_numbers": monthly_review.get("missed_top10_numbers", []),
+            "monthly_recall_tails": monthly_review.get("missed_tails", []),
+            "monthly_recall_zones": monthly_review.get("missed_zones", []),
             "recent_performance": {},
         }
 
@@ -647,7 +889,8 @@ def rolling_failure_profile(db_path=DB_PATH, limit=30):
 
     return {
         "sample_size": len(rows),
-        "policy": "daily_miss_review_rolls_into_next_prediction_with_slump_mode",
+        "policy": "daily_and_monthly_miss_review_rolls_into_next_prediction_with_recall_mode",
+        "monthly_review": monthly_review,
         "penalized_reasons": sorted(penalized, key=lambda item: (item["miss"], -item["hit"]), reverse=True)[:12],
         "boosted_reasons": sorted(boosted, key=lambda item: (item.get("late_hit_count", 0), item["hit"]), reverse=True)[:12],
         "repeated_failed_numbers": [{"number": n, "miss_count": c} for n, c in number_misses.most_common() if c >= 3][:12],
@@ -655,6 +898,9 @@ def rolling_failure_profile(db_path=DB_PATH, limit=30):
         "missed_actual_numbers": [{"number": n, "missed_count": c} for n, c in missed_actual_numbers.most_common()][:15],
         "missed_actual_tails": [{"tail": n, "missed_count": c} for n, c in missed_actual_tails.most_common()][:10],
         "missed_actual_zones": [{"zone": n, "missed_count": c} for n, c in missed_actual_zones.most_common()],
+        "monthly_recall_numbers": monthly_review.get("missed_top10_numbers", [])[:15],
+        "monthly_recall_tails": monthly_review.get("missed_tails", [])[:10],
+        "monthly_recall_zones": monthly_review.get("missed_zones", []),
         "recent_performance": recent_performance,
     }
 
@@ -664,16 +910,19 @@ def failure_review(db_path=DB_PATH):
     if not settled:
         return {"has_review": False, "severity": "none", "actions": []}
     rolling_adjustment = rolling_failure_profile(db_path)
+    monthly_review = rolling_adjustment.get("monthly_review", {})
     severity = "normal"
     actions = []
     recent_performance = rolling_adjustment.get("recent_performance", {})
-    if settled["top10_hits"] == 0 or recent_performance.get("critical_slump"):
+    monthly_critical = monthly_review.get("status") == "critical_recall_gap"
+    if settled["top10_hits"] == 0 or recent_performance.get("critical_slump") or monthly_critical:
         severity = "critical"
         actions = [
             "\u964d\u4f4e\u77ed\u7dda\u71b1\u865f\u3001\u62d6\u724c\u3001\u76f8\u4f3c\u724c\u8207\u96d9\u751f\u724c\u6b0a\u91cd",
             "\u63d0\u9ad8\u4e2d\u671f\u5747\u8861\u3001\u907a\u6f0f\u88dc\u511f\u3001\u5c3e\u6578\u5340\u9593\u8207\u5171\u73fe\u5206\u6563",
             "\u5f37\u724c\u7d44\u52a0\u5165\u5340\u9593\u5206\u6563\u9650\u5236\uff0c\u907f\u514d\u96c6\u4e2d\u5728\u540c\u4e00\u6bb5\u8da8\u52e2",
             "\u555f\u7528\u8fd1\u671f\u5931\u6e96\u4fee\u6b63\u6a21\u5f0f\uff0c\u5c07\u5be6\u969b\u958b\u51fa\u4f46 Top10 \u6f0f\u6293\u7684\u865f\u78bc\u3001\u5c3e\u6578\u8207\u5340\u9593\u8f49\u5165\u4e0b\u671f\u88dc\u4f4d",
+            "\u555f\u7528\u6708\u5ea6\u6392\u540d\u56de\u62c9\uff1a\u5c07\u672c\u6708\u91cd\u8907\u6f0f\u6293\u7684\u5be6\u958b\u865f\u3001\u5c3e\u6578\u8207\u5340\u9593\u7d0d\u5165\u4e0b\u671f Top10 \u908a\u754c\u6821\u6e96",
         ]
     elif settled["top10_hits"] <= 1 or recent_performance.get("recent_slump"):
         severity = "warning"
@@ -687,6 +936,7 @@ def failure_review(db_path=DB_PATH):
         "severity": severity,
         "actions": actions,
         "last_settled": settled,
+        "monthly_review": monthly_review,
         "rolling_adjustment": rolling_adjustment,
     }
 
@@ -1101,8 +1351,9 @@ def analyze(db_path=DB_PATH):
         industrial.setdefault("release_gate", {})["aerospace_status"] = "watch_only"
     analysis = {
         "generated_at": taipei_now().isoformat(timespec="seconds"),
-        "prediction_mode": "current_precision_stability_v36_live_calibrated",
+        "prediction_mode": "current_precision_stability_v40_decisive_confidence_plan",
         "latest_draw": draws[-1],
+        "data_freshness": build_data_freshness(draws[-1]["draw_date"]),
         "windows": [window_summary(draws, size) for size in WINDOWS],
         "relationships": relationship_analysis(draws),
         "failure_review": review,
@@ -1131,6 +1382,9 @@ def save_analysis(analysis):
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     atomic_write_text(LATEST_JSON, json.dumps(analysis, ensure_ascii=False, indent=2))
     atomic_write_text(LATEST_MD, render_markdown(analysis))
+    monthly_review = (analysis.get("failure_review") or {}).get("monthly_review")
+    if monthly_review:
+        atomic_write_text(MONTHLY_REVIEW_JSON, json.dumps(monthly_review, ensure_ascii=False, indent=2))
 
 
 def atomic_write_text(path, text):

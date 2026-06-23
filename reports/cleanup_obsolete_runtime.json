@@ -1,12 +1,13 @@
 ﻿{
-    "cleaned_at":  "2026-06-17T16:54:38",
-    "root":  "C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem",
+    "cleaned_at":  "2026-06-23T09:38:36",
+    "root":  "C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\TW539預測系統_20260622_第05版_一鍵版\\TW539Core",
     "removed":  [
-                    "__pycache__"
+
                 ],
     "skipped":  [
 
                 ],
     "kept_single_launcher":  "539一鍵全自動啟動.bat",
+    "kept_release_base":  "",
     "status":  "ok"
 }

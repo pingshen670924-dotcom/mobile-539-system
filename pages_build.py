@@ -120,7 +120,9 @@ def build():
         }}catch(e){{}}
       }}
       if("serviceWorker" in navigator)navigator.serviceWorker.register("service-worker.js?v={version}");
-      setInterval(checkMobileVersion, 120000);
+      setInterval(checkMobileVersion, 15000);
+      window.addEventListener("focus", checkMobileVersion);
+      document.addEventListener("visibilitychange",()=>{{if(!document.hidden)checkMobileVersion();}});
       checkMobileVersion();
     </script>'''
     html = html.replace("</body>", script + "</body>")
@@ -216,7 +218,7 @@ self.addEventListener("activate",event=>{{event.waitUntil(clearAllCaches().then(
 self.addEventListener("fetch",event=>{{
   const req=event.request;
   if(req.method!=="GET") return;
-  event.respondWith(fetch(req,{{cache:"no-store"}}));
+  event.respondWith(fetch(req,{{cache:"reload"}}));
 }});''',
         encoding="utf-8",
     )

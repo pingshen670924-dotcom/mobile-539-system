@@ -1,0 +1,1212 @@
+{
+  "month": "2026-06",
+  "sample_size": 18,
+  "status": "critical_recall_gap",
+  "diagnosis": "本月主要問題是召回率不足：實開號大量落在 Top15 後段或候選外，必須優先修正排序回拉與包組合覆蓋。",
+  "top5_avg_hits": 0.778,
+  "top10_avg_hits": 1.333,
+  "top15_avg_hits": 1.833,
+  "front_hit_rate": 0.267,
+  "late_or_missing_rate": 0.633,
+  "rank_buckets": {
+    "16-25": 17,
+    "26-39": 28,
+    "11-15": 9,
+    "01-05": 14,
+    "06-10": 10,
+    "missing": 12
+  },
+  "daily_reviews": [
+    {
+      "actual_date": "2026-06-01",
+      "target_period": 115000133,
+      "actual_numbers": [
+        5,
+        14,
+        19,
+        20,
+        28
+      ],
+      "top5_hits": 0,
+      "top10_hits": 0,
+      "top15_hits": 1,
+      "actual_ranks": {
+        "5": 25,
+        "14": 26,
+        "19": 22,
+        "20": 14,
+        "28": 33
+      },
+      "missed_top10": [
+        5,
+        14,
+        19,
+        20,
+        28
+      ],
+      "missed_top15": [
+        5,
+        14,
+        19,
+        28
+      ]
+    },
+    {
+      "actual_date": "2026-06-02",
+      "target_period": 115000134,
+      "actual_numbers": [
+        7,
+        12,
+        22,
+        26,
+        30
+      ],
+      "top5_hits": 2,
+      "top10_hits": 2,
+      "top15_hits": 2,
+      "actual_ranks": {
+        "7": 1,
+        "12": 34,
+        "22": 3,
+        "26": 17,
+        "30": 25
+      },
+      "missed_top10": [
+        12,
+        26,
+        30
+      ],
+      "missed_top15": [
+        12,
+        26,
+        30
+      ]
+    },
+    {
+      "actual_date": "2026-06-03",
+      "target_period": 115000135,
+      "actual_numbers": [
+        2,
+        8,
+        17,
+        25,
+        38
+      ],
+      "top5_hits": 2,
+      "top10_hits": 3,
+      "top15_hits": 3,
+      "actual_ranks": {
+        "2": 3,
+        "8": 1,
+        "17": 31,
+        "25": 8,
+        "38": 33
+      },
+      "missed_top10": [
+        17,
+        38
+      ],
+      "missed_top15": [
+        17,
+        38
+      ]
+    },
+    {
+      "actual_date": "2026-06-04",
+      "target_period": 115000136,
+      "actual_numbers": [
+        2,
+        8,
+        24,
+        29,
+        35
+      ],
+      "top5_hits": 1,
+      "top10_hits": 1,
+      "top15_hits": 3,
+      "actual_ranks": {
+        "2": 37,
+        "8": 38,
+        "24": 14,
+        "29": 11,
+        "35": 5
+      },
+      "missed_top10": [
+        2,
+        8,
+        24,
+        29
+      ],
+      "missed_top15": [
+        2,
+        8
+      ]
+    },
+    {
+      "actual_date": "2026-06-05",
+      "target_period": 115000137,
+      "actual_numbers": [
+        7,
+        21,
+        26,
+        27,
+        31
+      ],
+      "top5_hits": 1,
+      "top10_hits": 3,
+      "top15_hits": 4,
+      "actual_ranks": {
+        "7": 7,
+        "21": 5,
+        "26": 36,
+        "27": 13,
+        "31": 8
+      },
+      "missed_top10": [
+        26,
+        27
+      ],
+      "missed_top15": [
+        26
+      ]
+    },
+    {
+      "actual_date": "2026-06-06",
+      "target_period": 115000138,
+      "actual_numbers": [
+        13,
+        27,
+        30,
+        37,
+        38
+      ],
+      "top5_hits": 0,
+      "top10_hits": 0,
+      "top15_hits": 0,
+      "actual_ranks": {
+        "13": 19,
+        "27": 39,
+        "30": 20,
+        "37": 31,
+        "38": 34
+      },
+      "missed_top10": [
+        13,
+        27,
+        30,
+        37,
+        38
+      ],
+      "missed_top15": [
+        13,
+        27,
+        30,
+        37,
+        38
+      ]
+    },
+    {
+      "actual_date": "2026-06-08",
+      "target_period": 115000139,
+      "actual_numbers": [
+        8,
+        14,
+        17,
+        18,
+        28
+      ],
+      "top5_hits": 1,
+      "top10_hits": 1,
+      "top15_hits": 1,
+      "actual_ranks": {
+        "8": 2,
+        "14": null,
+        "17": null,
+        "18": null,
+        "28": null
+      },
+      "missed_top10": [
+        14,
+        17,
+        18,
+        28
+      ],
+      "missed_top15": [
+        14,
+        17,
+        18,
+        28
+      ]
+    },
+    {
+      "actual_date": "2026-06-09",
+      "target_period": 115000140,
+      "actual_numbers": [
+        10,
+        17,
+        20,
+        25,
+        28
+      ],
+      "top5_hits": 2,
+      "top10_hits": 2,
+      "top15_hits": 2,
+      "actual_ranks": {
+        "10": null,
+        "17": null,
+        "20": 5,
+        "25": 4,
+        "28": null
+      },
+      "missed_top10": [
+        10,
+        17,
+        28
+      ],
+      "missed_top15": [
+        10,
+        17,
+        28
+      ]
+    },
+    {
+      "actual_date": "2026-06-10",
+      "target_period": 115000141,
+      "actual_numbers": [
+        1,
+        4,
+        32,
+        35,
+        39
+      ],
+      "top5_hits": 0,
+      "top10_hits": 0,
+      "top15_hits": 0,
+      "actual_ranks": {
+        "1": null,
+        "4": null,
+        "32": null,
+        "35": null,
+        "39": null
+      },
+      "missed_top10": [
+        1,
+        4,
+        32,
+        35,
+        39
+      ],
+      "missed_top15": [
+        1,
+        4,
+        32,
+        35,
+        39
+      ]
+    },
+    {
+      "actual_date": "2026-06-11",
+      "target_period": 115000142,
+      "actual_numbers": [
+        8,
+        15,
+        20,
+        29,
+        31
+      ],
+      "top5_hits": 1,
+      "top10_hits": 2,
+      "top15_hits": 3,
+      "actual_ranks": {
+        "8": 36,
+        "15": 5,
+        "20": 12,
+        "29": 23,
+        "31": 7
+      },
+      "missed_top10": [
+        8,
+        20,
+        29
+      ],
+      "missed_top15": [
+        8,
+        29
+      ]
+    },
+    {
+      "actual_date": "2026-06-12",
+      "target_period": 115000143,
+      "actual_numbers": [
+        6,
+        8,
+        18,
+        29,
+        31
+      ],
+      "top5_hits": 1,
+      "top10_hits": 1,
+      "top15_hits": 1,
+      "actual_ranks": {
+        "6": 2,
+        "8": 23,
+        "18": 31,
+        "29": 24,
+        "31": 39
+      },
+      "missed_top10": [
+        8,
+        18,
+        29,
+        31
+      ],
+      "missed_top15": [
+        8,
+        18,
+        29,
+        31
+      ]
+    },
+    {
+      "actual_date": "2026-06-15",
+      "target_period": 115000145,
+      "actual_numbers": [
+        12,
+        16,
+        24,
+        28,
+        36
+      ],
+      "top5_hits": 0,
+      "top10_hits": 2,
+      "top15_hits": 2,
+      "actual_ranks": {
+        "12": 6,
+        "16": 36,
+        "24": 28,
+        "28": 8,
+        "36": 37
+      },
+      "missed_top10": [
+        16,
+        24,
+        36
+      ],
+      "missed_top15": [
+        16,
+        24,
+        36
+      ]
+    },
+    {
+      "actual_date": "2026-06-16",
+      "target_period": 115000146,
+      "actual_numbers": [
+        5,
+        17,
+        23,
+        25,
+        29
+      ],
+      "top5_hits": 0,
+      "top10_hits": 2,
+      "top15_hits": 3,
+      "actual_ranks": {
+        "5": 14,
+        "17": 8,
+        "23": 9,
+        "25": 32,
+        "29": 26
+      },
+      "missed_top10": [
+        5,
+        25,
+        29
+      ],
+      "missed_top15": [
+        25,
+        29
+      ]
+    },
+    {
+      "actual_date": "2026-06-17",
+      "target_period": 115000147,
+      "actual_numbers": [
+        8,
+        10,
+        15,
+        16,
+        37
+      ],
+      "top5_hits": 0,
+      "top10_hits": 1,
+      "top15_hits": 2,
+      "actual_ranks": {
+        "8": 11,
+        "10": 18,
+        "15": 19,
+        "16": 10,
+        "37": 21
+      },
+      "missed_top10": [
+        8,
+        10,
+        15,
+        37
+      ],
+      "missed_top15": [
+        10,
+        15,
+        37
+      ]
+    },
+    {
+      "actual_date": "2026-06-18",
+      "target_period": 115000148,
+      "actual_numbers": [
+        9,
+        20,
+        27,
+        28,
+        30
+      ],
+      "top5_hits": 0,
+      "top10_hits": 0,
+      "top15_hits": 1,
+      "actual_ranks": {
+        "9": 39,
+        "20": 29,
+        "27": 30,
+        "28": 26,
+        "30": 13
+      },
+      "missed_top10": [
+        9,
+        20,
+        27,
+        28,
+        30
+      ],
+      "missed_top15": [
+        9,
+        20,
+        27,
+        28
+      ]
+    },
+    {
+      "actual_date": "2026-06-19",
+      "target_period": 115000149,
+      "actual_numbers": [
+        1,
+        5,
+        7,
+        13,
+        25
+      ],
+      "top5_hits": 0,
+      "top10_hits": 0,
+      "top15_hits": 0,
+      "actual_ranks": {
+        "1": 36,
+        "5": 16,
+        "7": 18,
+        "13": 39,
+        "25": 31
+      },
+      "missed_top10": [
+        1,
+        5,
+        7,
+        13,
+        25
+      ],
+      "missed_top15": [
+        1,
+        5,
+        7,
+        13,
+        25
+      ]
+    },
+    {
+      "actual_date": "2026-06-20",
+      "target_period": 115000150,
+      "actual_numbers": [
+        4,
+        11,
+        24,
+        25,
+        31
+      ],
+      "top5_hits": 1,
+      "top10_hits": 1,
+      "top15_hits": 1,
+      "actual_ranks": {
+        "4": 34,
+        "11": 1,
+        "24": 18,
+        "25": 25,
+        "31": 37
+      },
+      "missed_top10": [
+        4,
+        24,
+        25,
+        31
+      ],
+      "missed_top15": [
+        4,
+        24,
+        25,
+        31
+      ]
+    },
+    {
+      "actual_date": "2026-06-22",
+      "target_period": 115000151,
+      "actual_numbers": [
+        1,
+        7,
+        28,
+        29,
+        34
+      ],
+      "top5_hits": 2,
+      "top10_hits": 3,
+      "top15_hits": 4,
+      "actual_ranks": {
+        "1": 14,
+        "7": 10,
+        "28": 5,
+        "29": 2,
+        "34": 22
+      },
+      "missed_top10": [
+        1,
+        34
+      ],
+      "missed_top15": [
+        34
+      ]
+    }
+  ],
+  "missed_top10_numbers": [
+    {
+      "number": 28,
+      "missed_count": 4
+    },
+    {
+      "number": 8,
+      "missed_count": 4
+    },
+    {
+      "number": 29,
+      "missed_count": 4
+    },
+    {
+      "number": 5,
+      "missed_count": 3
+    },
+    {
+      "number": 20,
+      "missed_count": 3
+    },
+    {
+      "number": 30,
+      "missed_count": 3
+    },
+    {
+      "number": 17,
+      "missed_count": 3
+    },
+    {
+      "number": 24,
+      "missed_count": 3
+    },
+    {
+      "number": 27,
+      "missed_count": 3
+    },
+    {
+      "number": 1,
+      "missed_count": 3
+    },
+    {
+      "number": 25,
+      "missed_count": 3
+    },
+    {
+      "number": 14,
+      "missed_count": 2
+    },
+    {
+      "number": 26,
+      "missed_count": 2
+    },
+    {
+      "number": 38,
+      "missed_count": 2
+    },
+    {
+      "number": 37,
+      "missed_count": 2
+    }
+  ],
+  "missed_top15_numbers": [
+    {
+      "number": 28,
+      "missed_count": 4
+    },
+    {
+      "number": 17,
+      "missed_count": 3
+    },
+    {
+      "number": 8,
+      "missed_count": 3
+    },
+    {
+      "number": 29,
+      "missed_count": 3
+    },
+    {
+      "number": 25,
+      "missed_count": 3
+    },
+    {
+      "number": 5,
+      "missed_count": 2
+    },
+    {
+      "number": 14,
+      "missed_count": 2
+    },
+    {
+      "number": 26,
+      "missed_count": 2
+    },
+    {
+      "number": 30,
+      "missed_count": 2
+    },
+    {
+      "number": 38,
+      "missed_count": 2
+    },
+    {
+      "number": 37,
+      "missed_count": 2
+    },
+    {
+      "number": 13,
+      "missed_count": 2
+    },
+    {
+      "number": 27,
+      "missed_count": 2
+    },
+    {
+      "number": 18,
+      "missed_count": 2
+    },
+    {
+      "number": 10,
+      "missed_count": 2
+    }
+  ],
+  "missed_tails": [
+    {
+      "tail": 8,
+      "missed_count": 12
+    },
+    {
+      "tail": 7,
+      "missed_count": 9
+    },
+    {
+      "tail": 5,
+      "missed_count": 8
+    },
+    {
+      "tail": 4,
+      "missed_count": 8
+    },
+    {
+      "tail": 0,
+      "missed_count": 8
+    },
+    {
+      "tail": 9,
+      "missed_count": 7
+    },
+    {
+      "tail": 1,
+      "missed_count": 5
+    },
+    {
+      "tail": 6,
+      "missed_count": 4
+    },
+    {
+      "tail": 2,
+      "missed_count": 3
+    },
+    {
+      "tail": 3,
+      "missed_count": 2
+    }
+  ],
+  "missed_zones": [
+    {
+      "zone": "21-30",
+      "missed_count": 22
+    },
+    {
+      "zone": "01-10",
+      "missed_count": 17
+    },
+    {
+      "zone": "11-20",
+      "missed_count": 16
+    },
+    {
+      "zone": "31-39",
+      "missed_count": 11
+    }
+  ],
+  "source_performance": [
+    {
+      "reason": "近100期偏熱(14次)",
+      "hit": 1,
+      "miss": 0,
+      "hit_rate": 1.0
+    },
+    {
+      "reason": "上期失敗號碼僅微降權",
+      "hit": 1,
+      "miss": 1,
+      "hit_rate": 0.5
+    },
+    {
+      "reason": "與上期號碼近100期共現6次",
+      "hit": 1,
+      "miss": 1,
+      "hit_rate": 0.5
+    },
+    {
+      "reason": "相似牌",
+      "hit": 1,
+      "miss": 2,
+      "hit_rate": 0.333
+    },
+    {
+      "reason": "滾動檢討命中來源升權",
+      "hit": 1,
+      "miss": 2,
+      "hit_rate": 0.333
+    },
+    {
+      "reason": "共現關聯",
+      "hit": 16,
+      "miss": 48,
+      "hit_rate": 0.25
+    },
+    {
+      "reason": "區間奇偶壓力",
+      "hit": 7,
+      "miss": 21,
+      "hit_rate": 0.25
+    },
+    {
+      "reason": "中期穩定",
+      "hit": 3,
+      "miss": 10,
+      "hit_rate": 0.231
+    },
+    {
+      "reason": "昨日預測號軟性降權",
+      "hit": 2,
+      "miss": 9,
+      "hit_rate": 0.182
+    },
+    {
+      "reason": "穩定共識",
+      "hit": 13,
+      "miss": 60,
+      "hit_rate": 0.178
+    },
+    {
+      "reason": "分布平衡風控",
+      "hit": 2,
+      "miss": 10,
+      "hit_rate": 0.167
+    },
+    {
+      "reason": "快慢趨勢一致",
+      "hit": 1,
+      "miss": 5,
+      "hit_rate": 0.167
+    }
+  ],
+  "pack_summary": {
+    "strong_single": {
+      "rounds": 18,
+      "pass_rate": 0.111,
+      "avg_hits": 0.111,
+      "zero_hit_rate": 0.889
+    },
+    "two_hit_one": {
+      "rounds": 18,
+      "pass_rate": 0.278,
+      "avg_hits": 0.278,
+      "zero_hit_rate": 0.722
+    },
+    "three_hit_one": {
+      "rounds": 18,
+      "pass_rate": 0.389,
+      "avg_hits": 0.5,
+      "zero_hit_rate": 0.611
+    },
+    "five_hit_two": {
+      "rounds": 18,
+      "pass_rate": 0.167,
+      "avg_hits": 0.667,
+      "zero_hit_rate": 0.556
+    },
+    "nine_hit_three": {
+      "rounds": 18,
+      "pass_rate": 0.167,
+      "avg_hits": 1.167,
+      "zero_hit_rate": 0.389
+    }
+  },
+  "best_days": [
+    {
+      "actual_date": "2026-06-05",
+      "target_period": 115000137,
+      "actual_numbers": [
+        7,
+        21,
+        26,
+        27,
+        31
+      ],
+      "top5_hits": 1,
+      "top10_hits": 3,
+      "top15_hits": 4,
+      "actual_ranks": {
+        "7": 7,
+        "21": 5,
+        "26": 36,
+        "27": 13,
+        "31": 8
+      },
+      "missed_top10": [
+        26,
+        27
+      ],
+      "missed_top15": [
+        26
+      ]
+    },
+    {
+      "actual_date": "2026-06-22",
+      "target_period": 115000151,
+      "actual_numbers": [
+        1,
+        7,
+        28,
+        29,
+        34
+      ],
+      "top5_hits": 2,
+      "top10_hits": 3,
+      "top15_hits": 4,
+      "actual_ranks": {
+        "1": 14,
+        "7": 10,
+        "28": 5,
+        "29": 2,
+        "34": 22
+      },
+      "missed_top10": [
+        1,
+        34
+      ],
+      "missed_top15": [
+        34
+      ]
+    },
+    {
+      "actual_date": "2026-06-03",
+      "target_period": 115000135,
+      "actual_numbers": [
+        2,
+        8,
+        17,
+        25,
+        38
+      ],
+      "top5_hits": 2,
+      "top10_hits": 3,
+      "top15_hits": 3,
+      "actual_ranks": {
+        "2": 3,
+        "8": 1,
+        "17": 31,
+        "25": 8,
+        "38": 33
+      },
+      "missed_top10": [
+        17,
+        38
+      ],
+      "missed_top15": [
+        17,
+        38
+      ]
+    },
+    {
+      "actual_date": "2026-06-11",
+      "target_period": 115000142,
+      "actual_numbers": [
+        8,
+        15,
+        20,
+        29,
+        31
+      ],
+      "top5_hits": 1,
+      "top10_hits": 2,
+      "top15_hits": 3,
+      "actual_ranks": {
+        "8": 36,
+        "15": 5,
+        "20": 12,
+        "29": 23,
+        "31": 7
+      },
+      "missed_top10": [
+        8,
+        20,
+        29
+      ],
+      "missed_top15": [
+        8,
+        29
+      ]
+    },
+    {
+      "actual_date": "2026-06-16",
+      "target_period": 115000146,
+      "actual_numbers": [
+        5,
+        17,
+        23,
+        25,
+        29
+      ],
+      "top5_hits": 0,
+      "top10_hits": 2,
+      "top15_hits": 3,
+      "actual_ranks": {
+        "5": 14,
+        "17": 8,
+        "23": 9,
+        "25": 32,
+        "29": 26
+      },
+      "missed_top10": [
+        5,
+        25,
+        29
+      ],
+      "missed_top15": [
+        25,
+        29
+      ]
+    }
+  ],
+  "worst_days": [
+    {
+      "actual_date": "2026-06-06",
+      "target_period": 115000138,
+      "actual_numbers": [
+        13,
+        27,
+        30,
+        37,
+        38
+      ],
+      "top5_hits": 0,
+      "top10_hits": 0,
+      "top15_hits": 0,
+      "actual_ranks": {
+        "13": 19,
+        "27": 39,
+        "30": 20,
+        "37": 31,
+        "38": 34
+      },
+      "missed_top10": [
+        13,
+        27,
+        30,
+        37,
+        38
+      ],
+      "missed_top15": [
+        13,
+        27,
+        30,
+        37,
+        38
+      ]
+    },
+    {
+      "actual_date": "2026-06-10",
+      "target_period": 115000141,
+      "actual_numbers": [
+        1,
+        4,
+        32,
+        35,
+        39
+      ],
+      "top5_hits": 0,
+      "top10_hits": 0,
+      "top15_hits": 0,
+      "actual_ranks": {
+        "1": null,
+        "4": null,
+        "32": null,
+        "35": null,
+        "39": null
+      },
+      "missed_top10": [
+        1,
+        4,
+        32,
+        35,
+        39
+      ],
+      "missed_top15": [
+        1,
+        4,
+        32,
+        35,
+        39
+      ]
+    },
+    {
+      "actual_date": "2026-06-19",
+      "target_period": 115000149,
+      "actual_numbers": [
+        1,
+        5,
+        7,
+        13,
+        25
+      ],
+      "top5_hits": 0,
+      "top10_hits": 0,
+      "top15_hits": 0,
+      "actual_ranks": {
+        "1": 36,
+        "5": 16,
+        "7": 18,
+        "13": 39,
+        "25": 31
+      },
+      "missed_top10": [
+        1,
+        5,
+        7,
+        13,
+        25
+      ],
+      "missed_top15": [
+        1,
+        5,
+        7,
+        13,
+        25
+      ]
+    },
+    {
+      "actual_date": "2026-06-01",
+      "target_period": 115000133,
+      "actual_numbers": [
+        5,
+        14,
+        19,
+        20,
+        28
+      ],
+      "top5_hits": 0,
+      "top10_hits": 0,
+      "top15_hits": 1,
+      "actual_ranks": {
+        "5": 25,
+        "14": 26,
+        "19": 22,
+        "20": 14,
+        "28": 33
+      },
+      "missed_top10": [
+        5,
+        14,
+        19,
+        20,
+        28
+      ],
+      "missed_top15": [
+        5,
+        14,
+        19,
+        28
+      ]
+    },
+    {
+      "actual_date": "2026-06-18",
+      "target_period": 115000148,
+      "actual_numbers": [
+        9,
+        20,
+        27,
+        28,
+        30
+      ],
+      "top5_hits": 0,
+      "top10_hits": 0,
+      "top15_hits": 1,
+      "actual_ranks": {
+        "9": 39,
+        "20": 29,
+        "27": 30,
+        "28": 26,
+        "30": 13
+      },
+      "missed_top10": [
+        9,
+        20,
+        27,
+        28,
+        30
+      ],
+      "missed_top15": [
+        9,
+        20,
+        27,
+        28
+      ]
+    }
+  ],
+  "adjustment_plan": [
+    "月度模式：以本月漏抓實開號、尾數、區間優先做排序回拉，不再只依上一期結果跳動。",
+    "Top10 回拉：本月重複漏抓的號碼若同時具備分區/尾數/共現或命中穿透率支撐，允許進入 Top10 邊界候選。",
+    "5中2/9中3：降低前段排名單一路徑依賴，改用分區覆蓋與尾數分散補足。",
+    "錯殺控制：上期失敗號不再硬殺，只有連續落空且無月度回補訊號才重降權。"
+  ]
+}

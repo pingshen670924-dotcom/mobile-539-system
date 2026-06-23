@@ -36,27 +36,9 @@ jobs:
         run: |
           git config user.name "539 automation"
           git config user.email "actions@users.noreply.github.com"
-          git config core.autocrlf false
           git add data reports site
-          if git diff --cached --quiet; then
-            echo "No generated data changes to commit."
-          else
-            git commit -m "Update 539 data and reports"
-            git reset --hard HEAD
-            for attempt in 1 2 3; do
-              git fetch origin main
-              if git rebase origin/main -X theirs; then
-                if git push origin HEAD:main; then
-                  exit 0
-                fi
-              else
-                git rebase --abort || true
-              fi
-              sleep 5
-            done
-            echo "Failed to push generated data after retries." >&2
-            exit 1
-          fi
+          git diff --cached --quiet || git commit -m "Update 539 data and reports"
+          git push
       - uses: actions/configure-pages@v5
         with:
           enablement: true

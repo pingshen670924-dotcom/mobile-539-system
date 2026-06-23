@@ -146,7 +146,8 @@ def run_update():
     update_log = []
     try:
         steps = [
-            ("update_latest_draw", "update_539.py", ["--latest", "--require-fresh"], False),
+            ("update_latest_draw", "update_539.py", ["--latest", "--require-fresh", "--retry-until-fresh-minutes", "35", "--retry-interval-seconds", "120"], False),
+            ("model_competition", "model_competition.py", [], False),
             ("rebuild_battle_report", "battle_report.py", [], True),
             ("health_check", "health_check.py", [], False),
             ("rebuild_battle_report_after_health", "battle_report.py", [], True),
@@ -275,7 +276,10 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(content)))
-        self.send_header("Cache-Control", "no-store")
+        self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+        self.send_header("Pragma", "no-cache")
+        self.send_header("Expires", "0")
+        self.send_header("X-Content-Type-Options", "nosniff")
         self.end_headers()
         self.wfile.write(content)
 
@@ -351,7 +355,40 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == "/run":
             if not RUN_STATE["running"]:
                 threading.Thread(target=run_update, daemon=True).start()
-            self.send_bytes(page("\u5df2\u555f\u52d5\u4e3b\u7cfb\u7d71\u66f4\u65b0\uff0c\u8acb\u7a0d\u5f8c\u91cd\u65b0\u6574\u7406\u3002").encode("utf-8"))
+            token = access_token()
+            wait_page = f"""<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <title>539 Update Running</title>
+  <style>body{{font-family:"Microsoft JhengHei",Arial,sans-serif;background:#f8fafc;color:#0f172a;padding:20px}}.box{{max-width:620px;margin:auto;background:white;border:1px solid #cbd5e1;border-radius:8px;padding:18px}}.big{{font-size:24px;font-weight:900;color:#b91c1c}}</style>
+</head>
+<body>
+  <div class="box">
+    <div class="big">&#20027;&#31995;&#32113;&#27491;&#22312;&#21363;&#26178;&#26356;&#26032;</div>
+    <p id="status">&#27491;&#22312;&#37325;&#26032;&#25235;&#21462;&#38283;&#29518;&#36039;&#26009;&#12289;&#37325;&#31639;&#27169;&#22411;&#12289;&#37325;&#24314;&#25163;&#27231;&#25136;&#22577;...</p>
+    <p>&#23436;&#25104;&#24460;&#26371;&#33258;&#21205;&#36339;&#21040;&#26368;&#26032;&#25136;&#22577;&#12290;</p>
+  </div>
+  <script>
+    async function poll(){{
+      try{{
+        const r=await fetch("/api/status?token={urllib.parse.quote(token)}&v="+Date.now(),{{cache:"no-store"}});
+        const data=await r.json();
+        document.getElementById("status").textContent="\\u72c0\\u614b\\uff1a"+data.message+" / running="+data.running;
+        if(!data.running){{
+          location.replace("/report?token={urllib.parse.quote(token)}&v="+Date.now());
+          return;
+        }}
+      }}catch(e){{}}
+      setTimeout(poll,3000);
+    }}
+    poll();
+  </script>
+</body>
+</html>"""
+            self.send_bytes(wait_page.encode("utf-8"))
             return
         if self.path == "/crowd":
             try:

@@ -94,6 +94,11 @@ def data_freshness(latest_date, now=None):
     }
 
 
+def update_attempt_window_is_open(now=None):
+    now = now or taipei_now()
+    return now.time() >= clock_time(20, 50)
+
+
 def http_get_bytes(url, retries=3, retry_delay=2):
     req = urllib.request.Request(
         url,
@@ -192,19 +197,23 @@ def lock_process_is_active():
         return False
 
 
-def acquire_run_lock(max_age_minutes=10, wait_seconds=90):
+def acquire_run_lock(max_age_minutes=90, wait_seconds=90):
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     deadline = time.time() + wait_seconds
     while True:
         if RUN_LOCK_PATH.exists():
             age_seconds = time.time() - RUN_LOCK_PATH.stat().st_mtime
-            if age_seconds >= max_age_minutes * 60 or not lock_process_is_active():
+            lock_is_active = lock_process_is_active()
+            if not lock_is_active:
                 RUN_LOCK_PATH.unlink(missing_ok=True)
             elif time.time() < deadline:
                 time.sleep(5)
                 continue
             else:
-                raise RuntimeError("another update is still running; waited and stopped to protect the database")
+                raise RuntimeError(
+                    "another update is still running; waited and stopped to protect the database"
+                    f" (lock age {int(age_seconds)} seconds, stale limit {max_age_minutes} minutes)"
+                )
         try:
             flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY
             fd = os.open(str(RUN_LOCK_PATH), flags)
@@ -1050,11 +1059,11 @@ def store_prediction(conn, analysis):
                 WHERE id=?
                 """,
                 (
-                    json.dumps(analysis["candidates"], ensure_ascii=False),
-                    json.dumps(analysis["suggested_sets"], ensure_ascii=False),
-                    json.dumps(analysis["strong_prediction_packs"], ensure_ascii=False),
-                    json.dumps(analysis["model_weights"], ensure_ascii=False),
-                    json.dumps(analysis["backtest"], ensure_ascii=False),
+                    new_candidates_json,
+                    new_sets_json,
+                    new_packs_json,
+                    new_weights_json,
+                    new_backtest_json,
                     datetime.now().isoformat(timespec="seconds"),
                     exists[0],
                 ),
@@ -1182,6 +1191,8 @@ def run_main():
     parser.add_argument("--start-roc-year", type=int, default=START_ROC_YEAR)
     parser.add_argument("--end-roc-year", type=int)
     parser.add_argument("--require-fresh", action="store_true", help="Fail when the database is behind the expected draw date")
+    parser.add_argument("--retry-until-fresh-minutes", type=int, default=0, help="Keep retrying after draw time until the latest expected draw is imported")
+    parser.add_argument("--retry-interval-seconds", type=int, default=180, help="Wait time between freshness retry attempts")
     args = parser.parse_args()
 
     if not args.all and not args.latest:
@@ -1204,23 +1215,57 @@ def run_main():
             logging.warning("\u66f4\u65b0\u6b65\u9a5f\u5931\u6557，\u6539\u7528\u672c\u6a5f\u5df2\u6709\u8cc7\u6599\u7e7c\u7e8c：%s", message)
             return 0
 
+    def run_download_steps(conn, prefix="initial"):
+        if args.all:
+            safe_update_step(f"{prefix}_annual_download", lambda: import_all_years(conn, args.start_roc_year, args.end_roc_year))
+            safe_update_step(f"{prefix}_recent_month_download", lambda: import_recent_months(conn))
+            safe_update_step(f"{prefix}_latest_download", lambda: update_latest(conn))
+            safe_update_step(f"{prefix}_public_fallback_latest", lambda: import_public_fallback_latest(conn))
+        elif args.latest:
+            safe_update_step(f"{prefix}_recent_month_download", lambda: import_recent_months(conn, count=1))
+            safe_update_step(f"{prefix}_latest_download", lambda: update_latest(conn))
+            safe_update_step(f"{prefix}_public_fallback_latest", lambda: import_public_fallback_latest(conn))
+
+    def refresh_export_and_freshness(conn):
+        count = export_csv(conn)
+        current = stats(conn)
+        current_freshness = data_freshness(current["max_date"]) if current["max_date"] else None
+        return count, current, current_freshness
+
+    def retry_until_fresh(conn, current_freshness):
+        max_minutes = max(int(args.retry_until_fresh_minutes or 0), 0)
+        if not current_freshness or current_freshness["status"] == "fresh" or max_minutes <= 0:
+            return current_freshness
+        if not update_attempt_window_is_open():
+            return current_freshness
+        deadline = time.monotonic() + max_minutes * 60
+        interval = max(int(args.retry_interval_seconds or 180), 30)
+        attempt = 0
+        while current_freshness and current_freshness["status"] != "fresh" and time.monotonic() < deadline:
+            remaining = max(deadline - time.monotonic(), 0)
+            sleep_seconds = min(interval, remaining)
+            if sleep_seconds > 0:
+                logging.warning(
+                    "Latest draw is still stale; waiting %.0f seconds before retry. latest=%s expected=%s",
+                    sleep_seconds,
+                    current_freshness.get("latest_date"),
+                    current_freshness.get("expected_latest_date"),
+                )
+                time.sleep(sleep_seconds)
+            attempt += 1
+            run_download_steps(conn, f"freshness_retry_{attempt}")
+            _, _, current_freshness = refresh_export_and_freshness(conn)
+            logging.info("Freshness retry %s result: %s", attempt, json.dumps(current_freshness, ensure_ascii=False))
+        return current_freshness
+
     with sqlite3.connect(DB_PATH) as conn:
         init_db(conn)
         run_id = start_run(conn, run_type)
         try:
-            if args.all:
-                safe_update_step("annual_download", lambda: import_all_years(conn, args.start_roc_year, args.end_roc_year))
-                safe_update_step("recent_month_download", lambda: import_recent_months(conn))
-                safe_update_step("latest_download", lambda: update_latest(conn))
-                safe_update_step("public_fallback_latest", lambda: import_public_fallback_latest(conn))
-            elif args.latest:
-                safe_update_step("recent_month_download", lambda: import_recent_months(conn, count=1))
-                safe_update_step("latest_download", lambda: update_latest(conn))
-                safe_update_step("public_fallback_latest", lambda: import_public_fallback_latest(conn))
-
-            count = export_csv(conn)
-            current = stats(conn)
-            freshness = data_freshness(current["max_date"]) if current["max_date"] else None
+            run_download_steps(conn)
+            count, current, freshness = refresh_export_and_freshness(conn)
+            freshness = retry_until_fresh(conn, freshness)
+            count, current, freshness = refresh_export_and_freshness(conn)
             if args.require_fresh and freshness and freshness["status"] != "fresh":
                 raise RuntimeError(
                     f"database stale: latest={freshness['latest_date']} expected={freshness['expected_latest_date']}"

@@ -117,7 +117,7 @@ try {
   Run-PowerShell-Step "Network permission diagnostic" (Join-Path $ScriptDir "network_permission_diagnostic.ps1") @() $false
   Run-Step "Compile check" @("-m", "py_compile", ".\update_539.py", ".\analyze_539.py", ".\battle_report.py", ".\health_check.py", ".\dashboard.py", ".\pages_build.py", ".\industrial_engine.py", ".\aerospace_engine.py", ".\research_kpi.py", ".\daily_integrity_audit.py", ".\line_push.py")
   "Update latest draw and rebuild all outputs" | Out-File -FilePath $RunLog -Encoding utf8 -Append
-  & $Python ".\update_539.py" --latest 2>&1 | Tee-Object -FilePath $RunLog -Append
+  & $Python ".\update_539.py" --latest --retry-until-fresh-minutes 35 --retry-interval-seconds 120 2>&1 | Tee-Object -FilePath $RunLog -Append
   if ($LASTEXITCODE -ne 0) {
     "Main update returned a warning or failure. Continue rebuilding local reports so the user always gets an opened battle report." | Out-File -FilePath $RunLog -Encoding utf8 -Append
   }

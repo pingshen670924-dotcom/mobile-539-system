@@ -171,7 +171,7 @@ try {
   Run-PowerShell-Step "Network permission repair" (Join-Path $ScriptDir "repair_network_permission.ps1") @("-NoPause") $false
   Run-PowerShell-Step "Network permission diagnostic" (Join-Path $ScriptDir "network_permission_diagnostic.ps1") @() $false
   Run-Step "Compile check" @("-m", "py_compile", ".\update_539.py", ".\analyze_539.py", ".\battle_report.py", ".\health_check.py", ".\dashboard.py", ".\pages_build.py", ".\industrial_engine.py", ".\aerospace_engine.py", ".\research_kpi.py", ".\daily_integrity_audit.py", ".\line_push.py")
-  Run-Step "Update latest draw" @(".\update_539.py", "--latest") $false
+  Run-Step "Update latest draw with freshness retry" @(".\update_539.py", "--latest", "--retry-until-fresh-minutes", "35", "--retry-interval-seconds", "120") $false
   Run-Step "Rebuild battle report" @(".\battle_report.py")
   Run-Step "Model competition" @(".\model_competition.py") $false
   Run-Step "Rebuild dashboard" @(".\dashboard.py") $false
