@@ -1,19 +1,19 @@
 {
   "month": "2026-06",
-  "sample_size": 18,
+  "sample_size": 19,
   "status": "critical_recall_gap",
   "diagnosis": "本月主要問題是召回率不足：實開號大量落在 Top15 後段或候選外，必須優先修正排序回拉與包組合覆蓋。",
-  "top5_avg_hits": 0.778,
-  "top10_avg_hits": 1.333,
-  "top15_avg_hits": 1.833,
-  "front_hit_rate": 0.267,
-  "late_or_missing_rate": 0.633,
+  "top5_avg_hits": 0.737,
+  "top10_avg_hits": 1.368,
+  "top15_avg_hits": 1.895,
+  "front_hit_rate": 0.274,
+  "late_or_missing_rate": 0.621,
   "rank_buckets": {
-    "16-25": 17,
-    "26-39": 28,
-    "11-15": 9,
+    "16-25": 18,
+    "26-39": 29,
+    "11-15": 10,
     "01-05": 14,
-    "06-10": 10,
+    "06-10": 12,
     "missing": 12
   },
   "daily_reviews": [
@@ -589,9 +589,43 @@
       "missed_top15": [
         34
       ]
+    },
+    {
+      "actual_date": "2026-06-23",
+      "target_period": 115000152,
+      "actual_numbers": [
+        2,
+        14,
+        25,
+        29,
+        36
+      ],
+      "top5_hits": 0,
+      "top10_hits": 2,
+      "top15_hits": 3,
+      "actual_ranks": {
+        "2": 31,
+        "14": 12,
+        "25": 8,
+        "29": 18,
+        "36": 6
+      },
+      "missed_top10": [
+        2,
+        14,
+        29
+      ],
+      "missed_top15": [
+        2,
+        29
+      ]
     }
   ],
   "missed_top10_numbers": [
+    {
+      "number": 29,
+      "missed_count": 5
+    },
     {
       "number": 28,
       "missed_count": 4
@@ -601,11 +635,11 @@
       "missed_count": 4
     },
     {
-      "number": 29,
-      "missed_count": 4
+      "number": 5,
+      "missed_count": 3
     },
     {
-      "number": 5,
+      "number": 14,
       "missed_count": 3
     },
     {
@@ -637,10 +671,6 @@
       "missed_count": 3
     },
     {
-      "number": 14,
-      "missed_count": 2
-    },
-    {
       "number": 26,
       "missed_count": 2
     },
@@ -649,7 +679,7 @@
       "missed_count": 2
     },
     {
-      "number": 37,
+      "number": 2,
       "missed_count": 2
     }
   ],
@@ -659,15 +689,15 @@
       "missed_count": 4
     },
     {
+      "number": 29,
+      "missed_count": 4
+    },
+    {
       "number": 17,
       "missed_count": 3
     },
     {
       "number": 8,
-      "missed_count": 3
-    },
-    {
-      "number": 29,
       "missed_count": 3
     },
     {
@@ -695,6 +725,10 @@
       "missed_count": 2
     },
     {
+      "number": 2,
+      "missed_count": 2
+    },
+    {
       "number": 37,
       "missed_count": 2
     },
@@ -709,16 +743,16 @@
     {
       "number": 18,
       "missed_count": 2
-    },
-    {
-      "number": 10,
-      "missed_count": 2
     }
   ],
   "missed_tails": [
     {
       "tail": 8,
       "missed_count": 12
+    },
+    {
+      "tail": 4,
+      "missed_count": 9
     },
     {
       "tail": 7,
@@ -729,16 +763,12 @@
       "missed_count": 8
     },
     {
-      "tail": 4,
+      "tail": 9,
       "missed_count": 8
     },
     {
       "tail": 0,
       "missed_count": 8
-    },
-    {
-      "tail": 9,
-      "missed_count": 7
     },
     {
       "tail": 1,
@@ -750,7 +780,7 @@
     },
     {
       "tail": 2,
-      "missed_count": 3
+      "missed_count": 4
     },
     {
       "tail": 3,
@@ -760,15 +790,15 @@
   "missed_zones": [
     {
       "zone": "21-30",
-      "missed_count": 22
+      "missed_count": 23
     },
     {
       "zone": "01-10",
-      "missed_count": 17
+      "missed_count": 18
     },
     {
       "zone": "11-20",
-      "missed_count": 16
+      "missed_count": 17
     },
     {
       "zone": "31-39",
@@ -783,13 +813,13 @@
       "hit_rate": 1.0
     },
     {
-      "reason": "與上期號碼近100期共現6次",
+      "reason": "上期失敗號碼僅微降權",
       "hit": 1,
       "miss": 1,
       "hit_rate": 0.5
     },
     {
-      "reason": "上期失敗號碼僅微降權",
+      "reason": "與上期號碼近100期共現6次",
       "hit": 1,
       "miss": 1,
       "hit_rate": 0.5
@@ -808,21 +838,27 @@
     },
     {
       "reason": "共現關聯",
-      "hit": 16,
-      "miss": 48,
-      "hit_rate": 0.25
+      "hit": 18,
+      "miss": 52,
+      "hit_rate": 0.257
     },
     {
       "reason": "區間奇偶壓力",
       "hit": 7,
-      "miss": 21,
-      "hit_rate": 0.25
+      "miss": 23,
+      "hit_rate": 0.233
     },
     {
       "reason": "中期穩定",
       "hit": 3,
       "miss": 10,
       "hit_rate": 0.231
+    },
+    {
+      "reason": "分布平衡風控",
+      "hit": 3,
+      "miss": 11,
+      "hit_rate": 0.214
     },
     {
       "reason": "昨日預測號軟性降權",
@@ -833,52 +869,46 @@
     {
       "reason": "穩定共識",
       "hit": 13,
-      "miss": 60,
-      "hit_rate": 0.178
+      "miss": 61,
+      "hit_rate": 0.176
     },
     {
-      "reason": "分布平衡風控",
-      "hit": 2,
-      "miss": 10,
-      "hit_rate": 0.167
-    },
-    {
-      "reason": "快慢趨勢一致",
-      "hit": 1,
-      "miss": 5,
-      "hit_rate": 0.167
+      "reason": "遺漏補償",
+      "hit": 9,
+      "miss": 48,
+      "hit_rate": 0.158
     }
   ],
   "pack_summary": {
     "strong_single": {
-      "rounds": 18,
-      "pass_rate": 0.111,
-      "avg_hits": 0.111,
-      "zero_hit_rate": 0.889
+      "rounds": 19,
+      "pass_rate": 0.105,
+      "avg_hits": 0.105,
+      "zero_hit_rate": 0.895
     },
     "two_hit_one": {
-      "rounds": 18,
-      "pass_rate": 0.278,
-      "avg_hits": 0.278,
-      "zero_hit_rate": 0.722
+      "rounds": 19,
+      "pass_rate": 0.316,
+      "avg_hits": 0.316,
+      "zero_hit_rate": 0.684
     },
     "three_hit_one": {
-      "rounds": 18,
-      "pass_rate": 0.389,
-      "avg_hits": 0.5,
-      "zero_hit_rate": 0.611
+      "rounds": 19,
+      "pass_rate": 0.421,
+      "avg_hits": 0.526,
+      "zero_hit_rate": 0.579
     },
     "five_hit_two": {
-      "rounds": 18,
-      "pass_rate": 0.167,
-      "avg_hits": 0.667,
-      "zero_hit_rate": 0.556
+      "rounds": 19,
+      "pass_rate": 0.158,
+      "avg_hits": 0.632,
+      "zero_hit_rate": 0.579
     },
     "nine_hit_three": {
-      "rounds": 18,
-      "pass_rate": 0.167,
-      "avg_hits": 1.167,
-      "zero_hit_rate": 0.389
+      "rounds": 19,
+      "pass_rate": 0.158,
+      "avg_hits": 1.158,
+      "zero_hit_rate": 0.368
     }
   },
   "best_days": [
