@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-24T01:34:58",
+  "generated_at": "2026-06-24T02:12:04",
   "prediction_mode": "current_precision_stability_v40_decisive_confidence_plan",
   "latest_draw": {
     "period": 115000152,
@@ -17,7 +17,7 @@
     "latest_date": "2026-06-23",
     "expected_latest_date": "2026-06-23",
     "lag_days": 0,
-    "checked_at": "2026-06-24T01:31:44"
+    "checked_at": "2026-06-24T02:08:52"
   },
   "windows": [
     {
@@ -2447,13 +2447,13 @@
           "hit_rate": 0.5
         },
         {
-          "reason": "滾動檢討命中來源升權",
+          "reason": "相似牌",
           "hit": 1,
           "miss": 2,
           "hit_rate": 0.333
         },
         {
-          "reason": "相似牌",
+          "reason": "滾動檢討命中來源升權",
           "hit": 1,
           "miss": 2,
           "hit_rate": 0.333
@@ -3692,13 +3692,13 @@
             "hit_rate": 0.5
           },
           {
-            "reason": "滾動檢討命中來源升權",
+            "reason": "相似牌",
             "hit": 1,
             "miss": 2,
             "hit_rate": 0.333
           },
           {
-            "reason": "相似牌",
+            "reason": "滾動檢討命中來源升權",
             "hit": 1,
             "miss": 2,
             "hit_rate": 0.333
