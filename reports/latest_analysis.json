@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-23T09:42:14",
+  "generated_at": "2026-06-23T09:47:11",
   "prediction_mode": "current_precision_stability_v40_decisive_confidence_plan",
   "latest_draw": {
     "period": 115000151,
@@ -17,7 +17,7 @@
     "latest_date": "2026-06-22",
     "expected_latest_date": "2026-06-22",
     "lag_days": 0,
-    "checked_at": "2026-06-23T09:38:43"
+    "checked_at": "2026-06-23T09:43:56"
   },
   "windows": [
     {
@@ -2393,25 +2393,25 @@
           "hit_rate": 1.0
         },
         {
-          "reason": "上期失敗號碼僅微降權",
-          "hit": 1,
-          "miss": 1,
-          "hit_rate": 0.5
-        },
-        {
           "reason": "與上期號碼近100期共現6次",
           "hit": 1,
           "miss": 1,
           "hit_rate": 0.5
         },
         {
-          "reason": "相似牌",
+          "reason": "上期失敗號碼僅微降權",
+          "hit": 1,
+          "miss": 1,
+          "hit_rate": 0.5
+        },
+        {
+          "reason": "滾動檢討命中來源升權",
           "hit": 1,
           "miss": 2,
           "hit_rate": 0.333
         },
         {
-          "reason": "滾動檢討命中來源升權",
+          "reason": "相似牌",
           "hit": 1,
           "miss": 2,
           "hit_rate": 0.333
@@ -3608,25 +3608,25 @@
             "hit_rate": 1.0
           },
           {
-            "reason": "上期失敗號碼僅微降權",
-            "hit": 1,
-            "miss": 1,
-            "hit_rate": 0.5
-          },
-          {
             "reason": "與上期號碼近100期共現6次",
             "hit": 1,
             "miss": 1,
             "hit_rate": 0.5
           },
           {
-            "reason": "相似牌",
+            "reason": "上期失敗號碼僅微降權",
+            "hit": 1,
+            "miss": 1,
+            "hit_rate": 0.5
+          },
+          {
+            "reason": "滾動檢討命中來源升權",
             "hit": 1,
             "miss": 2,
             "hit_rate": 0.333
           },
           {
-            "reason": "滾動檢討命中來源升權",
+            "reason": "相似牌",
             "hit": 1,
             "miss": 2,
             "hit_rate": 0.333
@@ -44156,5 +44156,5 @@
       }
     }
   },
-  "official_prediction_status": "observation_only_inserted"
+  "official_prediction_status": "observation_only_recalculated_same_as_official"
 }
