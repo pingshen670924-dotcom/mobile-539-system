@@ -1,4 +1,4 @@
-const CACHE="539-mobile-20260625072450";
+const CACHE="539-mobile-20260624232645";
 async function clearAllCaches(){
   const keys=await caches.keys();
   await Promise.all(keys.map(key=>caches.delete(key)));
