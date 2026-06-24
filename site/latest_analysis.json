@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-24T23:34:33",
+  "generated_at": "2026-06-25T01:33:29",
   "prediction_mode": "current_precision_stability_v40_decisive_confidence_plan",
   "latest_draw": {
     "period": 115000153,
@@ -17,7 +17,7 @@
     "latest_date": "2026-06-24",
     "expected_latest_date": "2026-06-24",
     "lag_days": 0,
-    "checked_at": "2026-06-24T23:32:05"
+    "checked_at": "2026-06-25T01:30:13"
   },
   "windows": [
     {
