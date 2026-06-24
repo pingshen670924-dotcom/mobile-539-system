@@ -18,6 +18,11 @@ def repository_url(path=""):
 
 
 def write_mobile_entry(path, version):
+    live_url_path = ROOT / "\u624b\u6a5f\u6230\u5831\u5373\u6642\u7db2\u5740.txt"
+    if live_url_path.exists():
+        target_url = live_url_path.read_text(encoding="utf-8").strip()
+    else:
+        target_url = f"site/clear-cache.html?v={version}&t={version}"
     path.write_text(
         f"""<!doctype html>
 <html lang="zh-Hant">
@@ -28,11 +33,11 @@ def write_mobile_entry(path, version):
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>&#25171;&#38283;&#26368;&#26032;&#25163;&#27231;&#29256;</title>
-  <meta http-equiv="refresh" content="0; url=site/clear-cache.html?v={version}&t={version}">
+  <meta http-equiv="refresh" content="0; url={target_url}">
 </head>
 <body>
   <p>&#27491;&#22312;&#25171;&#38283;&#26368;&#26032;&#25163;&#27231;&#29256;...</p>
-  <p><a href="site/clear-cache.html?v={version}&t={version}">&#33509;&#27794;&#26377;&#33258;&#21205;&#36339;&#36681;&#65292;&#35531;&#40670;&#36889;&#35041;</a></p>
+  <p><a href="{target_url}">&#33509;&#27794;&#26377;&#33258;&#21205;&#36339;&#36681;&#65292;&#35531;&#40670;&#36889;&#35041;</a></p>
 </body>
 </html>
 """,
@@ -63,7 +68,7 @@ def build():
       <p><a class="mobile-action history" href="prediction-history.html?v={version}">\u67e5\u770b\u6bcf\u671f\u9810\u6e2c\u5c0d\u6bd4</a></p>
       <p><a class="mobile-action" href="{repository_url('actions/workflows/daily-update.yml')}">\u767b\u5165 GitHub \u5f8c\u7acb\u5373\u66f4\u65b0</a></p>
       <p><button class="mobile-action refresh" type="button" onclick="forceRefresh()">\u5f37\u5236\u91cd\u65b0\u8f09\u5165\u6700\u65b0\u624b\u6a5f\u6210\u679c</button></p>
-      <p>\u514d\u8cbb\u624b\u6a5f\u7248\u6703\u81ea\u52d5\u66f4\u65b0\uff1a\u53f0\u5317\u6642\u9593 20:50 \u9810\u5099\u6aa2\u67e5\uff0c21:00-23:50 \u6bcf10\u5206\u9418\u91cd\u8a66\uff0c00:10 \u6700\u5f8c\u6aa2\u67e5\u3002\u624b\u52d5\u7acb\u5373\u66f4\u65b0\u9700\u767b\u5165 GitHub\u3002</p>
+      <p>\u624b\u6a5f\u7248\u958b\u734e\u5f8c\u5373\u6642\u540c\u6b65\uff1a\u53f0\u5317\u6642\u9593 20:35 \u8d77\u9032\u5165\u5bc6\u96c6\u8ffd\u8e64\uff0c\u6bcf45\u79d2\u8ffd\u53f0\u5f69\u6700\u65b0\u8cc7\u6599\uff0c\u6293\u5230\u5f8c\u7acb\u523b\u91cd\u7b97\u3001\u91cd\u5efa\u96fb\u8166\u6230\u5831\u8207\u624b\u6a5f\u7248\u3002</p>
       <p>\u624b\u6a5f\u7248\u8207\u96fb\u8166\u7248\u53ef\u540c\u6642\u5b58\u5728\uff1a\u96fb\u8166\u7248\u5728\u672c\u6a5f\u8f38\u51fa\u5b8c\u6574\u6230\u5831\uff0c\u624b\u6a5f\u7248\u5728 GitHub \u96f2\u7aef\u7368\u7acb\u66f4\u65b0\uff0c\u4e92\u4e0d\u8986\u84cb\u3002</p>
     </section>
     """

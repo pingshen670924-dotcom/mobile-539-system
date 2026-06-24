@@ -948,9 +948,11 @@ MODEL_SOURCE_LABELS = {
 }
 
 
-def conservative_probability_percent(score):
+def conservative_probability_percent(score, rank=None):
     baseline_percent = BASE_PROBABILITY * 100
     calibrated = baseline_percent * (0.72 + max(0.0, min(score, 1.0)) * 0.74)
+    if rank is not None and rank > 9:
+        calibrated *= 0.72 if rank <= 15 else 0.58
     return round(max(0.0, min(38.0, calibrated)), 2)
 
 
@@ -1230,7 +1232,7 @@ def live_precision_calibration(candidates, review=None):
     )
     for rank, row in enumerate(calibrated, 1):
         row["rank"] = rank
-        probability_value = conservative_probability_percent(row["score"])
+        probability_value = conservative_probability_percent(row["score"], rank)
         row["model_probability_percent"] = probability_value
         confidence = confidence_profile(
             row["score"],
@@ -1392,8 +1394,8 @@ def historical_hit_through_table(draws, rounds=220):
     }
 
 
-def apply_hit_through_calibration(draws, candidates, review=None, rounds=220):
-    table = historical_hit_through_table(draws, rounds=min(rounds, 220))
+def apply_hit_through_calibration(draws, candidates, review=None, rounds=120):
+    table = historical_hit_through_table(draws, rounds=min(rounds, 120))
     if table.get("status") != "evaluated":
         return candidates, table
     mode = slump_mode(review)
@@ -1467,7 +1469,7 @@ def apply_hit_through_calibration(draws, candidates, review=None, rounds=220):
     )
     for rank, row in enumerate(adjusted, 1):
         row["rank"] = rank
-        probability_value = conservative_probability_percent(row["score"])
+        probability_value = conservative_probability_percent(row["score"], rank)
         row["model_probability_percent"] = probability_value
         confidence = confidence_profile(
             row["score"],
@@ -1607,7 +1609,7 @@ def apply_zero_hit_recovery_mode(draws, candidates, review=None):
     )
     for rank, row in enumerate(adjusted, 1):
         row["rank"] = rank
-        probability_value = conservative_probability_percent(row["score"])
+        probability_value = conservative_probability_percent(row["score"], rank)
         row["model_probability_percent"] = probability_value
         confidence = confidence_profile(
             row["score"],
@@ -1649,6 +1651,20 @@ def recall_emergency_active(review=None):
         or last5_top5 < 0.55
         or last5_top10 < 1.15
         or late_or_missing >= 0.55
+    )
+
+
+def critical_front_nine_active(review=None):
+    if not review:
+        return False
+    rolling = review.get("rolling_adjustment", {}) or {}
+    monthly = rolling.get("monthly_review", {}) or review.get("monthly_review", {}) or {}
+    monthly_late_rate = float(monthly.get("late_or_missing_rate") or 0)
+    monthly_front_rate = float(monthly.get("front_hit_rate") or 1)
+    return bool(
+        monthly.get("status") == "critical_recall_gap"
+        or monthly_late_rate >= 0.50
+        or monthly_front_rate <= 0.34
     )
 
 
@@ -1809,9 +1825,61 @@ def apply_slump_recall_coverage_mode(draws, candidates, review=None):
         })
         adjusted[replace_index], adjusted[candidate_index] = adjusted[candidate_index], adjusted[replace_index]
 
+    front_swaps = []
+    if float(recent.get("last5_top5_avg") or 0) < 0.85 and len(adjusted) >= 8:
+        max_front_swaps = 2 if float(recent.get("last5_top10_avg") or 0) >= 1.2 else 1
+        for zone in priority_zones[:4]:
+            if len(front_swaps) >= max_front_swaps:
+                break
+            top5 = adjusted[:5]
+            if any(zone_label(item["number"]) == zone for item in top5):
+                continue
+            candidate_index = next(
+                (
+                    index for index, item in enumerate(adjusted[5:25], 5)
+                    if zone_label(item["number"]) == zone
+                    and recall_priority_score(item, review) >= 0.44
+                    and not previous_guard_blocks_item(item)
+                    and not (item.get("repeat_guard") and not item["repeat_guard"].get("passed"))
+                ),
+                None,
+            )
+            if candidate_index is None:
+                continue
+            replace_index = min(
+                range(2, min(5, len(adjusted))),
+                key=lambda index: (
+                    zone_label(adjusted[index]["number"]) not in priority_zones[:2],
+                    recall_priority_score(adjusted[index], review),
+                    adjusted[index].get("score", 0),
+                ),
+            )
+            candidate = adjusted[candidate_index]
+            replace = adjusted[replace_index]
+            candidate_score = float(candidate.get("score", 0) or 0)
+            replace_score = float(replace.get("score", 0) or 0)
+            candidate_priority = recall_priority_score(candidate, review)
+            replace_priority = recall_priority_score(replace, review)
+            candidate_cross = int((candidate.get("cross_validation") or {}).get("passed_count") or 0)
+            if (
+                candidate_score >= replace_score * 0.72
+                or candidate_priority >= replace_priority + 0.06
+                or candidate_cross >= 4
+            ):
+                candidate["reasons"] = (candidate.get("reasons", []) + ["\u524d\u4e94\u53ec\u56de\u4fee\u6b63"])[:4]
+                front_swaps.append({
+                    "zone": zone,
+                    "promoted": candidate["number"],
+                    "replaced": replace["number"],
+                    "promoted_priority": round(candidate_priority, 4),
+                    "replaced_priority": round(replace_priority, 4),
+                    "reason": "top5_recent_slump_zone_recall",
+                })
+                adjusted[replace_index], adjusted[candidate_index] = adjusted[candidate_index], adjusted[replace_index]
+
     for rank, row in enumerate(adjusted, 1):
         row["rank"] = rank
-        probability_value = conservative_probability_percent(row["score"])
+        probability_value = conservative_probability_percent(row["score"], rank)
         row["model_probability_percent"] = probability_value
         confidence = confidence_profile(
             row["score"],
@@ -1835,13 +1903,14 @@ def apply_slump_recall_coverage_mode(draws, candidates, review=None):
         "promotion_count": len(promotions),
         "demotion_count": len(demotions),
         "coverage_swaps": coverage_swaps,
+        "front_swaps": front_swaps,
         "promotions": promotions[:12],
         "demotions": demotions[:12],
-        "policy": "when recent Top5/Top10 maturity collapses, rebalance by missed numbers, missed tails, missed zones and verified recall instead of trusting stale front-rank signals",
+        "policy": "when recent Top5/Top10 maturity collapses, rebalance by missed numbers, missed tails, missed zones, verified recall and top5 zone coverage instead of trusting stale front-rank signals",
     }
 
 
-def adaptive_feature_weights(draws, review=None, rounds=360):
+def adaptive_feature_weights(draws, review=None, rounds=120):
     base_weights = industrial_weights(review)
     if len(draws) < 160:
         return base_weights, {
@@ -1937,7 +2006,7 @@ def adaptive_feature_weights(draws, review=None, rounds=360):
     ranked_features = sorted(feature_report.items(), key=lambda pair: pair[1]["weighted_edge"], reverse=True)
     return calibrated, {
         "status": "evaluated",
-        "method": "recent_90_and_long_walk_forward_feature_weight_calibration",
+        "method": "recent_fast_walk_forward_feature_weight_calibration",
         "rounds": max((item["rounds"] for item in stats.values()), default=0),
         "feature_report": feature_report,
         "top_boosted_features": [
@@ -2147,7 +2216,7 @@ def apply_objective_feature_calibration(candidates, weight_calibration, review=N
     )
     for rank, row in enumerate(calibrated, 1):
         row["rank"] = rank
-        probability_value = conservative_probability_percent(row["score"])
+        probability_value = conservative_probability_percent(row["score"], rank)
         row["model_probability_percent"] = probability_value
         confidence = confidence_profile(
             row["score"],
@@ -2312,7 +2381,7 @@ def score_numbers(draws, review=None, include_dependency=True, weights_override=
         cross_validation = number_cross_validation(features[number])
         score_value = round(normalized_score[number], 4)
         confidence_value = round(50 + normalized_score[number] * 49, 1)
-        probability_value = conservative_probability_percent(normalized_score[number])
+        probability_value = conservative_probability_percent(normalized_score[number], rank)
         confidence = confidence_profile(
             score_value,
             confidence_value,
@@ -2536,6 +2605,8 @@ def five_hit_two_group(candidates, review=None):
 def nine_hit_three_group(candidates, review=None):
     failed = failed_number_set(review)
     rolling = (review or {}).get("rolling_adjustment", {})
+    if critical_front_nine_active(review):
+        return top_rank_group(candidates, 9, review)
     late_hit_numbers = {int(item.get("number")) for item in rolling.get("late_hit_numbers", []) if item.get("number")}
     priority_zones = [
         str(item.get("zone"))
@@ -2591,6 +2662,66 @@ def top_rank_group(candidates, size, review=None):
         selected.append(number)
         if len(selected) >= size:
             break
+    return sorted(selected)
+
+
+def micro_confidence_score(item, review=None, selected=None):
+    selected = selected or []
+    rank = int(item.get("rank") or 99)
+    cross = item.get("cross_validation", {}) or {}
+    passed = int(cross.get("passed_count") or 0)
+    total = int(cross.get("total_count") or 0) or 1
+    probability = float(item.get("model_probability_percent", 0) or 0)
+    recall_score = recall_priority_score(item, review)
+    stability = min(int(item.get("stability_count", 0) or 0), 5) / 5
+    rank_score = max(0.0, (10 - rank) / 9) if rank <= 9 else max(0.0, (16 - rank) / 18)
+    top9_bonus = 0.055 if rank <= 9 else -0.090
+    high_conf_bonus = 0.060 if item.get("high_confidence") else 0.0
+    leakage_bonus = 0.045 if (item.get("top9_leakage_lock") or {}).get("status") == "promoted" else 0.0
+    score = (
+        float(item.get("score", 0) or 0) * 0.26
+        + (probability / 18.72) * 0.16
+        + (passed / total) * 0.20
+        + recall_score * 0.18
+        + stability * 0.12
+        + rank_score * 0.08
+        + top9_bonus
+        + high_conf_bonus
+        + leakage_bonus
+    )
+    if item.get("repeat_guard") and not item["repeat_guard"].get("passed"):
+        score -= 0.22
+    if previous_guard_blocks_item(item):
+        score -= 0.18
+    if item["number"] in failed_number_set(review) and not failed_number_reentry_allowed(item, review):
+        score -= 0.16
+    if any(number % 10 == item["number"] % 10 for number in selected):
+        score -= 0.035
+    if sum(1 for number in selected if zone_label(number) == zone_label(item["number"])) >= 2:
+        score -= 0.045
+    return max(0.0, min(1.35, score))
+
+
+def micro_confidence_group(candidates, size, review=None):
+    pool = [
+        item for item in candidates[:15]
+        if not previous_guard_blocks_item(item)
+        and not (item.get("repeat_guard") and not item["repeat_guard"].get("passed"))
+        and not (item["number"] in failed_number_set(review) and not failed_number_reentry_allowed(item, review))
+    ]
+    selected = []
+    while len(selected) < size and pool:
+        best = max(
+            pool,
+            key=lambda item: (
+                micro_confidence_score(item, review, selected),
+                int((item.get("cross_validation") or {}).get("passed_count") or 0),
+                float(item.get("model_probability_percent", 0) or 0),
+                -int(item["number"]),
+            ),
+        )
+        selected.append(best["number"])
+        pool.remove(best)
     return sorted(selected)
 
 
@@ -2754,6 +2885,8 @@ def slump_recall_group(candidates, size, goal, review=None):
 
 def group_by_variant(key, candidates, review=None, variant=None):
     if key == "strong_single":
+        if variant == "micro_confidence":
+            return micro_confidence_group(candidates, 1, review)
         if variant == "slump_recall":
             return slump_recall_group(candidates, 1, 1, review)
         if variant == "target_precision":
@@ -2791,6 +2924,8 @@ def group_by_variant(key, candidates, review=None, variant=None):
         return target_precision_group(candidates, 9, 3, review)
     size_by_key = {"two_hit_one": 2, "three_hit_one": 3}
     goal_by_key = {"two_hit_one": 1, "three_hit_one": 1}
+    if variant == "micro_confidence":
+        return micro_confidence_group(candidates, size_by_key.get(key, 5), review)
     if variant == "slump_recall":
         return slump_recall_group(candidates, size_by_key.get(key, 5), goal_by_key.get(key, 1), review)
     if variant == "target_precision":
@@ -2882,12 +3017,180 @@ def apply_top10_boundary_promotion(candidates, review=None):
         )
         replace_score = promoted[replace_index].get("score", 0) or 0
         item_score = item.get("score", 0) or 0
-        threshold = 0.90 if (item["number"] in late_hit_numbers or item["number"] in missed_actual_numbers) else 0.96 if item.get("stability_count", 0) >= 4 else 1.0
+        recall_priority = recall_priority_score(item, review)
+        if (item["number"] in late_hit_numbers or item["number"] in missed_actual_numbers) and recall_priority >= 0.55:
+            threshold = 0.82
+        elif item["number"] in late_hit_numbers or item["number"] in missed_actual_numbers:
+            threshold = 0.88
+        elif item.get("stability_count", 0) >= 4:
+            threshold = 0.94
+        else:
+            threshold = 1.0
         if replace_score and item_score >= replace_score * threshold:
             promoted[replace_index], promoted[source_index] = promoted[source_index], promoted[replace_index]
     for rank, item in enumerate(promoted, 1):
         item["rank"] = rank
     return promoted
+
+
+def top9_leakage_score(item, review=None):
+    maps = recall_signal_maps(review)
+    rolling = (review or {}).get("rolling_adjustment", {}) or {}
+    boosted_reasons = {row.get("reason") for row in rolling.get("boosted_reasons", [])}
+    number = int(item["number"])
+    reasons = set(item.get("reasons", []))
+    cross = item.get("cross_validation", {}) or {}
+    passed = int(cross.get("passed_count") or 0)
+    total = int(cross.get("total_count") or 0) or 1
+    posterior = float((item.get("hit_through_calibration") or {}).get("posterior_hit_rate", BASE_PROBABILITY) or BASE_PROBABILITY)
+    posterior_score = max(0.0, min(1.0, (posterior - 0.075) / 0.13))
+    recall_score = recall_priority_score(item, review)
+    stability_score = min(int(item.get("stability_count", 0) or 0), 5) / 5
+    signal_bonus = 0.0
+    if number in maps["late_numbers"]:
+        signal_bonus += 0.145
+    if number in maps["missed_numbers"]:
+        signal_bonus += 0.125
+    if number in maps["monthly_numbers"]:
+        signal_bonus += 0.095
+    if number % 10 in maps["missed_tails"] or number % 10 in maps["monthly_tails"]:
+        signal_bonus += 0.035
+    if zone_label(number) in maps["missed_zones"] or zone_label(number) in maps["monthly_zones"]:
+        signal_bonus += 0.045
+    if reasons & boosted_reasons:
+        signal_bonus += 0.060
+    penalty = 0.0
+    repeated_count = maps["repeated_failed"].get(number, 0)
+    if repeated_count >= 5 and not failed_number_reentry_allowed(item, review):
+        penalty += min(0.16, repeated_count * 0.018)
+    if item.get("repeat_guard") and not item["repeat_guard"].get("passed"):
+        penalty += 0.20
+    if previous_guard_blocks_item(item):
+        penalty += 0.18
+    return max(0.0, min(1.35, (
+        float(item.get("score", 0) or 0) * 0.34
+        + recall_score * 0.28
+        + posterior_score * 0.12
+        + (passed / total) * 0.10
+        + stability_score * 0.06
+        + signal_bonus
+        - penalty
+    )))
+
+
+def apply_top9_leakage_lock(candidates, review=None):
+    if len(candidates) < 10:
+        return candidates, {
+            "status": "not_available",
+            "reason": "candidate_count_below_top9_boundary",
+            "swaps": [],
+        }
+    rolling = (review or {}).get("rolling_adjustment", {}) or {}
+    recent = rolling.get("recent_performance", {}) or {}
+    monthly = rolling.get("monthly_review", {}) or (review or {}).get("monthly_review", {}) or {}
+    rank_buckets = monthly.get("rank_buckets", {}) or {}
+    top15_gap = max(0.0, float(recent.get("last5_top15_avg") or 0) - float(recent.get("last5_top10_avg") or 0))
+    top10_gap = max(0.0, float(recent.get("last5_top10_avg") or 0) - float(recent.get("last5_top5_avg") or 0))
+    late_bucket_pressure = int(rank_buckets.get("11-15", 0) or 0)
+    monthly_late_rate = float(monthly.get("late_or_missing_rate") or 0)
+    monthly_front_rate = float(monthly.get("front_hit_rate") or 0)
+    critical_recall = (
+        monthly.get("status") == "critical_recall_gap"
+        or monthly_late_rate >= 0.50
+        or (monthly_front_rate and monthly_front_rate <= 0.34)
+    )
+    status = "critical" if critical_recall else "triggered" if (top15_gap >= 0.25 or top10_gap >= 0.45 or late_bucket_pressure >= 4) else "watch"
+    promoted = list(candidates)
+    swaps = []
+    max_swaps = 4 if status == "critical" else 3 if status == "triggered" else 1
+    source_end = 25 if status == "critical" else 18
+
+    for source_index in range(9, min(source_end, len(promoted))):
+        if len(swaps) >= max_swaps:
+            break
+        item = promoted[source_index]
+        if item.get("repeat_guard") and not item["repeat_guard"].get("passed"):
+            continue
+        if previous_guard_blocks_item(item):
+            continue
+        if item["number"] in failed_number_set(review) and not failed_number_reentry_allowed(item, review):
+            continue
+        candidate_score = top9_leakage_score(item, review)
+        minimum_score = 0.50 if status == "critical" else 0.58 if status == "triggered" else 0.66
+        if candidate_score < minimum_score:
+            continue
+
+        replace_index = min(
+            range(3, min(9, len(promoted))),
+            key=lambda index: (
+                top9_leakage_score(promoted[index], review),
+                recall_priority_score(promoted[index], review),
+                promoted[index].get("score", 0),
+            ),
+        )
+        replace = promoted[replace_index]
+        replace_score = top9_leakage_score(replace, review)
+        source_rank = source_index + 1
+        score_ratio_floor = 0.58 if status == "critical" else 0.70
+        score_ratio_ok = float(item.get("score", 0) or 0) >= float(replace.get("score", 0) or 0) * score_ratio_floor
+        leakage_edge_ok = candidate_score >= replace_score + (0.015 if status == "critical" else 0.030 if status == "triggered" else 0.055)
+        recall_edge_ok = recall_priority_score(item, review) >= recall_priority_score(replace, review) + (0.020 if status == "critical" else 0.040)
+        cross_ok = int((item.get("cross_validation") or {}).get("passed_count") or 0) >= 4
+        leakage_floor_ok = candidate_score >= replace_score * (0.88 if status == "critical" else 0.94 if status == "triggered" else 0.98)
+        if not (score_ratio_ok and leakage_floor_ok and (leakage_edge_ok or recall_edge_ok or cross_ok)):
+            continue
+
+        item["reasons"] = (item.get("reasons", []) + ["\u4e5d\u78bc\u5167\u547d\u4e2d\u6821\u6b63"])[:4]
+        item["top9_leakage_lock"] = {
+            "status": "promoted",
+            "from_rank": source_rank,
+            "to_rank": replace_index + 1,
+            "leakage_score": round(candidate_score, 4),
+            "replaced_number": replace["number"],
+            "replaced_leakage_score": round(replace_score, 4),
+        }
+        swaps.append({
+            "promoted": item["number"],
+            "from_rank": source_rank,
+            "to_rank": replace_index + 1,
+            "replaced": replace["number"],
+            "promoted_leakage_score": round(candidate_score, 4),
+            "replaced_leakage_score": round(replace_score, 4),
+            "reason": "pull_rank_10_to_15_signal_inside_top9",
+        })
+        promoted[replace_index], promoted[source_index] = promoted[source_index], promoted[replace_index]
+
+    for rank, item in enumerate(promoted, 1):
+        item["rank"] = rank
+        probability_value = conservative_probability_percent(item["score"], rank)
+        item["model_probability_percent"] = probability_value
+        confidence = confidence_profile(
+            item["score"],
+            item["confidence_index"],
+            probability_value,
+            item.get("model_sources", []),
+            item.get("cross_validation", {}),
+            rank,
+        )
+        item["confidence_profile"] = confidence
+        item["confidence_badges"] = confidence["badges"]
+        item["confidence_level"] = confidence["level"]
+        item["confidence_label"] = confidence["label"]
+        item["high_confidence"] = confidence["is_high_confidence"]
+
+    return promoted, {
+        "status": status,
+        "method": "top9_late_hit_leakage_lock",
+        "target": "keep validated high-hit signals inside rank 1-9 instead of leaking to rank 10-15",
+        "last5_top10_minus_top5_gap": round(top10_gap, 3),
+        "last5_top15_minus_top10_gap": round(top15_gap, 3),
+        "monthly_front_hit_rate": round(monthly_front_rate, 3),
+        "monthly_late_or_missing_rate": round(monthly_late_rate, 3),
+        "monthly_rank_11_15_hits": late_bucket_pressure,
+        "swap_count": len(swaps),
+        "swaps": swaps,
+        "policy": "critical month mode pulls validated rank 10-25 recall signals into the front nine; normal mode pulls rank 10-15 only",
+    }
 
 
 def empty_pack(name, goal, reason):
@@ -2926,7 +3229,7 @@ def watch_pack(name, goal, numbers, score_map, reason):
     }
 
 
-def pack_recent_governance(draws, rounds=360):
+def pack_recent_governance(draws, rounds=120):
     if len(draws) < 150:
         return {
             "status": "insufficient_data",
@@ -2944,9 +3247,9 @@ def pack_recent_governance(draws, rounds=360):
         "nine_hit_three": {"size": 9, "goal": 3, "min_pass_rate": 0.12, "min_avg_hits": 1.16},
     }
     pack_variants = {
-        "strong_single": ["target_precision", "single_precision", "slump_recall", "dedicated", "top_rank", "stability"],
-        "two_hit_one": ["target_precision", "slump_recall", "dedicated"],
-        "three_hit_one": ["target_precision", "slump_recall", "dedicated"],
+        "strong_single": ["micro_confidence", "target_precision", "single_precision", "slump_recall", "dedicated", "top_rank", "stability"],
+        "two_hit_one": ["micro_confidence", "target_precision", "slump_recall", "dedicated"],
+        "three_hit_one": ["micro_confidence", "target_precision", "slump_recall", "dedicated"],
         "five_hit_two": ["target_precision", "slump_recall", "dedicated", "top_rank", "stability"],
         "nine_hit_three": ["target_precision", "slump_recall", "dedicated", "top_rank", "stability"],
     }
@@ -3038,6 +3341,7 @@ def strong_packs(candidates, review=None, governance=None):
     governance = governance or {"pack_stats": {}}
     pack_stats = governance.get("pack_stats", {})
     variant_labels = {
+        "micro_confidence": "micro_confidence_short_pack",
         "target_precision": "target_precision_gate",
         "single_precision": "single_precision_gate",
         "slump_recall": "slump_recall_coverage",
@@ -3076,7 +3380,11 @@ def strong_packs(candidates, review=None, governance=None):
     for key, (name, goal, size, min_avg_score, min_stability) in specs.items():
         recent_stat = pack_stats.get(key, {})
         variant = recent_stat.get("best_variant", "dedicated")
-        if recall_emergency_active(review) and key in {"two_hit_one", "three_hit_one", "five_hit_two", "nine_hit_three"}:
+        if key in {"strong_single", "two_hit_one", "three_hit_one"}:
+            variant = "micro_confidence"
+        elif key == "nine_hit_three" and critical_front_nine_active(review):
+            variant = "top_rank"
+        elif recall_emergency_active(review) and key in {"five_hit_two", "nine_hit_three"}:
             variant = "slump_recall"
         allowed_pool = [
             item for item in candidates[:30]
@@ -3093,6 +3401,21 @@ def strong_packs(candidates, review=None, governance=None):
             packs[key]["governance"] = recent_stat
             packs[key]["selection_variant"] = variant
             packs[key]["selection_model"] = variant_labels.get(variant, variant)
+            if key in {"strong_single", "two_hit_one", "three_hit_one"}:
+                audit_rows = []
+                for item in candidates[:12]:
+                    audit_rows.append({
+                        "number": item["number"],
+                        "rank": item.get("rank"),
+                        "micro_confidence_score": round(micro_confidence_score(item, review), 4),
+                        "score": item.get("score"),
+                        "probability_percent": item.get("model_probability_percent"),
+                        "cross_validation_passed": (item.get("cross_validation") or {}).get("passed_count", 0),
+                        "stability_count": item.get("stability_count", 0),
+                        "recall_priority": round(recall_priority_score(item, review), 4),
+                    })
+                audit_rows.sort(key=lambda row: (row["micro_confidence_score"], row["cross_validation_passed"], row["probability_percent"]), reverse=True)
+                packs[key]["micro_confidence_audit"] = audit_rows[:8]
             continue
         numbers = group_by_variant(key, allowed_pool, review, variant)
         if not numbers and allowed_pool:
@@ -3113,6 +3436,21 @@ def strong_packs(candidates, review=None, governance=None):
         packs[key]["governance"] = recent_stat
         packs[key]["selection_variant"] = variant
         packs[key]["selection_model"] = variant_labels.get(variant, variant)
+        if key in {"strong_single", "two_hit_one", "three_hit_one"}:
+            audit_rows = []
+            for item in candidates[:12]:
+                audit_rows.append({
+                    "number": item["number"],
+                    "rank": item.get("rank"),
+                    "micro_confidence_score": round(micro_confidence_score(item, review), 4),
+                    "score": item.get("score"),
+                    "probability_percent": item.get("model_probability_percent"),
+                    "cross_validation_passed": (item.get("cross_validation") or {}).get("passed_count", 0),
+                    "stability_count": item.get("stability_count", 0),
+                    "recall_priority": round(recall_priority_score(item, review), 4),
+                })
+            audit_rows.sort(key=lambda row: (row["micro_confidence_score"], row["cross_validation_passed"], row["probability_percent"]), reverse=True)
+            packs[key]["micro_confidence_audit"] = audit_rows[:8]
 
     wheel = build_covering_wheel(packs["nine_hit_three"].get("numbers", []), ticket_size=5, cover_size=3, max_tickets=12)
     packs["nine_hit_three"]["wheel_tickets"] = wheel["tickets"]
@@ -3158,6 +3496,7 @@ def decisive_battle_decision(candidates, packs, release_gate, slump_recall, unli
             "selection_model": (packs.get("strong_single", {}) or {}).get("selection_model"),
         }
 
+    front9 = [int(item["number"]) for item in candidates[:9]]
     top10 = [int(item["number"]) for item in candidates[:10]]
     top15 = [int(item["number"]) for item in candidates[:15]]
     avoid_numbers = [int(item["number"]) for item in (unlikely.get("numbers", []) or [])[:10]]
@@ -3181,17 +3520,20 @@ def decisive_battle_decision(candidates, packs, release_gate, slump_recall, unli
     primary_three = pack_numbers("three_hit_one", 3)[:3]
     primary_five = pack_numbers("five_hit_two", 5)[:5]
     primary_nine = pack_numbers("nine_hit_three", 9)[:9]
+    if slump_triggered or release_light in {"yellow", "green"}:
+        primary_nine = front9
     attack_core = []
-    for group in [primary_single, primary_two, primary_three, primary_five, primary_nine, top10]:
+    attack_core_target = 9
+    for group in [primary_single, primary_two, primary_three, primary_five, primary_nine, front9, top10]:
         for number in group:
             if number not in attack_core and number not in avoid_numbers[:5]:
                 attack_core.append(number)
-    attack_core = attack_core[:10]
-    if len(attack_core) < 10:
+    attack_core = attack_core[:attack_core_target]
+    if len(attack_core) < attack_core_target:
         for number in top15:
             if number not in attack_core and number not in avoid_numbers[:5]:
                 attack_core.append(number)
-            if len(attack_core) >= 10:
+            if len(attack_core) >= attack_core_target:
                 break
     high_confidence_numbers = []
     for item in candidates[:15]:
@@ -3201,7 +3543,7 @@ def decisive_battle_decision(candidates, packs, release_gate, slump_recall, unli
         if number in avoid_numbers[:5]:
             continue
         if (
-            number in attack_core
+            number in attack_core[:attack_core_target]
             and (
                 item.get("high_confidence")
                 or float(item.get("score", 0) or 0) >= 0.78
@@ -3245,7 +3587,10 @@ def decisive_battle_decision(candidates, packs, release_gate, slump_recall, unli
         "three_hit_one": primary_three,
         "five_hit_two": primary_five,
         "nine_hit_three": primary_nine,
-        "attack_core_top10": attack_core[:10],
+        "front9_precision_core": attack_core[:9],
+        "attack_core_top9": attack_core[:9],
+        "attack_core_top10": (attack_core[:9] + [number for number in top10 if number not in attack_core[:9]])[:10],
+        "precision_target_size": 9,
         "backup_top15": top15,
         "defensive_avoid": avoid_numbers[:10],
         "high_confidence_numbers": high_confidence_numbers,
@@ -3253,7 +3598,7 @@ def decisive_battle_decision(candidates, packs, release_gate, slump_recall, unli
         "main_targets_passed": main_targets_passed,
         "recent_performance_passed": recent_passed,
         "release_gate_status": status,
-        "number_profiles": [number_profile(number) for number in attack_core[:10]],
+        "number_profiles": [number_profile(number) for number in attack_core[:9]],
     }
 
 
@@ -3367,7 +3712,7 @@ def balanced_ticket_score(ticket):
     return span / NUMBER_MAX - zone_penalty * 0.2 - tail_penalty * 0.1
 
 
-def industrial_backtest(draws, rounds=720):
+def industrial_backtest(draws, rounds=180):
     if len(draws) < 140:
         return {"rounds": 0, "top10_avg_hits": 0, "top15_avg_hits": 0}
     start = max(120, len(draws) - rounds - 1)
@@ -3441,7 +3786,7 @@ def advanced_model_summary(draws):
     }
 
 
-def advanced_model_backtest(draws, rounds=360):
+def advanced_model_backtest(draws, rounds=120):
     if len(draws) < 140:
         return {"rounds": 0}
     model_names = ["markov_chain", "time_series", "neural_network"]
@@ -3594,7 +3939,7 @@ def unlikely_number_analysis(draws, candidates, stability, review=None, limit=12
     }
 
 
-def unlikely_backtest(draws, rounds=360, avoid_size=10):
+def unlikely_backtest(draws, rounds=120, avoid_size=10):
     if len(draws) < 140:
         return {"rounds": 0}
     start = max(120, len(draws) - rounds - 1)
@@ -3636,6 +3981,7 @@ def compute_industrial_analysis(draws, review=None):
     candidates, zero_hit_recovery = apply_zero_hit_recovery_mode(draws, candidates, review)
     candidates, slump_recall_coverage = apply_slump_recall_coverage_mode(draws, candidates, review)
     candidates = apply_top10_boundary_promotion(candidates, review)
+    candidates, top9_leakage_lock = apply_top9_leakage_lock(candidates, review)
     pack_governance = pack_recent_governance(draws)
     packs = strong_packs(candidates, review, pack_governance)
     audit = industrial_backtest(draws)
@@ -3678,7 +4024,7 @@ def compute_industrial_analysis(draws, review=None):
     }
     decisive_decision = decisive_battle_decision(candidates, packs, release_gate, slump_recall_coverage, unlikely)
     return {
-        "engine_version": "industrial_v13_decisive_confidence_battle_plan",
+        "engine_version": "industrial_v18_front9_precision_recall_lock",
         "leakage_guard": True,
         "repeat_guard": repeat_guard(draws),
         "previous_prediction_guard": {
@@ -3697,6 +4043,7 @@ def compute_industrial_analysis(draws, review=None):
         "hit_through_calibration": hit_through_calibration,
         "zero_hit_recovery": zero_hit_recovery,
         "slump_recall_coverage": slump_recall_coverage,
+        "top9_leakage_lock": top9_leakage_lock,
         "top10_promotion_audit": promotion_audit,
         "dependency_analysis": {
             "method": "three_fold_conditional_lift_with_fdr",

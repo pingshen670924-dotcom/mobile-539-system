@@ -1,12 +1,12 @@
 {
   "status": "ready",
-  "written_at": "2026-06-23T09:43:30",
-  "report_url": "http://172.16.1.24:5390/report?token=oL18nVAg_JbaDg&v=20260623094328",
-  "control_url": "http://172.16.1.24:5390/?token=oL18nVAg_JbaDg&v=20260623094328",
-  "site_url": "http://172.16.1.24:5390/site/index.html?token=oL18nVAg_JbaDg&v=20260623094328",
-  "version": "20260623094328",
-  "latest_period": 115000151,
-  "latest_draw_date": "2026-06-22",
-  "mobile_built_at": "2026-06-23T09:43:28",
+  "written_at": "2026-06-25T07:24:51",
+  "report_url": "http://172.16.1.24:5390/report?token=oL18nVAg_JbaDg&v=20260625072450",
+  "control_url": "http://172.16.1.24:5390/?token=oL18nVAg_JbaDg&v=20260625072450",
+  "site_url": "http://172.16.1.24:5390/site/index.html?token=oL18nVAg_JbaDg&v=20260625072450",
+  "version": "20260625072450",
+  "latest_period": 115000153,
+  "latest_draw_date": "2026-06-24",
+  "mobile_built_at": "2026-06-25T07:24:50",
   "cache_policy": "no_store_lan_report"
 }

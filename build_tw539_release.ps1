@@ -60,7 +60,8 @@ $NameMiddle = TextFromCodes @(0x9810,0x6e2c,0x7cfb,0x7d71)
 $EditionPrefix = TextFromCodes @(0x7b2c)
 $EditionSuffix = TextFromCodes @(0x7248)
 $OneClick = TextFromCodes @(0x4e00,0x9375,0x7248)
-$LauncherName = "539" + (TextFromCodes @(0x4e00,0x9375,0x5168,0x81ea,0x52d5,0x555f,0x52d5)) + ".bat"
+$LauncherName = "TW539" + (TextFromCodes @(0x4e00,0x9375,0x5168,0x81ea,0x52d5,0x555f,0x52d5)) + ".bat"
+$CoreFolderName = TextFromCodes @(0x7cfb,0x7d71,0x6838,0x5fc3)
 $ReleasePrefix = "TW539${NameMiddle}_"
 
 if (-not $Version) {
@@ -79,6 +80,16 @@ if (-not $Version) {
 }
 
 $SourceCore = $Root
+$NestedRuntimeFolders = @("reports\reports", "reports\history\history", "data\data")
+foreach ($relativeNested in $NestedRuntimeFolders) {
+  $nestedPath = Join-Path $SourceCore $relativeNested
+  if (Test-Path -LiteralPath $nestedPath) {
+    $resolvedNested = (Resolve-Path -LiteralPath $nestedPath).Path
+    if ($resolvedNested.StartsWith($SourceCore, [System.StringComparison]::OrdinalIgnoreCase)) {
+      Remove-Item -LiteralPath $resolvedNested -Recurse -Force
+    }
+  }
+}
 
 $ReleaseName = "TW539${NameMiddle}_${DateText}_${EditionPrefix}${Version}${EditionSuffix}_${OneClick}"
 $ReleaseDir = Join-Path $Root $ReleaseName
@@ -111,14 +122,14 @@ New-Item -ItemType Directory -Path $ReleaseDir | Out-Null
 $Launcher = @(
   "@echo off",
   "chcp 65001 >nul",
-  "cd /d `"%~dp0TW539Core`"",
+  "cd /d `"%~dp0$CoreFolderName`"",
   "`"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe`" -NoProfile -ExecutionPolicy Bypass -File `"%CD%\main_one_click.ps1`"",
-  "set `"REPORT=%~dp0TW539Core\reports\latest_battle_report.html`"",
+  "set `"REPORT=%~dp0$CoreFolderName\reports\latest_battle_report.html`"",
   "if exist `"%REPORT%`" start `"`" `"%REPORT%`""
 ) -join [Environment]::NewLine
-Set-Content -LiteralPath (Join-Path $ReleaseDir $LauncherName) -Value $Launcher -Encoding ASCII
+Set-Content -LiteralPath (Join-Path $ReleaseDir $LauncherName) -Value $Launcher -Encoding UTF8
 
-$Core = Join-Path $ReleaseDir "TW539Core"
+$Core = Join-Path $ReleaseDir $CoreFolderName
 New-Item -ItemType Directory -Path $Core | Out-Null
 $SkipRootNames = @("logs", "__pycache__", "backups", ".git", ".agents", ".codex")
 Get-ChildItem -LiteralPath $SourceCore -Force | Where-Object {
@@ -137,70 +148,38 @@ if (Test-Path -LiteralPath $LogSource) {
   }
 }
 
-$ReportName = "539" + (TextFromCodes @(0x6700,0x65b0,0x5f37,0x5316,0x6230,0x5831)) + ".html"
-$CoreReport = Join-Path (Join-Path $Core "reports") $ReportName
-if (Test-Path -LiteralPath $CoreReport) {
-  Copy-Item -LiteralPath $CoreReport -Destination (Join-Path $ReleaseDir $ReportName) -Force
-}
-
-$MobileEntryName = (TextFromCodes @(0x6253,0x958b,0x6700,0x65b0,0x624b,0x6a5f,0x7248)) + ".html"
-$VersionPath = Join-Path $Core "site\version.json"
-$MobileVersion = Get-Date -Format "yyyyMMddHHmmss"
-if (Test-Path -LiteralPath $VersionPath) {
-  try {
-    $MobileVersion = (Get-Content -LiteralPath $VersionPath -Raw -Encoding UTF8 | ConvertFrom-Json).version
-  } catch {
-    $MobileVersion = Get-Date -Format "yyyyMMddHHmmss"
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$PayloadRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("TW539Payload_" + [guid]::NewGuid().ToString("N"))
+$PayloadZip = Join-Path ([System.IO.Path]::GetTempPath()) ("TW539Payload_" + [guid]::NewGuid().ToString("N") + ".zip")
+New-Item -ItemType Directory -Path $PayloadRoot | Out-Null
+try {
+  Copy-Item -LiteralPath $Core -Destination (Join-Path $PayloadRoot $CoreFolderName) -Recurse -Force
+  [System.IO.Compression.ZipFile]::CreateFromDirectory($PayloadRoot, $PayloadZip, [System.IO.Compression.CompressionLevel]::Optimal, $false, [System.Text.Encoding]::UTF8)
+  $PayloadBase64 = [Convert]::ToBase64String([System.IO.File]::ReadAllBytes($PayloadZip))
+  $PayloadLines = [regex]::Matches($PayloadBase64, ".{1,76}") | ForEach-Object { $_.Value }
+  $ExtractCommand = '$ErrorActionPreference="Stop"; $root=$env:TW539_ROOT; $self=$env:TW539_SELF; $coreName=[string]::Concat([char]0x7cfb,[char]0x7d71,[char]0x6838,[char]0x5fc3); $core=Join-Path $root $coreName; if(-not (Test-Path -LiteralPath (Join-Path $core "main_one_click.ps1"))){ $marker="-----BEGIN_TW539_CORE_ZIP_BASE64-----"; $lines=[System.IO.File]::ReadAllLines($self,[System.Text.Encoding]::UTF8); $start=[Array]::IndexOf($lines,$marker); if($start -lt 0){ throw "Core payload missing." }; $payload=($lines[($start+1)..($lines.Length-1)] -join ""); $zip=Join-Path $root "tw539_core_payload.zip"; [System.IO.File]::WriteAllBytes($zip,[Convert]::FromBase64String($payload)); Expand-Archive -LiteralPath $zip -DestinationPath $root -Force; Remove-Item -LiteralPath $zip -Force }; $item=Get-Item -LiteralPath $core -Force; $item.Attributes=$item.Attributes -bor [System.IO.FileAttributes]::Hidden; Set-Location -LiteralPath $core; & ($env:SystemRoot + "\System32\WindowsPowerShell\v1.0\powershell.exe") -NoProfile -ExecutionPolicy Bypass -File (Join-Path $core "main_one_click.ps1")'
+  $EncodedCommand = [Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($ExtractCommand))
+  $SelfExtractLauncher = @(
+    "@echo off",
+    "chcp 65001 >nul",
+    "set `"TW539_SELF=%~f0`"",
+    "set `"TW539_ROOT=%~dp0`"",
+    "`"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe`" -NoProfile -ExecutionPolicy Bypass -EncodedCommand $EncodedCommand",
+    "if errorlevel 1 pause",
+    "exit /b",
+    "-----BEGIN_TW539_CORE_ZIP_BASE64-----"
+  ) + $PayloadLines
+  Set-Content -LiteralPath (Join-Path $ReleaseDir $LauncherName) -Value ($SelfExtractLauncher -join [Environment]::NewLine) -Encoding ASCII
+} finally {
+  if (Test-Path -LiteralPath $PayloadRoot) {
+    Remove-Item -LiteralPath $PayloadRoot -Recurse -Force
+  }
+  if (Test-Path -LiteralPath $PayloadZip) {
+    Remove-Item -LiteralPath $PayloadZip -Force
   }
 }
-$PackageMobileUrl = "TW539Core/site/clear-cache.html?v=$MobileVersion&t=$MobileVersion"
-$PackageMobileEntry = @"
-<!doctype html>
-<html lang="zh-Hant">
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>&#25171;&#38283;&#26368;&#26032;&#25163;&#27231;&#29256;</title>
-  <meta http-equiv="refresh" content="0; url=$PackageMobileUrl">
-</head>
-<body>
-  <p>&#27491;&#22312;&#25171;&#38283;&#26368;&#26032;&#25163;&#27231;&#29256;...</p>
-  <p><a href="$PackageMobileUrl">&#33509;&#27794;&#26377;&#33258;&#21205;&#36339;&#36681;&#65292;&#35531;&#40670;&#36889;&#35041;</a></p>
-</body>
-</html>
-"@
-Set-Content -LiteralPath (Join-Path $ReleaseDir $MobileEntryName) -Value $PackageMobileEntry -Encoding UTF8
-
-$ReleaseSiteAlias = Join-Path $ReleaseDir "site"
-New-Item -ItemType Directory -Force -Path $ReleaseSiteAlias | Out-Null
-$AliasMobileUrl = "../TW539Core/site/clear-cache.html?v=$MobileVersion&t=$MobileVersion"
-$AliasIndexUrl = "../TW539Core/site/index.html?v=$MobileVersion&t=$MobileVersion"
-$AliasHtml = @"
-<!doctype html>
-<html lang="zh-Hant">
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>&#25163;&#27231;&#29256;&#36339;&#36681;</title>
-  <meta http-equiv="refresh" content="0; url=$AliasMobileUrl">
-</head>
-<body>
-  <p>&#27491;&#22312;&#25171;&#38283;&#26368;&#26032;&#25163;&#27231;&#29256;...</p>
-  <p><a href="$AliasMobileUrl">&#33509;&#27794;&#26377;&#33258;&#21205;&#36339;&#36681;&#65292;&#35531;&#40670;&#36889;&#35041;</a></p>
-</body>
-</html>
-"@
-$AliasIndexHtml = $AliasHtml.Replace($AliasMobileUrl, $AliasIndexUrl)
-Set-Content -LiteralPath (Join-Path $ReleaseSiteAlias "clear-cache.html") -Value $AliasHtml -Encoding UTF8
-Set-Content -LiteralPath (Join-Path $ReleaseSiteAlias "index.html") -Value $AliasIndexHtml -Encoding UTF8
-
-Compress-Archive -Path (Join-Path $ReleaseDir "*") -DestinationPath $ZipPath -Force
+Remove-Item -LiteralPath $Core -Recurse -Force
+[System.IO.Compression.ZipFile]::CreateFromDirectory($ReleaseDir, $ZipPath, [System.IO.Compression.CompressionLevel]::Optimal, $false, [System.Text.Encoding]::UTF8)
 Write-Host "Source core: $SourceCore"
 Write-Host "Release folder: $ReleaseDir"
 Write-Host "Release zip: $ZipPath"

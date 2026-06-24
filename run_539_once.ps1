@@ -112,12 +112,13 @@ try {
     exit 0
   }
   $Python = Find-Python
+  Run-PowerShell-Step "Repair current scheduled tasks and phone service" (Join-Path $ScriptDir "repair_current_tasks.ps1") @() $false
   Run-PowerShell-Step "Cleanup obsolete runtime folders" (Join-Path $ScriptDir "cleanup_obsolete_runtime.ps1") @() $false
   Run-PowerShell-Step "Network permission repair" (Join-Path $ScriptDir "repair_network_permission.ps1") @("-NoPause") $false
   Run-PowerShell-Step "Network permission diagnostic" (Join-Path $ScriptDir "network_permission_diagnostic.ps1") @() $false
   Run-Step "Compile check" @("-m", "py_compile", ".\update_539.py", ".\analyze_539.py", ".\battle_report.py", ".\health_check.py", ".\dashboard.py", ".\pages_build.py", ".\industrial_engine.py", ".\aerospace_engine.py", ".\research_kpi.py", ".\daily_integrity_audit.py", ".\line_push.py")
   "Update latest draw and rebuild all outputs" | Out-File -FilePath $RunLog -Encoding utf8 -Append
-  & $Python ".\update_539.py" --latest --retry-until-fresh-minutes 35 --retry-interval-seconds 120 2>&1 | Tee-Object -FilePath $RunLog -Append
+  & $Python ".\update_539.py" --latest --retry-until-fresh-minutes 90 --retry-interval-seconds 45 2>&1 | Tee-Object -FilePath $RunLog -Append
   if ($LASTEXITCODE -ne 0) {
     "Main update returned a warning or failure. Continue rebuilding local reports so the user always gets an opened battle report." | Out-File -FilePath $RunLog -Encoding utf8 -Append
   }

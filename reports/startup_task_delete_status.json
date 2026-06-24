@@ -1,0 +1,26 @@
+﻿[
+    {
+        "Task":  "539 Startup Full Run",
+        "Action":  "delete_then_disable",
+        "Status":  "failed",
+        "Output":  "ERROR: Access is denied.\nSystem.Management.Automation.RemoteException\nERROR: Access is denied.\nSystem.Management.Automation.RemoteException"
+    },
+    {
+        "Task":  "539 Mobile Control Server",
+        "Action":  "delete_then_disable",
+        "Status":  "failed",
+        "Output":  "ERROR: Access is denied.\nSystem.Management.Automation.RemoteException\nERROR: Access is denied.\nSystem.Management.Automation.RemoteException"
+    },
+    {
+        "Task":  "TW539_One_Click_Report",
+        "Action":  "delete_then_disable",
+        "Status":  "failed",
+        "Output":  "ERROR: Access is denied.\nSystem.Management.Automation.RemoteException\nERROR: Access is denied.\nSystem.Management.Automation.RemoteException"
+    },
+    {
+        "Task":  "TW539_Research_Platform",
+        "Action":  "delete_then_disable",
+        "Status":  "failed",
+        "Output":  "ERROR: Access is denied.\nSystem.Management.Automation.RemoteException\nERROR: Access is denied.\nSystem.Management.Automation.RemoteException"
+    }
+]

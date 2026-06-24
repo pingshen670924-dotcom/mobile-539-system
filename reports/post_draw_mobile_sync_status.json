@@ -1,0 +1,118 @@
+﻿{
+    "status":  "fresh_synced_to_desktop_and_phone",
+    "started_at":  "2026-06-25T07:23:02",
+    "updated_at":  "2026-06-25T07:24:52",
+    "root":  "C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem",
+    "max_minutes":  5,
+    "interval_seconds":  30,
+    "attempts":  1,
+    "freshness":  {
+                      "status":  "fresh",
+                      "latest_date":  "2026-06-24",
+                      "expected_latest_date":  "2026-06-24",
+                      "latest_period":  115000153,
+                      "generated_at":  "2026-06-25T07:24:11"
+                  },
+    "steps":  [
+                  "2026-06-25 07:23:02,766 INFO �w�إ߸�Ʈw�ƥ��GC:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\backups\\539_20260625_072302.sqlite",
+                  "2026-06-25 07:23:02,780 INFO Trying powershell download path first: https://api.taiwanlottery.com/TLCAPIWeB/Lottery/Daily539Result?month=2026-06\u0026endMonth=2026-06\u0026pageNum=1\u0026pageSize=100",
+                  "2026-06-25 07:23:03,117 INFO �w�ɻ� 2026-06 ���v�d�� API�G21 ��",
+                  "2026-06-25 07:23:03,118 INFO Trying powershell download path first: https://api.taiwanlottery.com/TLCAPIWeB/Lottery/LatestResult",
+                  "2026-06-25 07:23:03,440 INFO �w��s�̷s�@���G115000153 2026-06-24 03 17 21 32 33",
+                  "2026-06-25 07:24:35,657 INFO �w���s�B��A���G�P�ثe�����w���ۦP�A�����t�s�ַӡGbased_on_period=115000153",
+                  "2026-06-25 07:24:35,719 INFO ��ڹw���Z�ġG{\"settled\": 20, \"top5_avg_hits\": 0.75, \"top10_avg_hits\": 1.4, \"top15_avg_hits\": 1.95, \"set_avg_hits\": 0.671, \"strong_pack_stats\": {\"strong_single\": {\"rounds\": 20, \"pass_rate\": 0.1, \"avg_hits\": 0.1}, \"two_hit_one\": {\"rounds\": 20, \"pass_rate\": 0.3, \"avg_hits\": 0.3}, \"three_hit_one\": {\"rounds\": 20, \"pass_rate\": 0.4, \"avg_hits\": 0.5}, \"five_hit_two\": {\"rounds\": 20, \"pass_rate\": 0.15, \"avg_hits\": 0.7}, \"nine_hit_three\": {\"rounds\": 20, \"pass_rate\": 0.15, \"avg_hits\": 1.15}}, \"research_kpi\": {\"status\": \"insufficient_samples\", \"settled_samples\": 20, \"minimum_settled_samples\": 30, \"target_pass_rate\": 1.0, \"all_observed_pass\": false, \"release_allowed\": false, \"warning\": \"Research targets are evaluation goals, not guaranteed lottery outcomes.\", \"levels\": {\"top15\": {\"label\": \"15����3��5��\", \"minimum_hits\": 3, \"maximum_hits\": 5, \"settled_samples\": 20, \"successes\": 8, \"target_band_successes\": 8, \"over_target_successes\": 0, \"failures\": 12, \"pass_rate\": 0.4, \"wilson_lower_95\": 0.2188, \"average_hits\": 1.95, \"met_in_observed_samples\": false}, \"nine_hit_three\": {\"label\": \"9����3��5��\", \"minimum_hits\": 3, \"maximum_hits\": 5, \"settled_samples\": 20, \"successes\": 3, \"target_band_successes\": 3, \"over_target_successes\": 0, \"failures\": 17, \"pass_rate\": 0.15, \"wilson_lower_95\": 0.0524, \"average_hits\": 1.15, \"met_in_observed_samples\": false}, \"five_hit_two\": {\"label\": \"5����2��5��\", \"minimum_hits\": 2, \"maximum_hits\": 5, \"settled_samples\": 20, \"successes\": 3, \"target_band_successes\": 3, \"over_target_successes\": 0, \"failures\": 17, \"pass_rate\": 0.15, \"wilson_lower_95\": 0.0524, \"average_hits\": 0.7, \"met_in_observed_samples\": false}, \"three_hit_one\": {\"label\": \"3����1��3��\", \"minimum_hits\": 1, \"maximum_hits\": 3, \"settled_samples\": 20, \"successes\": 8, \"target_band_successes\": 8, \"over_target_successes\": 0, \"failures\": 12, \"pass_rate\": 0.4, \"wilson_lower_95\": 0.2188, \"average_hits\": 0.5, \"met_in_observed_samples\": false}, \"two_hit_one\": {\"label\": \"2����1��2��\", \"minimum_hits\": 1, \"maximum_hits\": 2, \"settled_samples\": 20, \"successes\": 6, \"target_band_successes\": 6, \"over_target_successes\": 0, \"failures\": 14, \"pass_rate\": 0.3, \"wilson_lower_95\": 0.1455, \"average_hits\": 0.3, \"met_in_observed_samples\": false}, \"strong_single\": {\"label\": \"1����1��\", \"minimum_hits\": 1, \"maximum_hits\": 1, \"settled_samples\": 20, \"successes\": 2, \"target_band_successes\": 2, \"over_target_successes\": 0, \"failures\": 18, \"pass_rate\": 0.1, \"wilson_lower_95\": 0.0279, \"average_hits\": 0.1, \"met_in_observed_samples\": false}}}}",
+                  "2026-06-25 07:24:35,757 INFO ���d�ˬd���A�Gok",
+                  "2026-06-25 07:24:36,269 INFO Battle report: C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\reports\\539�̷s�j�ƾԳ�.html",
+                  "2026-06-25 07:24:36,292 INFO Dashboard: C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\reports\\dashboard.html",
+                  "2026-06-25 07:24:36,344 INFO Mobile site rebuilt: C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\site\\index.html",
+                  "2026-06-25 07:24:36,344 INFO ��Ʈw�GC:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\data\\539.sqlite",
+                  "2026-06-25 07:24:36,344 INFO CSV�GC:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\data\\539.csv",
+                  "2026-06-25 07:24:36,344 INFO ���R���i�GC:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\reports\\latest_analysis.md",
+                  "2026-06-25 07:24:36,345 INFO �Կ� Top 10�G08 29 30 31 20 25 05 28 27 22",
+                  "2026-06-25 07:24:36,345 INFO �ثe�@ 5897 ���A���O 96000001 - 115000153�A��� 2007-01-01 - 2026-06-24",
+                  {
+                      "label":  "Post-draw latest draw update attempt 1",
+                      "exit_code":  0,
+                      "required":  false,
+                      "finished_at":  "2026-06-25T07:24:36"
+                  },
+                  "�Գ������GC:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\reports\\539�̷s�j�ƾԳ�.html",
+                  {
+                      "label":  "Rebuild battle report after fresh draw",
+                      "exit_code":  0,
+                      "required":  true,
+                      "finished_at":  "2026-06-25T07:24:37"
+                  },
+                  "competition saved: C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\reports\\model_competition.json",
+                  {
+                      "label":  "Rebuild model competition",
+                      "exit_code":  0,
+                      "required":  false,
+                      "finished_at":  "2026-06-25T07:24:49"
+                  },
+                  "health check: ok",
+                  "report: C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\reports\\health_status.md",
+                  {
+                      "label":  "Health check",
+                      "exit_code":  0,
+                      "required":  false,
+                      "finished_at":  "2026-06-25T07:24:49"
+                  },
+                  "daily integrity audit: passed (0 failed)",
+                  {
+                      "label":  "Daily integrity audit",
+                      "exit_code":  0,
+                      "required":  false,
+                      "finished_at":  "2026-06-25T07:24:49"
+                  },
+                  "�Գ������GC:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\reports\\539�̷s�j�ƾԳ�.html",
+                  {
+                      "label":  "Rebuild battle report after audit",
+                      "exit_code":  0,
+                      "required":  true,
+                      "finished_at":  "2026-06-25T07:24:50"
+                  },
+                  {
+                      "label":  "Rebuild phone site files",
+                      "exit_code":  0,
+                      "required":  false,
+                      "finished_at":  "2026-06-25T07:24:50"
+                  },
+                  {
+                      "label":  "ensure_mobile_server",
+                      "status":  "ok",
+                      "stopped_stale_processes":  [
+
+                                                  ],
+                      "started":  false
+                  },
+                  "http://172.16.1.24:5390/report?token=oL18nVAg_JbaDg\u0026v=20260625072450",
+                  {
+                      "label":  "Refresh phone live URL",
+                      "exit_code":  0,
+                      "required":  false,
+                      "finished_at":  "2026-06-25T07:24:51"
+                  },
+                  {
+                      "label":  "start_cloud_phone_publish",
+                      "status":  "started",
+                      "started":  true,
+                      "finished_at":  "2026-06-25T07:24:51"
+                  },
+                  "LINE push skipped: settings are not configured.",
+                  {
+                      "label":  "Push LINE report",
+                      "exit_code":  0,
+                      "required":  false,
+                      "finished_at":  "2026-06-25T07:24:51"
+                  },
+                  "file integrity: warning (126 files)",
+                  {
+                      "label":  "File integrity and encoding check",
+                      "exit_code":  1,
+                      "required":  false,
+                      "finished_at":  "2026-06-25T07:24:52"
+                  }
+              ],
+    "finished_at":  "2026-06-25T07:24:52"
+}

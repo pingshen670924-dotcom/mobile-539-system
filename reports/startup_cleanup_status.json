@@ -1,0 +1,32 @@
+﻿{
+    "cleaned_at":  "2026-06-24T08:42:16",
+    "kept_startup":  "C:\\Users\\MSI\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\TW539_Current_One_Click_Startup.bat",
+    "removed_startup":  [
+                            "C:\\Users\\MSI\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\539-startup-auto-run.bat",
+                            "C:\\Users\\MSI\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\TW539_Auto_Run.vbs"
+                        ],
+    "failed_startup":  [
+
+                       ],
+    "removed_tasks":  [
+
+                      ],
+    "failed_tasks":  [
+                         {
+                             "Task":  "539 Startup Full Run",
+                             "Error":  "存取被拒。\r\n"
+                         },
+                         {
+                             "Task":  "539 Mobile Control Server",
+                             "Error":  "存取被拒。\r\n"
+                         },
+                         {
+                             "Task":  "TW539_One_Click_Report",
+                             "Error":  "存取被拒。\r\n"
+                         },
+                         {
+                             "Task":  "TW539_Research_Platform",
+                             "Error":  "存取被拒。\r\n"
+                         }
+                     ]
+}

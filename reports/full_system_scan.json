@@ -1,0 +1,81 @@
+{
+  "checks": [
+    {
+      "name": "active_python_syntax",
+      "ok": false,
+      "detail": "checked=479; analyze_539.py: invalid non-printable character U+FEFF (analyze_539.py, line 1) | battle_report.py: invalid non-printable character U+FEFF (battle_report.py, line 1) | pages_build.py: invalid non-printable character U+FEFF (pages_build.py, line 1) | TW539預測系統_20260617_第01版_一鍵版\\TW539Core\\analyze_539.py: invalid non-printable character U+FEFF (analyze_539.py, line 1) | TW539預測系統_20260617_第01版_一鍵版\\TW539Core\\battle_report.py: invalid non-printable character U+FEFF (battle_report.py, line 1)"
+    },
+    {
+      "name": "active_json_readable",
+      "ok": true,
+      "detail": "checked=1905"
+    },
+    {
+      "name": "required_files_exist",
+      "ok": false,
+      "detail": "missing=539???????.bat, reports/539??????.html, ???????.txt, ????????.txt"
+    },
+    {
+      "name": "latest_analysis_valid_numbers",
+      "ok": true,
+      "detail": "period=115000152 date=2026-06-23 numbers=[2, 14, 25, 29, 36]"
+    },
+    {
+      "name": "data_freshness_fresh",
+      "ok": true,
+      "detail": "status=fresh latest=2026-06-23 expected=2026-06-23 checked=2026-06-24T14:40:44"
+    },
+    {
+      "name": "sqlite_latest_draw",
+      "ok": true,
+      "detail": "rows=5896 latest=(115000152, '2026-06-23', 2, 14, 25, 29, 36)"
+    },
+    {
+      "name": "csv_readable",
+      "ok": true,
+      "detail": "rows=5896"
+    },
+    {
+      "name": "mobile_report_same_as_desktop",
+      "ok": false,
+      "detail": "[Errno 22] Invalid argument: 'C:\\\\Users\\\\MSI\\\\Documents\\\\Codex\\\\539PredictionSystem\\\\reports\\\\539??????.html'"
+    },
+    {
+      "name": "mobile_old_entries_redirect_to_report",
+      "ok": false,
+      "detail": "[Errno 22] Invalid argument: 'C:\\\\Users\\\\MSI\\\\Documents\\\\Codex\\\\539PredictionSystem\\\\????????.txt'"
+    },
+    {
+      "name": "active_root_filename_readable",
+      "ok": true,
+      "detail": "top-level ok"
+    },
+    {
+      "name": "no_nested_duplicate_runtime_folders",
+      "ok": false,
+      "detail": "found=reports/reports, data/data"
+    }
+  ],
+  "failures": [
+    {
+      "name": "active_python_syntax",
+      "detail": "checked=479; analyze_539.py: invalid non-printable character U+FEFF (analyze_539.py, line 1) | battle_report.py: invalid non-printable character U+FEFF (battle_report.py, line 1) | pages_build.py: invalid non-printable character U+FEFF (pages_build.py, line 1) | TW539預測系統_20260617_第01版_一鍵版\\TW539Core\\analyze_539.py: invalid non-printable character U+FEFF (analyze_539.py, line 1) | TW539預測系統_20260617_第01版_一鍵版\\TW539Core\\battle_report.py: invalid non-printable character U+FEFF (battle_report.py, line 1)"
+    },
+    {
+      "name": "required_files_exist",
+      "detail": "missing=539???????.bat, reports/539??????.html, ???????.txt, ????????.txt"
+    },
+    {
+      "name": "mobile_report_same_as_desktop",
+      "detail": "[Errno 22] Invalid argument: 'C:\\\\Users\\\\MSI\\\\Documents\\\\Codex\\\\539PredictionSystem\\\\reports\\\\539??????.html'"
+    },
+    {
+      "name": "mobile_old_entries_redirect_to_report",
+      "detail": "[Errno 22] Invalid argument: 'C:\\\\Users\\\\MSI\\\\Documents\\\\Codex\\\\539PredictionSystem\\\\????????.txt'"
+    },
+    {
+      "name": "no_nested_duplicate_runtime_folders",
+      "detail": "found=reports/reports, data/data"
+    }
+  ]
+}

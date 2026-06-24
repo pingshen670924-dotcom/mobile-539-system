@@ -73,7 +73,7 @@ def roc_year_now():
 def expected_latest_draw_date(now=None):
     now = now or taipei_now()
     candidate = now.date()
-    if now.time() < clock_time(21, 0):
+    if now.time() < clock_time(20, 35):
         candidate -= timedelta(days=1)
     while candidate.weekday() == 6:
         candidate -= timedelta(days=1)
@@ -96,7 +96,7 @@ def data_freshness(latest_date, now=None):
 
 def update_attempt_window_is_open(now=None):
     now = now or taipei_now()
-    return now.time() >= clock_time(20, 50)
+    return now.time() >= clock_time(20, 35)
 
 
 def http_get_bytes(url, retries=3, retry_delay=2):

@@ -33,6 +33,16 @@ REPORT_PATH = REPORT_DIR / "539\u6700\u65b0\u5f37\u5316\u6230\u5831.html"
 LATEST_REPORT_PATH = REPORT_DIR / "latest_battle_report.html"
 PORT = int(os.environ.get("PORT", "5390"))
 RUN_STATE = {"running": False, "message": "ready", "finished_at": None}
+MOBILE_REPORT_ENTRY_PATHS = {
+    "/site",
+    "/site/",
+    "/site/index.html",
+    "/site/latest.html",
+    "/site/clear-cache.html",
+    "/latest",
+    "/latest.html",
+    "/clear-cache.html",
+}
 
 
 def access_token():
@@ -106,10 +116,32 @@ def write_mobile_entry_files():
     }
     url_name = "\u624b\u6a5f\u7368\u7acb\u7248\u7db2\u5740.txt"
     report_url_name = "\u624b\u6a5f\u6230\u5831\u5373\u6642\u7db2\u5740.txt"
+    control_url_name = "\u624b\u6a5f\u63a7\u5236\u53f0\u7db2\u5740.txt"
     status_name = "\u624b\u6a5f\u6230\u5831\u66f4\u65b0\u72c0\u614b.json"
-    (BASE_DIR / url_name).write_text(urls["control_url"], encoding="utf-8")
+    (BASE_DIR / url_name).write_text(urls["report_url"], encoding="utf-8")
     (BASE_DIR / report_url_name).write_text(urls["report_url"], encoding="utf-8")
+    (BASE_DIR / control_url_name).write_text(urls["control_url"], encoding="utf-8")
     (BASE_DIR / status_name).write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    (BASE_DIR / "\u6253\u958b\u6700\u65b0\u624b\u6a5f\u7248.html").write_text(
+        f"""<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>&#25171;&#38283;&#26368;&#26032;&#25163;&#27231;&#25136;&#22577;</title>
+  <meta http-equiv="refresh" content="0; url={html.escape(urls["report_url"], quote=True)}">
+</head>
+<body>
+  <p>&#27491;&#22312;&#25171;&#38283;&#33287;&#38651;&#33126;&#29256;&#30456;&#21516;&#30340;&#21363;&#26178;&#25136;&#22577;...</p>
+  <p><a href="{html.escape(urls["report_url"], quote=True)}">&#33509;&#27794;&#26377;&#33258;&#21205;&#36339;&#36681;&#65292;&#35531;&#40670;&#36889;&#35041;</a></p>
+</body>
+</html>
+""",
+        encoding="utf-8",
+    )
     return payload
 
 
@@ -146,7 +178,7 @@ def run_update():
     update_log = []
     try:
         steps = [
-            ("update_latest_draw", "update_539.py", ["--latest", "--require-fresh", "--retry-until-fresh-minutes", "35", "--retry-interval-seconds", "120"], False),
+            ("update_latest_draw", "update_539.py", ["--latest", "--require-fresh", "--retry-until-fresh-minutes", "90", "--retry-interval-seconds", "45"], False),
             ("model_competition", "model_competition.py", [], False),
             ("rebuild_battle_report", "battle_report.py", [], True),
             ("health_check", "health_check.py", [], False),
@@ -272,6 +304,19 @@ class Handler(BaseHTTPRequestHandler):
     def authorized(self, values):
         return values.get("token", [""])[0] == access_token()
 
+    def report_location(self):
+        token = urllib.parse.quote(access_token())
+        version = str(latest_mobile_version().get("version") or datetime.now().strftime("%Y%m%d%H%M%S"))
+        return f"/report?token={token}&v={urllib.parse.quote(version)}"
+
+    def redirect_to_report(self):
+        self.send_response(302)
+        self.send_header("Location", self.report_location())
+        self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+        self.send_header("Pragma", "no-cache")
+        self.send_header("Expires", "0")
+        self.end_headers()
+
     def send_bytes(self, content, content_type="text/html; charset=utf-8", status=200):
         self.send_response(status)
         self.send_header("Content-Type", content_type)
@@ -292,11 +337,14 @@ class Handler(BaseHTTPRequestHandler):
         if not self.authorized(values):
             self.send_bytes(b"Forbidden", "text/plain; charset=utf-8", 403)
             return
+        if parsed.path in MOBILE_REPORT_ENTRY_PATHS:
+            self.redirect_to_report()
+            return
         if parsed.path == "/manifest.webmanifest":
             manifest = {
                 "name": "539 \u7368\u7acb\u624b\u6a5f\u7cfb\u7d71",
                 "short_name": "539\u7cfb\u7d71",
-                "start_url": f"/?token={access_token()}",
+                "start_url": self.report_location(),
                 "display": "standalone",
                 "background_color": "#f4f6f8",
                 "theme_color": "#111827",

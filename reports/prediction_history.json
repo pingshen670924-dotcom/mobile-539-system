@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-25T02:08:46",
+  "generated_at": "2026-06-25T07:24:50",
   "total_periods": 21,
   "settled_periods": 20,
   "pending_periods": 1,
@@ -12,38 +12,38 @@
       "top5": [
         8,
         29,
-        5,
-        28,
-        30
+        30,
+        31,
+        20
       ],
       "top10": [
         8,
         29,
+        30,
+        31,
+        20,
+        25,
         5,
         28,
-        30,
-        14,
-        25,
-        2,
-        31,
-        20
+        27,
+        22
       ],
       "top15": [
         8,
         29,
-        5,
-        28,
         30,
-        14,
-        25,
-        2,
         31,
         20,
-        11,
-        22,
-        36,
+        25,
+        5,
+        28,
         27,
-        13
+        22,
+        11,
+        35,
+        23,
+        26,
+        36
       ],
       "actual_period": null,
       "actual_date": null,
@@ -54,9 +54,9 @@
       "top10_hit_numbers": [],
       "strong_pack_hits": {},
       "status": "pending",
-      "created_at": "2026-06-24T15:30:22",
+      "created_at": "2026-06-25T07:12:49",
       "settled_at": null,
-      "snapshot_count": 4
+      "snapshot_count": 6
     },
     {
       "based_on_period": 115000152,
@@ -66,38 +66,38 @@
       "top5": [
         8,
         30,
-        1,
+        27,
         24,
         17
       ],
       "top10": [
         8,
         30,
-        1,
+        27,
         24,
         17,
+        1,
+        2,
         4,
-        26,
-        15,
-        23,
-        21
+        28,
+        9
       ],
       "top15": [
         8,
         30,
-        1,
+        27,
         24,
         17,
+        1,
+        2,
         4,
-        26,
-        15,
-        23,
-        21,
-        38,
-        7,
+        28,
+        9,
         18,
-        16,
-        27
+        21,
+        15,
+        7,
+        3
       ],
       "actual_period": 115000153,
       "actual_date": "2026-06-24",
@@ -109,51 +109,50 @@
         33
       ],
       "top5_hits": 1,
-      "top10_hits": 2,
-      "top15_hits": 2,
+      "top10_hits": 1,
+      "top15_hits": 3,
       "top10_hit_numbers": [
-        17,
-        21
+        17
       ],
       "strong_pack_hits": {
         "strong_single": {
           "name": "最強單支",
           "hit_goal": 1,
           "numbers": [
-            17
+            8
           ],
-          "hits": 1,
-          "passed": true
+          "hits": 0,
+          "passed": false
         },
         "two_hit_one": {
           "name": "最強2中1",
           "hit_goal": 1,
           "numbers": [
             8,
-            17
+            27
           ],
-          "hits": 1,
-          "passed": true
+          "hits": 0,
+          "passed": false
         },
         "three_hit_one": {
           "name": "最強3中1",
           "hit_goal": 1,
           "numbers": [
             8,
-            17,
-            30
+            24,
+            27
           ],
-          "hits": 1,
-          "passed": true
+          "hits": 0,
+          "passed": false
         },
         "five_hit_two": {
           "name": "最強5中2",
           "hit_goal": 2,
           "numbers": [
-            1,
             8,
             17,
             24,
+            27,
             30
           ],
           "hits": 1,
@@ -164,23 +163,23 @@
           "hit_goal": 3,
           "numbers": [
             1,
-            4,
             8,
+            9,
+            15,
             17,
             20,
             24,
             27,
-            30,
-            38
+            30
           ],
           "hits": 1,
           "passed": false
         }
       },
       "status": "settled",
-      "created_at": "2026-06-23T15:43:38",
-      "settled_at": "2026-06-24T15:26:29",
-      "snapshot_count": 4
+      "created_at": "2026-06-24T14:42:51",
+      "settled_at": "2026-06-25T07:00:02",
+      "snapshot_count": 12
     },
     {
       "based_on_period": 115000151,
@@ -189,39 +188,39 @@
       "target_expected_date": "2026-06-23",
       "top5": [
         8,
+        30,
         27,
-        28,
-        5,
-        30
+        20,
+        24
       ],
       "top10": [
         8,
-        27,
-        28,
-        5,
         30,
-        36,
+        27,
+        20,
         24,
+        36,
+        5,
         25,
-        31,
-        12
+        14,
+        31
       ],
       "top15": [
         8,
-        27,
-        28,
-        5,
         30,
-        36,
-        24,
-        25,
-        31,
-        12,
+        27,
         20,
+        24,
+        36,
+        5,
+        25,
         14,
+        31,
+        28,
+        12,
         11,
         35,
-        13
+        38
       ],
       "actual_period": 115000152,
       "actual_date": "2026-06-23",
@@ -233,9 +232,10 @@
         36
       ],
       "top5_hits": 0,
-      "top10_hits": 2,
+      "top10_hits": 3,
       "top15_hits": 3,
       "top10_hit_numbers": [
+        14,
         25,
         36
       ],
@@ -264,7 +264,7 @@
           "hit_goal": 1,
           "numbers": [
             8,
-            27,
+            30,
             36
           ],
           "hits": 1,
@@ -274,13 +274,13 @@
           "name": "最強5中2",
           "hit_goal": 2,
           "numbers": [
-            5,
             8,
             20,
             27,
-            30
+            30,
+            36
           ],
-          "hits": 0,
+          "hits": 1,
           "passed": false
         },
         "nine_hit_three": {
@@ -302,9 +302,9 @@
         }
       },
       "status": "settled",
-      "created_at": "2026-06-23T09:43:10",
-      "settled_at": "2026-06-23T15:39:36",
-      "snapshot_count": 2
+      "created_at": "2026-06-23T10:07:22",
+      "settled_at": "2026-06-24T08:38:12",
+      "snapshot_count": 4
     },
     {
       "based_on_period": 115000150,
@@ -428,7 +428,7 @@
       },
       "status": "settled",
       "created_at": "2026-06-22T15:36:13",
-      "settled_at": "2026-06-23T09:38:43",
+      "settled_at": "2026-06-22T21:00:11",
       "snapshot_count": 10
     },
     {

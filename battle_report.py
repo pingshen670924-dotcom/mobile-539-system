@@ -1,7 +1,9 @@
 ﻿import json
 import sqlite3
+import re
 from collections import defaultdict
 from datetime import datetime, timedelta
+from html.parser import HTMLParser
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -38,6 +40,115 @@ def next_draw_date(date_text):
 
 def fmt_numbers(numbers):
     return " ".join(f"{int(n):02d}" for n in numbers)
+
+
+TEXT_REPLACEMENTS = [
+    ("current_precision_stability_v44_micro_confidence_short_packs", "目前精準穩定第44版：短包信心精算"),
+    ("industrial_v18_front9_precision_recall_lock", "工業級第18版：前9精準召回鎖定"),
+    ("industrial_v17_micro_confidence_short_packs", "工業級第17版：短包信心精算"),
+    ("daily_and_monthly_miss_review_rolls_into_next_prediction_with_recall_mode", "每日與月度失誤回灌到下期召回模式"),
+    ("promote_watch_to_top10_boundary", "觀察號擠入前10名邊界"),
+    ("pull_rank_10_to_15_signal_inside_top9", "將第10到15名訊號拉入前9名"),
+    ("front_rank_overconfidence_penalty", "前段排名過度自信降權"),
+    ("critical_recall_gap", "重大漏抓回補"),
+    ("withheld_low_score", "分數未達門檻暫停"),
+    ("withheld_backtest_not_passed", "回測未通過暫停輸出"),
+    ("cross_consensus", "交叉共識"),
+    ("distribution_balance", "分布平衡"),
+    ("micro_confidence", "短包信心"),
+    ("walk-forward", "滾動回測"),
+    ("walk_forward", "滾動回測"),
+    ("SHA-256", "雜湊指紋"),
+    ("Jaccard", "重疊係數"),
+    ("EWMA", "指數加權"),
+    ("KPI", "成效指標"),
+    ("FDR", "偽發現率"),
+]
+
+WORD_LABELS = {
+    "True": "是",
+    "False": "否",
+    "None": "-",
+    "passed": "通過",
+    "pass": "通過",
+    "released": "正式發布",
+    "low": "偏低",
+    "watch": "觀察",
+    "critical": "重大修正",
+    "stable": "穩定",
+    "official": "正式",
+    "daily": "每日",
+    "recent": "近期",
+    "research": "研究",
+    "performance": "表現",
+    "prediction": "預測",
+    "output": "輸出",
+    "gate": "守門",
+    "evaluated": "已評估",
+    "triggered": "已觸發",
+    "withheld": "暫停",
+    "confidence": "信心",
+    "consensus": "共識",
+    "expectation": "期望值",
+}
+
+
+def localize_text(text):
+    if not text:
+        return text
+    localized = text
+    for source, target in TEXT_REPLACEMENTS:
+        localized = localized.replace(source, target)
+    localized = re.sub(r"(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2})", r"\1 \2", localized)
+    localized = re.sub(r"Top(\d+)-Top(\d+)", r"前\1名-前\2名", localized)
+    localized = re.sub(r"Top(\d+)-(\d+)", r"第\1到\2名", localized)
+    localized = re.sub(r"Top\s*(\d+)", r"前\1名", localized)
+    localized = localized.replace("TopNone", "未入排名")
+    for source, target in WORD_LABELS.items():
+        localized = re.sub(rf"(?<![A-Za-z0-9_]){re.escape(source)}(?![A-Za-z0-9_])", target, localized)
+    return localized
+
+
+class VisibleTextLocalizer(HTMLParser):
+    def __init__(self):
+        super().__init__(convert_charrefs=False)
+        self.parts = []
+        self.skip_depth = 0
+
+    def handle_starttag(self, tag, attrs):
+        self.parts.append(self.get_starttag_text())
+        if tag in {"script", "style", "svg"}:
+            self.skip_depth += 1
+
+    def handle_startendtag(self, tag, attrs):
+        self.parts.append(self.get_starttag_text())
+
+    def handle_endtag(self, tag):
+        self.parts.append(f"</{tag}>")
+        if tag in {"script", "style", "svg"} and self.skip_depth:
+            self.skip_depth -= 1
+
+    def handle_data(self, data):
+        self.parts.append(data if self.skip_depth else localize_text(data))
+
+    def handle_entityref(self, name):
+        self.parts.append(f"&{name};")
+
+    def handle_charref(self, name):
+        self.parts.append(f"&#{name};")
+
+    def handle_comment(self, data):
+        self.parts.append(f"<!--{data}-->")
+
+    def output(self):
+        return "".join(self.parts)
+
+
+def localize_html_visible_text(html_text):
+    parser = VisibleTextLocalizer()
+    parser.feed(html_text)
+    parser.close()
+    return parser.output()
 
 
 def atomic_write_text(path, text):
@@ -500,6 +611,7 @@ def build_report():
     live_precision = industrial.get("live_precision_calibration", {})
     hit_through = industrial.get("hit_through_calibration", {})
     slump_recall = industrial.get("slump_recall_coverage", {})
+    top9_leakage = industrial.get("top9_leakage_lock", {})
     decisive_decision = industrial.get("decisive_battle_decision", {})
     model_lifecycle = industrial.get("model_lifecycle", {})
     rolling_adjustment = analysis.get("failure_review", {}).get("rolling_adjustment", {})
@@ -808,6 +920,7 @@ def build_report():
             f"- \u767c\u5e03\u9580\u6abb\uff1a{release_gate.get('status')} / \u56de\u6e2c\u5dee\u503c {release_gate.get('actual_backtest_edge')}",
             f"- Top10 \u7a69\u5b9a\u5171\u8b58\u7387\uff1a{stability.get('top10_retention')} / \u64fe\u52d5\u5feb\u7167 {stability.get('snapshots')}",
             f"- \u6628\u65e5\u9810\u6e2c\u91cd\u8907\u5b88\u9580\uff1aTop10 \u91cd\u758a {previous_guard.get('current_top10_overlap')} / Top15 \u91cd\u758a {previous_guard.get('current_top15_overlap')}",
+            f"- Top9 \u547d\u4e2d\u9396\u5b9a\uff1a{top9_leakage.get('status', '-')} / \u672c\u671f\u66ff\u63db {top9_leakage.get('swap_count', 0)} \u7d44 / 10-15\u540d\u5916\u6f0f\u5dee {top9_leakage.get('last5_top15_minus_top10_gap', '-')}",
             f"- \u901a\u904e\u6975\u5f37\u91cd\u5165\u9580\u6abb\uff1a{previous_guard.get('reentry_passed')}",
             f"- \u4e0d\u786c\u6e4a\u653f\u7b56\uff1a{qualification.get('policy')} / \u5408\u683c\u865f\u78bc {qualification.get('qualified_count')} / Top15 \u662f\u5426\u66ab\u505c {qualification.get('withheld_top15')}",
         ])
@@ -965,6 +1078,7 @@ def build_html_report(markdown_text):
     live_precision = industrial.get("live_precision_calibration", {})
     hit_through = industrial.get("hit_through_calibration", {})
     slump_recall = industrial.get("slump_recall_coverage", {})
+    top9_leakage = industrial.get("top9_leakage_lock", {})
     decisive_decision = industrial.get("decisive_battle_decision", {})
     model_lifecycle = industrial.get("model_lifecycle", {})
     rolling_adjustment = analysis.get("failure_review", {}).get("rolling_adjustment", {})
@@ -1028,7 +1142,12 @@ def build_html_report(markdown_text):
         "B": "B級強化作戰",
         "C": "C級防守作戰",
     }.get(decisive_decision.get("grade"), "模型作戰")
-    decision_core_numbers = decisive_decision.get("attack_core_top10") or [item.get("number") for item in candidates[:10]]
+    decision_core_numbers = (
+        decisive_decision.get("attack_core_top9")
+        or decisive_decision.get("front9_precision_core")
+        or decisive_decision.get("attack_core_top10")
+        or [item.get("number") for item in candidates[:9]]
+    )
     decision_avoid_numbers = decisive_decision.get("defensive_avoid") or []
     decision_high_confidence_rows = ""
     confidence_reason_label = {
@@ -1069,6 +1188,7 @@ def build_html_report(markdown_text):
             status = pack.get("status", "released")
             reason = pack.get("withheld_reason", "")
             variant_label = {
+                "micro_confidence": "短包超強信心精算",
                 "target_precision": "目標精準模型",
                 "single_precision": "獨支精準模型",
                 "slump_recall": "低迷召回覆蓋",
@@ -1104,6 +1224,24 @@ def build_html_report(markdown_text):
                 f"<td>{gov_result}</td><td>{decision_reason}</td>"
                 "</tr>"
             )
+
+    micro_confidence_rows = ""
+    for key, label in pack_order[:3]:
+        pack = packs.get(key, {})
+        selected = set(int(number) for number in (pack.get("numbers") or []))
+        for row in pack.get("micro_confidence_audit", [])[:5]:
+            number = int(row.get("number"))
+            mark = "主選" if number in selected else "備選"
+            micro_confidence_rows += (
+                "<tr>"
+                f"<td>{label}</td><td>{mark}</td><td>{number:02d}</td>"
+                f"<td>{row.get('rank')}</td><td>{row.get('micro_confidence_score')}</td>"
+                f"<td>{row.get('probability_percent')}%</td><td>{row.get('cross_validation_passed')}</td>"
+                f"<td>{row.get('stability_count')}</td><td>{row.get('recall_priority')}</td>"
+                "</tr>"
+            )
+    if not micro_confidence_rows:
+        micro_confidence_rows = "<tr><td colspan=\"9\">本期尚未產生短包超強信心精算資料。</td></tr>"
 
     boosted_weight_rows = ""
     for item in weight_calibration.get("top_boosted_features", []):
@@ -1677,6 +1815,21 @@ def build_html_report(markdown_text):
     if not top10_promotion_rows:
         top10_promotion_rows = "<tr><td colspan=\"7\">目前沒有 11-15 名需要擠入 Top10 邊界的候選。</td></tr>"
 
+    top9_leakage_rows = ""
+    for item in top9_leakage.get("swaps", []):
+        top9_leakage_rows += (
+            "<tr>"
+            f"<td>{int(item.get('promoted')):02d}</td>"
+            f"<td>{item.get('from_rank')}</td><td>{item.get('to_rank')}</td>"
+            f"<td>{int(item.get('replaced')):02d}</td>"
+            f"<td>{item.get('promoted_leakage_score')}</td>"
+            f"<td>{item.get('replaced_leakage_score')}</td>"
+            f"<td>{item.get('reason')}</td>"
+            "</tr>"
+        )
+    if not top9_leakage_rows:
+        top9_leakage_rows = "<tr><td colspan=\"7\">本期沒有符合條件的 10-15 名候選需要拉進前9。</td></tr>"
+
     rank_bucket_rows = ""
     for item in rank_calibration.get("buckets", {}).values():
         rank_bucket_rows += (
@@ -1958,7 +2111,9 @@ def build_html_report(markdown_text):
       </div>
       <h3>高機率信心牌特別強調</h3>
       <table><thead><tr><th>號碼</th><th>排名</th><th>保守機率</th><th>分數</th><th>信心</th><th>召回優先分</th><th>交叉通過</th><th>明確原因</th><th>備註</th></tr></thead><tbody>{decision_high_confidence_rows}</tbody></table>
-      <p>本期攻擊核心 Top10：{fmt_numbers(decision_core_numbers)}</p>
+      <h3>獨隻 / 2中1 / 3中1 短包超強信心精算</h3>
+      <table><thead><tr><th>短包</th><th>狀態</th><th>號碼</th><th>排名</th><th>短包精算分</th><th>保守機率</th><th>交叉通過</th><th>穩定次數</th><th>召回分</th></tr></thead><tbody>{micro_confidence_rows}</tbody></table>
+      <p>本期9碼攻擊核心：{fmt_numbers(decision_core_numbers)}</p>
     </section>
     <section class="band notice">
       <h2>\u672c\u671f\u767c\u5e03\u7d50\u8ad6\uff08\u8cc7\u6599\u65e5 {latest_data_date} / \u76ee\u6a19\u65e5 {pending_target_date}\uff09</h2>
@@ -2069,6 +2224,12 @@ def build_html_report(markdown_text):
       <h2>Top10 \u64e0\u5165\u6821\u6e96</h2>
       <p>\u7528\u4f86\u89e3\u6c7a\u547d\u4e2d\u865f\u7d93\u5e38\u843d\u5728 11-15 \u540d\u7684\u554f\u984c\u3002\u82e5 11-15 \u540d\u6709\u904e\u5f80\u5ef6\u5f8c\u547d\u4e2d\u6216\u6efe\u52d5\u5347\u6b0a\u4f86\u6e90\uff0c\u6703\u5217\u5165 Top10 \u908a\u754c\u64e0\u5165\u89c0\u5bdf\u3002</p>
       <table><thead><tr><th>\u865f\u78bc</th><th>\u539f\u6392\u540d</th><th>\u5206\u6578</th><th>\u4fe1\u5fc3</th><th>\u7a69\u5b9a\u6b21\u6578</th><th>\u4f86\u6e90</th><th>\u52d5\u4f5c</th></tr></thead><tbody>{top10_promotion_rows}</tbody></table>
+    </section>
+    <section class="band notice">
+      <h2>Top9 命中鎖定校正（目標 {pending_target_date}）</h2>
+      <p>狀態：{top9_leakage.get('status', '-')} / 方法：{top9_leakage.get('method', '-')} / 近5期 Top10-Top5 差：{top9_leakage.get('last5_top10_minus_top5_gap', '-')} / 近5期 Top15-Top10 差：{top9_leakage.get('last5_top15_minus_top10_gap', '-')} / 本期替換：{top9_leakage.get('swap_count', 0)} 組</p>
+      <p>用途：專門處理命中訊號經常落在第10到15名的問題。符合晚命中、漏抓回補、月度回拉、尾數區間回補、交叉驗證或命中來源升權的號碼，會替換前9名內較弱訊號，讓9中3主包更集中。</p>
+      <table><thead><tr><th>補入號碼</th><th>原排名</th><th>新排名</th><th>替換號碼</th><th>補入分</th><th>被替換分</th><th>原因</th></tr></thead><tbody>{top9_leakage_rows}</tbody></table>
     </section>
     <div class="grid">
       {card('\u8cc7\u6599\u65b0\u9bae\u5ea6', freshness_label, f"\u6700\u65b0 {freshness.get('latest_date', latest.get('draw_date'))} / \u61c9\u6709 {freshness.get('expected_latest_date', '')}")}
@@ -2354,9 +2515,11 @@ def save_battle_reports(report=None):
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     report = report or build_report()
     html = build_html_report(report)
+    html = localize_html_visible_text(html)
     history = prediction_history()
     save_prediction_history(history)
     history_html = build_history_html(history)
+    history_html = localize_html_visible_text(history_html)
     atomic_write_text(BATTLE_MD, report)
     atomic_write_text(BATTLE_TXT, report)
     atomic_write_text(BATTLE_HTML, html)

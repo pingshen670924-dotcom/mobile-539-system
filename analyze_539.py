@@ -513,7 +513,7 @@ def strategy_rankings(draws, model_weights=None):
     return rankings
 
 
-def backtest(draws, rounds=720, top_sizes=(5, 10, 15)):
+def backtest(draws, rounds=240, top_sizes=(5, 10, 15)):
     if len(draws) < 130:
         return {"rounds": 0, "strategies": {}, "note": "\u8cc7\u6599\u4e0d\u8db3，\u7565\u904e\u56de\u6e2c。"}
 
@@ -1091,7 +1091,7 @@ def build_two_stage_group_model(candidates):
     }
 
 
-def backtest_two_stage_group_model(draws, windows=(120, 360, 720)):
+def backtest_two_stage_group_model(draws, windows=(60, 120, 240)):
     results = {}
     release_allowed = True
     for window in windows:
@@ -1351,7 +1351,7 @@ def analyze(db_path=DB_PATH):
         industrial.setdefault("release_gate", {})["aerospace_status"] = "watch_only"
     analysis = {
         "generated_at": taipei_now().isoformat(timespec="seconds"),
-        "prediction_mode": "current_precision_stability_v40_decisive_confidence_plan",
+        "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
         "latest_draw": draws[-1],
         "data_freshness": build_data_freshness(draws[-1]["draw_date"]),
         "windows": [window_summary(draws, size) for size in WINDOWS],

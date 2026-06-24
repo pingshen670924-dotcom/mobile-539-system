@@ -1,5 +1,5 @@
 ﻿{
-    "checked_at":  "2026-06-23T09:38:41",
+    "checked_at":  "2026-06-25T07:00:18",
     "passed":  7,
     "failed":  1,
     "results":  [
@@ -36,7 +36,7 @@
                     {
                         "name":  "curl HTTPS Taiwan Lottery",
                         "success":  true,
-                        "detail":  "HTTP/1.1 200 OK\r\nServer: HiNetCDN\r\nDate: Tue, 23 Jun 2026 01:38:44 GMT"
+                        "detail":  "HTTP/1.1 200 OK\r\nServer: HiNetCDN\r\nDate: Wed, 24 Jun 2026 23:00:22 GMT"
                     },
                     {
                         "name":  "Codex sandbox outbound block rule",

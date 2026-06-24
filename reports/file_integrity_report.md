@@ -1,12 +1,11 @@
 # 539 檔案讀取與編碼檢查
 
-- 產生時間：2026-06-22T15:40:06
-- 狀態：ok
-- 檢查檔案：172
+- 產生時間：2026-06-25T07:24:52
+- 狀態：warning
+- 檢查檔案：126
 - 失敗：0
-- 警告：0
+- 警告：1
 - 資料一致性：ok
 
-- CSV 最新：115000150 / 2026-06-20 / 04 11 24 25 31
-所有文字檔均可以 UTF-8 正常讀取，程式檔未發現直接中文殘留。
-開獎 CSV、latest_analysis.json、health_status.json 的最新期別與號碼一致。
+- CSV 最新：115000153 / 2026-06-24 / 03 17 21 32 33
+- warning: reports\post_draw_mobile_sync_status.json / mojibake_marker_found: U+FFFD
