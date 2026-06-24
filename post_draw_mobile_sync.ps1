@@ -84,7 +84,7 @@ function Run-PythonStep {
     [bool]$Required = $false
   )
   Write-SyncLog $Label
-  & $Python @Arguments 2>&1 | Tee-Object -FilePath $LogPath -Append
+  & $Python @Arguments 2>&1 | Tee-Object -FilePath $LogPath -Append | Out-Null
   $code = $LASTEXITCODE
   $result = [ordered]@{
     label = $Label
@@ -114,7 +114,7 @@ function Run-PowerShellStep {
     return $result
   }
   Write-SyncLog $Label
-  & "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -File $ScriptPath 2>&1 | Tee-Object -FilePath $LogPath -Append
+  & "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -File $ScriptPath 2>&1 | Tee-Object -FilePath $LogPath -Append | Out-Null
   $result.exit_code = $LASTEXITCODE
   $result.finished_at = (Get-Date -Format s)
   return $result

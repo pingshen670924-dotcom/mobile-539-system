@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-06-25T07:24:52",
-  "status": "warning",
+  "generated_at": "2026-06-25T07:27:46",
+  "status": "ok",
   "checked_files": 126,
   "failed_count": 0,
-  "warning_count": 1,
+  "warning_count": 0,
   "files": [
     {
       "path": "539一鍵全自動啟動.bat",
@@ -171,7 +171,7 @@
       "path": "post_draw_mobile_sync.ps1",
       "status": "ok",
       "warnings": [],
-      "size": 8938
+      "size": 8960
     },
     {
       "path": "publish_free_github.ps1",
@@ -291,7 +291,7 @@
       "path": "手機雲端發布狀態.json",
       "status": "ok",
       "warnings": [],
-      "size": 443
+      "size": 366
     },
     {
       "path": "打開最新手機版.html",
@@ -387,13 +387,13 @@
       "path": "reports\\file_integrity_report.json",
       "status": "ok",
       "warnings": [],
-      "size": 17086
+      "size": 17712
     },
     {
       "path": "reports\\file_integrity_report.md",
       "status": "ok",
       "warnings": [],
-      "size": 397
+      "size": 311
     },
     {
       "path": "reports\\full_system_scan.json",
@@ -487,11 +487,9 @@
     },
     {
       "path": "reports\\post_draw_mobile_sync_status.json",
-      "status": "warning",
-      "warnings": [
-        "mojibake_marker_found: U+FFFD"
-      ],
-      "size": 5968
+      "status": "ok",
+      "warnings": [],
+      "size": 909
     },
     {
       "path": "reports\\prediction_history.json",
