@@ -1,19 +1,19 @@
 {
   "month": "2026-06",
-  "sample_size": 19,
+  "sample_size": 20,
   "status": "critical_recall_gap",
   "diagnosis": "本月主要問題是召回率不足：實開號大量落在 Top15 後段或候選外，必須優先修正排序回拉與包組合覆蓋。",
-  "top5_avg_hits": 0.737,
-  "top10_avg_hits": 1.368,
-  "top15_avg_hits": 1.895,
-  "front_hit_rate": 0.274,
-  "late_or_missing_rate": 0.621,
+  "top5_avg_hits": 0.75,
+  "top10_avg_hits": 1.4,
+  "top15_avg_hits": 1.9,
+  "front_hit_rate": 0.28,
+  "late_or_missing_rate": 0.62,
   "rank_buckets": {
-    "16-25": 18,
-    "26-39": 29,
+    "16-25": 19,
+    "26-39": 31,
     "11-15": 10,
-    "01-05": 14,
-    "06-10": 12,
+    "01-05": 15,
+    "06-10": 13,
     "missing": 12
   },
   "daily_reviews": [
@@ -619,6 +619,37 @@
         2,
         29
       ]
+    },
+    {
+      "actual_date": "2026-06-24",
+      "target_period": 115000153,
+      "actual_numbers": [
+        3,
+        17,
+        21,
+        32,
+        33
+      ],
+      "top5_hits": 1,
+      "top10_hits": 2,
+      "top15_hits": 2,
+      "actual_ranks": {
+        "3": 18,
+        "17": 5,
+        "21": 10,
+        "32": 26,
+        "33": 32
+      },
+      "missed_top10": [
+        3,
+        32,
+        33
+      ],
+      "missed_top15": [
+        3,
+        32,
+        33
+      ]
     }
   ],
   "missed_top10_numbers": [
@@ -771,6 +802,10 @@
       "missed_count": 8
     },
     {
+      "tail": 2,
+      "missed_count": 5
+    },
+    {
       "tail": 1,
       "missed_count": 5
     },
@@ -779,12 +814,8 @@
       "missed_count": 4
     },
     {
-      "tail": 2,
-      "missed_count": 4
-    },
-    {
       "tail": 3,
-      "missed_count": 2
+      "missed_count": 4
     }
   ],
   "missed_zones": [
@@ -794,7 +825,7 @@
     },
     {
       "zone": "01-10",
-      "missed_count": 18
+      "missed_count": 19
     },
     {
       "zone": "11-20",
@@ -802,7 +833,7 @@
     },
     {
       "zone": "31-39",
-      "missed_count": 11
+      "missed_count": 13
     }
   ],
   "source_performance": [
@@ -831,22 +862,22 @@
       "hit_rate": 0.333
     },
     {
-      "reason": "滾動檢討命中來源升權",
-      "hit": 1,
-      "miss": 2,
-      "hit_rate": 0.333
-    },
-    {
       "reason": "共現關聯",
-      "hit": 18,
-      "miss": 52,
-      "hit_rate": 0.257
+      "hit": 19,
+      "miss": 54,
+      "hit_rate": 0.26
     },
     {
       "reason": "區間奇偶壓力",
-      "hit": 7,
-      "miss": 23,
-      "hit_rate": 0.233
+      "hit": 9,
+      "miss": 27,
+      "hit_rate": 0.25
+    },
+    {
+      "reason": "滾動檢討命中來源升權",
+      "hit": 1,
+      "miss": 3,
+      "hit_rate": 0.25
     },
     {
       "reason": "中期穩定",
@@ -855,10 +886,16 @@
       "hit_rate": 0.231
     },
     {
+      "reason": "開獎型態切換",
+      "hit": 4,
+      "miss": 16,
+      "hit_rate": 0.2
+    },
+    {
       "reason": "分布平衡風控",
       "hit": 3,
-      "miss": 11,
-      "hit_rate": 0.214
+      "miss": 12,
+      "hit_rate": 0.2
     },
     {
       "reason": "昨日預測號軟性降權",
@@ -871,44 +908,38 @@
       "hit": 13,
       "miss": 61,
       "hit_rate": 0.176
-    },
-    {
-      "reason": "遺漏補償",
-      "hit": 9,
-      "miss": 48,
-      "hit_rate": 0.158
     }
   ],
   "pack_summary": {
     "strong_single": {
-      "rounds": 19,
-      "pass_rate": 0.105,
-      "avg_hits": 0.105,
-      "zero_hit_rate": 0.895
+      "rounds": 20,
+      "pass_rate": 0.15,
+      "avg_hits": 0.15,
+      "zero_hit_rate": 0.85
     },
     "two_hit_one": {
-      "rounds": 19,
-      "pass_rate": 0.316,
-      "avg_hits": 0.316,
-      "zero_hit_rate": 0.684
+      "rounds": 20,
+      "pass_rate": 0.35,
+      "avg_hits": 0.35,
+      "zero_hit_rate": 0.65
     },
     "three_hit_one": {
-      "rounds": 19,
-      "pass_rate": 0.421,
-      "avg_hits": 0.526,
-      "zero_hit_rate": 0.579
+      "rounds": 20,
+      "pass_rate": 0.45,
+      "avg_hits": 0.55,
+      "zero_hit_rate": 0.55
     },
     "five_hit_two": {
-      "rounds": 19,
-      "pass_rate": 0.158,
-      "avg_hits": 0.632,
-      "zero_hit_rate": 0.579
+      "rounds": 20,
+      "pass_rate": 0.15,
+      "avg_hits": 0.65,
+      "zero_hit_rate": 0.55
     },
     "nine_hit_three": {
-      "rounds": 19,
-      "pass_rate": 0.158,
-      "avg_hits": 1.158,
-      "zero_hit_rate": 0.368
+      "rounds": 20,
+      "pass_rate": 0.15,
+      "avg_hits": 1.15,
+      "zero_hit_rate": 0.35
     }
   },
   "best_days": [
