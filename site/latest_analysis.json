@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-25T23:34:48",
+  "generated_at": "2026-06-25T23:39:27",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000154,
@@ -17,7 +17,7 @@
     "latest_date": "2026-06-25",
     "expected_latest_date": "2026-06-25",
     "lag_days": 0,
-    "checked_at": "2026-06-25T23:33:45"
+    "checked_at": "2026-06-25T23:38:24"
   },
   "windows": [
     {
@@ -44735,5 +44735,5 @@
       }
     }
   },
-  "official_prediction_status": "observation_only_inserted"
+  "official_prediction_status": "observation_only_recalculated_same_as_official"
 }
