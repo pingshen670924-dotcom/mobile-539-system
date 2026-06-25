@@ -131,7 +131,7 @@ Set-Content -LiteralPath (Join-Path $ReleaseDir $LauncherName) -Value $Launcher 
 
 $Core = Join-Path $ReleaseDir $CoreFolderName
 New-Item -ItemType Directory -Path $Core | Out-Null
-$SkipRootNames = @("logs", "__pycache__", "backups", ".git", ".agents", ".codex")
+$SkipRootNames = @("logs", "__pycache__", "backups", ".git", ".agents", ".codex", (TextFromCodes @(0x5c01,0x5305,0x8f38,0x51fa)))
 Get-ChildItem -LiteralPath $SourceCore -Force | Where-Object {
   $_.Name -notin $SkipRootNames -and
   -not ($_.Name -like "$ReleasePrefix*") -and

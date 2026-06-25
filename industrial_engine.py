@@ -2725,6 +2725,154 @@ def micro_confidence_group(candidates, size, review=None):
     return sorted(selected)
 
 
+def short_pack_precision_components(item, review=None, selected=None):
+    selected = selected or []
+    number = int(item["number"])
+    rank = int(item.get("rank") or 99)
+    cross = item.get("cross_validation", {}) or {}
+    passed = int(cross.get("passed_count") or 0)
+    total = int(cross.get("total_count") or 0) or 1
+    posterior = float((item.get("hit_through_calibration") or {}).get("posterior_hit_rate", BASE_PROBABILITY) or BASE_PROBABILITY)
+    objective_edge = float((item.get("objective_feature_calibration") or {}).get("objective_edge", 0.0) or 0.0)
+    probability = float(item.get("model_probability_percent", 0) or 0)
+    recall_score = recall_priority_score(item, review)
+    stability_count = int(item.get("stability_count", 0) or 0)
+    source_count = int(item.get("source_model_count", 0) or len(item.get("model_sources", [])))
+    rank_score = max(0.0, (12 - rank) / 11) if rank <= 12 else max(0.0, (25 - rank) / 26)
+    posterior_score = max(0.0, min(1.0, (posterior - 0.075) / 0.115))
+    objective_score = max(0.0, min(1.0, (objective_edge + 0.060) / 0.150))
+    probability_score = max(0.0, min(1.0, probability / 18.72))
+    cross_score = max(0.0, min(1.0, passed / total))
+    stability_score = max(0.0, min(1.0, stability_count / 5))
+    source_score = max(0.0, min(1.0, source_count / 8))
+    base_score = float(item.get("score", 0) or 0)
+    live_adjustment = float((item.get("precision_calibration") or {}).get("adjustment", 0.0) or 0.0)
+    leakage_bonus = 0.055 if (item.get("top9_leakage_lock") or {}).get("status") == "promoted" else 0.0
+    high_confidence_bonus = 0.045 if item.get("high_confidence") else 0.0
+    front9_bonus = 0.030 if rank <= 9 else 0.0
+    recall_bonus = 0.030 if recall_score >= 0.55 else 0.0
+    score = (
+        base_score * 0.22
+        + probability_score * 0.13
+        + posterior_score * 0.17
+        + objective_score * 0.14
+        + cross_score * 0.15
+        + stability_score * 0.08
+        + recall_score * 0.07
+        + rank_score * 0.07
+        + source_score * 0.05
+        + live_adjustment * 0.70
+        + leakage_bonus
+        + high_confidence_bonus
+        + front9_bonus
+        + recall_bonus
+    )
+    penalty = diversity_penalty(selected, number) * 0.85
+    if item.get("repeat_guard") and not item["repeat_guard"].get("passed"):
+        penalty += 0.20
+    if previous_guard_blocks_item(item):
+        penalty += 0.22
+    if number in failed_number_set(review) and not failed_number_reentry_allowed(item, review):
+        penalty += 0.20
+    condition_count = sum(
+        1 for passed_condition in [
+            base_score >= 0.68,
+            probability_score >= 0.84,
+            posterior >= BASE_PROBABILITY + 0.006,
+            objective_edge >= -0.005,
+            cross_score >= 0.45,
+            stability_count >= 2,
+            recall_score >= 0.46,
+            source_count >= 4,
+            rank <= 9,
+            item.get("high_confidence"),
+        ]
+        if passed_condition
+    )
+    final_score = max(0.0, min(1.45, score - penalty))
+    return {
+        "short_pack_precision_score": round(final_score, 4),
+        "base_score": round(base_score, 4),
+        "probability_score": round(probability_score, 4),
+        "posterior_hit_rate": round(posterior, 4),
+        "posterior_score": round(posterior_score, 4),
+        "objective_edge": round(objective_edge, 4),
+        "objective_score": round(objective_score, 4),
+        "cross_validation_ratio": round(cross_score, 4),
+        "cross_validation_passed": passed,
+        "stability_count": stability_count,
+        "recall_priority": round(recall_score, 4),
+        "source_model_count": source_count,
+        "rank_score": round(rank_score, 4),
+        "condition_count": condition_count,
+        "selection_penalty": round(penalty, 4),
+        "model": "short_pack_multi_model_arbitration_v1",
+    }
+
+
+def short_pack_precision_score(item, review=None, selected=None):
+    return short_pack_precision_components(item, review, selected)["short_pack_precision_score"]
+
+
+def short_pack_precision_group(candidates, size, review=None):
+    pool = candidates[:24] or candidates[:39]
+    selected = []
+    while len(selected) < size and pool:
+        best = max(
+            pool,
+            key=lambda item: (
+                short_pack_precision_score(item, review, selected),
+                int((item.get("cross_validation") or {}).get("passed_count") or 0),
+                float((item.get("hit_through_calibration") or {}).get("posterior_hit_rate", BASE_PROBABILITY) or BASE_PROBABILITY),
+                float(item.get("score", 0) or 0),
+                -int(item["number"]),
+            ),
+        )
+        selected.append(best["number"])
+        pool.remove(best)
+    if len(selected) < size:
+        for item in candidates:
+            if item["number"] not in selected:
+                selected.append(item["number"])
+            if len(selected) >= size:
+                break
+    return sorted(selected[:size])
+
+
+def short_pack_precision_audit(candidates, review=None, limit=10):
+    rows = []
+    for item in candidates[:24]:
+        components = short_pack_precision_components(item, review, [])
+        rows.append({
+            "number": item["number"],
+            "rank": item.get("rank"),
+            "short_pack_precision_score": components["short_pack_precision_score"],
+            "micro_confidence_score": round(micro_confidence_score(item, review), 4),
+            "score": item.get("score"),
+            "probability_percent": item.get("model_probability_percent"),
+            "posterior_hit_rate": components["posterior_hit_rate"],
+            "objective_edge": components["objective_edge"],
+            "cross_validation_passed": components["cross_validation_passed"],
+            "stability_count": components["stability_count"],
+            "recall_priority": components["recall_priority"],
+            "source_model_count": components["source_model_count"],
+            "condition_count": components["condition_count"],
+            "selection_penalty": components["selection_penalty"],
+            "model": components["model"],
+        })
+    rows.sort(
+        key=lambda row: (
+            row["short_pack_precision_score"],
+            row["condition_count"],
+            row["cross_validation_passed"],
+            row["posterior_hit_rate"],
+            -int(row["number"]),
+        ),
+        reverse=True,
+    )
+    return rows[:limit]
+
+
 def stability_group(candidates, size, review=None):
     failed = failed_number_set(review)
     ranked = sorted(
@@ -2885,6 +3033,8 @@ def slump_recall_group(candidates, size, goal, review=None):
 
 def group_by_variant(key, candidates, review=None, variant=None):
     if key == "strong_single":
+        if variant == "short_pack_precision":
+            return short_pack_precision_group(candidates, 1, review)
         if variant == "micro_confidence":
             return micro_confidence_group(candidates, 1, review)
         if variant == "slump_recall":
@@ -2924,6 +3074,8 @@ def group_by_variant(key, candidates, review=None, variant=None):
         return target_precision_group(candidates, 9, 3, review)
     size_by_key = {"two_hit_one": 2, "three_hit_one": 3}
     goal_by_key = {"two_hit_one": 1, "three_hit_one": 1}
+    if variant == "short_pack_precision":
+        return short_pack_precision_group(candidates, size_by_key.get(key, 5), review)
     if variant == "micro_confidence":
         return micro_confidence_group(candidates, size_by_key.get(key, 5), review)
     if variant == "slump_recall":
@@ -3247,9 +3399,9 @@ def pack_recent_governance(draws, rounds=120):
         "nine_hit_three": {"size": 9, "goal": 3, "min_pass_rate": 0.12, "min_avg_hits": 1.16},
     }
     pack_variants = {
-        "strong_single": ["micro_confidence", "target_precision", "single_precision", "slump_recall", "dedicated", "top_rank", "stability"],
-        "two_hit_one": ["micro_confidence", "target_precision", "slump_recall", "dedicated"],
-        "three_hit_one": ["micro_confidence", "target_precision", "slump_recall", "dedicated"],
+        "strong_single": ["short_pack_precision", "micro_confidence", "target_precision", "single_precision", "slump_recall", "dedicated", "top_rank", "stability"],
+        "two_hit_one": ["short_pack_precision", "micro_confidence", "target_precision", "slump_recall", "dedicated"],
+        "three_hit_one": ["short_pack_precision", "micro_confidence", "target_precision", "slump_recall", "dedicated"],
         "five_hit_two": ["target_precision", "slump_recall", "dedicated", "top_rank", "stability"],
         "nine_hit_three": ["target_precision", "slump_recall", "dedicated", "top_rank", "stability"],
     }
@@ -3341,6 +3493,7 @@ def strong_packs(candidates, review=None, governance=None):
     governance = governance or {"pack_stats": {}}
     pack_stats = governance.get("pack_stats", {})
     variant_labels = {
+        "short_pack_precision": "short_pack_multi_model_arbitration",
         "micro_confidence": "micro_confidence_short_pack",
         "target_precision": "target_precision_gate",
         "single_precision": "single_precision_gate",
@@ -3377,11 +3530,12 @@ def strong_packs(candidates, review=None, governance=None):
         "nine_hit_three": ("\u6700\u5f379\u4e2d3", 3, 9, 0.62, 0),
     }
     packs = {}
+    short_pack_keys = {"strong_single", "two_hit_one", "three_hit_one"}
     for key, (name, goal, size, min_avg_score, min_stability) in specs.items():
         recent_stat = pack_stats.get(key, {})
         variant = recent_stat.get("best_variant", "dedicated")
-        if key in {"strong_single", "two_hit_one", "three_hit_one"}:
-            variant = "micro_confidence"
+        if key in short_pack_keys:
+            variant = "short_pack_precision"
         elif key == "nine_hit_three" and critical_front_nine_active(review):
             variant = "top_rank"
         elif recall_emergency_active(review) and key in {"five_hit_two", "nine_hit_three"}:
@@ -3392,7 +3546,8 @@ def strong_packs(candidates, review=None, governance=None):
                 item.get("score", 0) >= min_avg_score and item.get("stability_count", 0) >= min_stability
             )
         ]
-        if len(allowed_pool) < size:
+        selection_pool = candidates[:30] if key in short_pack_keys else allowed_pool
+        if len(allowed_pool) < size and key not in short_pack_keys:
             fallback_pool = candidates[: max(size, 12)]
             fallback_numbers = group_by_variant(key, fallback_pool, review, variant)
             if len(fallback_numbers) < size and fallback_pool:
@@ -3401,31 +3556,19 @@ def strong_packs(candidates, review=None, governance=None):
             packs[key]["governance"] = recent_stat
             packs[key]["selection_variant"] = variant
             packs[key]["selection_model"] = variant_labels.get(variant, variant)
-            if key in {"strong_single", "two_hit_one", "three_hit_one"}:
-                audit_rows = []
-                for item in candidates[:12]:
-                    audit_rows.append({
-                        "number": item["number"],
-                        "rank": item.get("rank"),
-                        "micro_confidence_score": round(micro_confidence_score(item, review), 4),
-                        "score": item.get("score"),
-                        "probability_percent": item.get("model_probability_percent"),
-                        "cross_validation_passed": (item.get("cross_validation") or {}).get("passed_count", 0),
-                        "stability_count": item.get("stability_count", 0),
-                        "recall_priority": round(recall_priority_score(item, review), 4),
-                    })
-                audit_rows.sort(key=lambda row: (row["micro_confidence_score"], row["cross_validation_passed"], row["probability_percent"]), reverse=True)
-                packs[key]["micro_confidence_audit"] = audit_rows[:8]
             continue
-        numbers = group_by_variant(key, allowed_pool, review, variant)
-        if not numbers and allowed_pool:
-            numbers = [allowed_pool[0]["number"]] if size == 1 else optimized_group(allowed_pool, size, review)
+        numbers = group_by_variant(key, selection_pool, review, variant)
+        if not numbers and selection_pool:
+            numbers = [selection_pool[0]["number"]] if size == 1 else optimized_group(selection_pool, size, review)
         avg_score = sum(score_map[n] for n in numbers) / len(numbers) if numbers else 0
         weak_numbers = [
             n for n in numbers
             if previous_guard_blocks_item(candidate_map[n])
         ]
-        if recent_stat and not recent_stat.get("passed"):
+        if key in short_pack_keys:
+            packs[key] = pack(name, goal, sorted(numbers))
+            packs[key]["release_note"] = "short pack is always calculated every fresh draw by multi-model arbitration"
+        elif recent_stat and not recent_stat.get("passed"):
             packs[key] = watch_pack(name, goal, numbers, score_map, "recent walk-forward pack performance did not pass official gate; output as daily research prediction")
         elif avg_score < min_avg_score:
             packs[key] = watch_pack(name, goal, numbers, score_map, "average score is below strict release threshold; output as daily research prediction")
@@ -3436,21 +3579,16 @@ def strong_packs(candidates, review=None, governance=None):
         packs[key]["governance"] = recent_stat
         packs[key]["selection_variant"] = variant
         packs[key]["selection_model"] = variant_labels.get(variant, variant)
-        if key in {"strong_single", "two_hit_one", "three_hit_one"}:
-            audit_rows = []
-            for item in candidates[:12]:
-                audit_rows.append({
-                    "number": item["number"],
-                    "rank": item.get("rank"),
-                    "micro_confidence_score": round(micro_confidence_score(item, review), 4),
-                    "score": item.get("score"),
-                    "probability_percent": item.get("model_probability_percent"),
-                    "cross_validation_passed": (item.get("cross_validation") or {}).get("passed_count", 0),
-                    "stability_count": item.get("stability_count", 0),
-                    "recall_priority": round(recall_priority_score(item, review), 4),
-                })
-            audit_rows.sort(key=lambda row: (row["micro_confidence_score"], row["cross_validation_passed"], row["probability_percent"]), reverse=True)
+        if key in short_pack_keys:
+            audit_rows = short_pack_precision_audit(candidates, review, limit=10)
+            selected_set = set(int(number) for number in packs[key].get("numbers", []))
+            packs[key]["short_pack_precision_audit"] = audit_rows
             packs[key]["micro_confidence_audit"] = audit_rows[:8]
+            packs[key]["selected_number_audit"] = [
+                row for row in audit_rows if int(row.get("number")) in selected_set
+            ]
+            packs[key]["daily_output_required"] = True
+            packs[key]["selection_rule"] = "short_pack_multi_model_arbitration_v1"
 
     wheel = build_covering_wheel(packs["nine_hit_three"].get("numbers", []), ticket_size=5, cover_size=3, max_tickets=12)
     packs["nine_hit_three"]["wheel_tickets"] = wheel["tickets"]
@@ -4024,7 +4162,7 @@ def compute_industrial_analysis(draws, review=None):
     }
     decisive_decision = decisive_battle_decision(candidates, packs, release_gate, slump_recall_coverage, unlikely)
     return {
-        "engine_version": "industrial_v18_front9_precision_recall_lock",
+        "engine_version": "industrial_v19_short_pack_multi_model_arbitration",
         "leakage_guard": True,
         "repeat_guard": repeat_guard(draws),
         "previous_prediction_guard": {

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-25T07:27:46",
+  "generated_at": "2026-06-25T08:52:41",
   "status": "ok",
   "checked_files": 126,
   "failed_count": 0,
@@ -33,13 +33,13 @@
       "path": "battle_report.py",
       "status": "ok",
       "warnings": [],
-      "size": 154589
+      "size": 155473
     },
     {
       "path": "build_tw539_release.ps1",
       "status": "ok",
       "warnings": [],
-      "size": 8694
+      "size": 8742
     },
     {
       "path": "cleanup_obsolete_runtime.ps1",
@@ -87,7 +87,7 @@
       "path": "industrial_engine.py",
       "status": "ok",
       "warnings": [],
-      "size": 180575
+      "size": 186377
     },
     {
       "path": "install_all_auto_tasks.ps1",
@@ -345,7 +345,7 @@
       "path": "reports\\539最新強化戰報.html",
       "status": "ok",
       "warnings": [],
-      "size": 107700
+      "size": 107599
     },
     {
       "path": "reports\\539每期預測對比.html",
@@ -387,13 +387,13 @@
       "path": "reports\\file_integrity_report.json",
       "status": "ok",
       "warnings": [],
-      "size": 17712
+      "size": 17653
     },
     {
       "path": "reports\\file_integrity_report.md",
       "status": "ok",
       "warnings": [],
-      "size": 311
+      "size": 397
     },
     {
       "path": "reports\\full_system_scan.json",
@@ -417,31 +417,31 @@
       "path": "reports\\latest_analysis.json",
       "status": "ok",
       "warnings": [],
-      "size": 1308656
+      "size": 1370130
     },
     {
       "path": "reports\\latest_analysis.md",
       "status": "ok",
       "warnings": [],
-      "size": 6775
+      "size": 6781
     },
     {
       "path": "reports\\latest_battle_report.html",
       "status": "ok",
       "warnings": [],
-      "size": 107700
+      "size": 107599
     },
     {
       "path": "reports\\latest_battle_report.md",
       "status": "ok",
       "warnings": [],
-      "size": 24046
+      "size": 24061
     },
     {
       "path": "reports\\latest_battle_report.txt",
       "status": "ok",
       "warnings": [],
-      "size": 24046
+      "size": 24061
     },
     {
       "path": "reports\\line_push_status.json",
@@ -489,7 +489,7 @@
       "path": "reports\\post_draw_mobile_sync_status.json",
       "status": "ok",
       "warnings": [],
-      "size": 909
+      "size": 3728
     },
     {
       "path": "reports\\prediction_history.json",
@@ -537,7 +537,7 @@
       "path": "site\\index.html",
       "status": "ok",
       "warnings": [],
-      "size": 111224
+      "size": 111123
     },
     {
       "path": "site\\latest.html",
@@ -549,7 +549,7 @@
       "path": "site\\latest_analysis.json",
       "status": "ok",
       "warnings": [],
-      "size": 1308656
+      "size": 1370130
     },
     {
       "path": "site\\model_competition.json",

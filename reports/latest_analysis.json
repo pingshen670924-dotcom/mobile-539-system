@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-26T02:24:31",
+  "generated_at": "2026-06-26T06:44:24",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000154,
@@ -17,7 +17,7 @@
     "latest_date": "2026-06-25",
     "expected_latest_date": "2026-06-25",
     "lag_days": 0,
-    "checked_at": "2026-06-26T02:23:20"
+    "checked_at": "2026-06-26T06:43:02"
   },
   "windows": [
     {
@@ -1571,8 +1571,8 @@
           "name": "最強3中1",
           "hit_goal": 1,
           "numbers": [
+            5,
             8,
-            20,
             29
           ],
           "hits": 1,
@@ -4715,7 +4715,7 @@
     }
   },
   "industrial_engine": {
-    "engine_version": "industrial_v18_front9_precision_recall_lock",
+    "engine_version": "industrial_v19_short_pack_multi_model_arbitration",
     "leakage_guard": true,
     "repeat_guard": {
       "34": {
@@ -6445,12 +6445,12 @@
       ],
       "two_hit_one": [
         8,
-        24
+        25
       ],
       "three_hit_one": [
         8,
         20,
-        24
+        25
       ],
       "five_hit_two": [
         1,
@@ -6472,34 +6472,34 @@
       ],
       "front9_precision_core": [
         8,
-        24,
+        25,
         20,
         1,
         17,
+        24,
         30,
-        25,
         27,
         5
       ],
       "attack_core_top9": [
         8,
-        24,
+        25,
         20,
         1,
         17,
+        24,
         30,
-        25,
         27,
         5
       ],
       "attack_core_top10": [
         8,
-        24,
+        25,
         20,
         1,
         17,
+        24,
         30,
-        25,
         27,
         5,
         15
@@ -6655,337 +6655,7 @@
               "contribution": 0.03408
             }
           ],
-          "selection_model": "micro_confidence_short_pack"
-        },
-        {
-          "number": 24,
-          "rank": 2,
-          "score": 1.0,
-          "probability_percent": 18.72,
-          "confidence": 97.0,
-          "sources": [
-            {
-              "model": "rank_error_correction",
-              "label": "排名錯位修正",
-              "signal": 0.8518,
-              "weight": 0.05061,
-              "contribution": 0.04311
-            },
-            {
-              "model": "zone_coverage_recovery",
-              "label": "分區覆蓋回補",
-              "signal": 1.0,
-              "weight": 0.0422,
-              "contribution": 0.0422
-            },
-            {
-              "model": "omission",
-              "label": "遺漏週期",
-              "signal": 0.5207,
-              "weight": 0.07527,
-              "contribution": 0.03919
-            },
-            {
-              "model": "tail_zone",
-              "label": "尾數區間",
-              "signal": 0.6021,
-              "weight": 0.06289,
-              "contribution": 0.03786
-            },
-            {
-              "model": "cross_consensus",
-              "label": "多模型共識",
-              "signal": 0.5709,
-              "weight": 0.06572,
-              "contribution": 0.03752
-            },
-            {
-              "model": "monte_carlo_stability",
-              "label": "蒙地卡羅穩定",
-              "signal": 0.75,
-              "weight": 0.03531,
-              "contribution": 0.02648
-            },
-            {
-              "model": "bayesian_posterior",
-              "label": "貝氏保守校準",
-              "signal": 0.8378,
-              "weight": 0.02974,
-              "contribution": 0.02492
-            },
-            {
-              "model": "freq_50",
-              "label": "近50期熱度",
-              "signal": 0.3333,
-              "weight": 0.07237,
-              "contribution": 0.02412
-            }
-          ],
-          "selection_model": "micro_confidence_short_pack"
-        },
-        {
-          "number": 20,
-          "rank": 3,
-          "score": 1.0,
-          "probability_percent": 18.72,
-          "confidence": 97.0,
-          "sources": [
-            {
-              "model": "omission",
-              "label": "遺漏週期",
-              "signal": 0.6295,
-              "weight": 0.07527,
-              "contribution": 0.04738
-            },
-            {
-              "model": "cross_consensus",
-              "label": "多模型共識",
-              "signal": 0.6261,
-              "weight": 0.06572,
-              "contribution": 0.04115
-            },
-            {
-              "model": "rank_error_correction",
-              "label": "排名錯位修正",
-              "signal": 0.8015,
-              "weight": 0.05061,
-              "contribution": 0.04057
-            },
-            {
-              "model": "freq_100",
-              "label": "近100期熱度",
-              "signal": 0.6,
-              "weight": 0.06712,
-              "contribution": 0.04027
-            },
-            {
-              "model": "freq_50",
-              "label": "近50期熱度",
-              "signal": 0.5556,
-              "weight": 0.07237,
-              "contribution": 0.0402
-            },
-            {
-              "model": "monte_carlo_stability",
-              "label": "蒙地卡羅穩定",
-              "signal": 0.75,
-              "weight": 0.03531,
-              "contribution": 0.02648
-            },
-            {
-              "model": "pair",
-              "label": "共現配對",
-              "signal": 0.5,
-              "weight": 0.05246,
-              "contribution": 0.02623
-            },
-            {
-              "model": "trend_alignment",
-              "label": "快慢趨勢一致",
-              "signal": 0.6761,
-              "weight": 0.03209,
-              "contribution": 0.0217
-            }
-          ],
-          "selection_model": "micro_confidence_short_pack"
-        },
-        {
-          "number": 1,
-          "rank": 5,
-          "score": 1.0,
-          "probability_percent": 18.72,
-          "confidence": 97.0,
-          "sources": [
-            {
-              "model": "tail_zone",
-              "label": "尾數區間",
-              "signal": 0.9565,
-              "weight": 0.06289,
-              "contribution": 0.06015
-            },
-            {
-              "model": "rank_error_correction",
-              "label": "排名錯位修正",
-              "signal": 0.9834,
-              "weight": 0.05061,
-              "contribution": 0.04977
-            },
-            {
-              "model": "cross_consensus",
-              "label": "多模型共識",
-              "signal": 0.7406,
-              "weight": 0.06572,
-              "contribution": 0.04867
-            },
-            {
-              "model": "pair",
-              "label": "共現配對",
-              "signal": 0.7273,
-              "weight": 0.05246,
-              "contribution": 0.03815
-            },
-            {
-              "model": "omission",
-              "label": "遺漏週期",
-              "signal": 0.4485,
-              "weight": 0.07527,
-              "contribution": 0.03376
-            },
-            {
-              "model": "freq_50",
-              "label": "近50期熱度",
-              "signal": 0.4444,
-              "weight": 0.07237,
-              "contribution": 0.03216
-            },
-            {
-              "model": "zone_parity_pressure",
-              "label": "區間奇偶壓力",
-              "signal": 1.0,
-              "weight": 0.03031,
-              "contribution": 0.03031
-            },
-            {
-              "model": "monte_carlo_stability",
-              "label": "蒙地卡羅穩定",
-              "signal": 0.75,
-              "weight": 0.03531,
-              "contribution": 0.02648
-            }
-          ],
-          "selection_model": "micro_confidence_short_pack"
-        },
-        {
-          "number": 17,
-          "rank": 7,
-          "score": 1.0,
-          "probability_percent": 18.72,
-          "confidence": 97.0,
-          "sources": [
-            {
-              "model": "freq_100",
-              "label": "近100期熱度",
-              "signal": 0.6,
-              "weight": 0.06712,
-              "contribution": 0.04027
-            },
-            {
-              "model": "cross_consensus",
-              "label": "多模型共識",
-              "signal": 0.4678,
-              "weight": 0.06572,
-              "contribution": 0.03075
-            },
-            {
-              "model": "rank_error_correction",
-              "label": "排名錯位修正",
-              "signal": 0.5965,
-              "weight": 0.05061,
-              "contribution": 0.03019
-            },
-            {
-              "model": "tail_zone",
-              "label": "尾數區間",
-              "signal": 0.4728,
-              "weight": 0.06289,
-              "contribution": 0.02973
-            },
-            {
-              "model": "zone_parity_pressure",
-              "label": "區間奇偶壓力",
-              "signal": 0.8954,
-              "weight": 0.03031,
-              "contribution": 0.02714
-            },
-            {
-              "model": "freq_50",
-              "label": "近50期熱度",
-              "signal": 0.3333,
-              "weight": 0.07237,
-              "contribution": 0.02412
-            },
-            {
-              "model": "trend_alignment",
-              "label": "快慢趨勢一致",
-              "signal": 0.6322,
-              "weight": 0.03209,
-              "contribution": 0.02029
-            },
-            {
-              "model": "freq_20",
-              "label": "近20期熱度",
-              "signal": 0.7143,
-              "weight": 0.0272,
-              "contribution": 0.01943
-            }
-          ],
-          "selection_model": "micro_confidence_short_pack"
-        },
-        {
-          "number": 30,
-          "rank": 4,
-          "score": 1.0,
-          "probability_percent": 18.72,
-          "confidence": 97.0,
-          "sources": [
-            {
-              "model": "rank_error_correction",
-              "label": "排名錯位修正",
-              "signal": 0.9679,
-              "weight": 0.05061,
-              "contribution": 0.04899
-            },
-            {
-              "model": "omission",
-              "label": "遺漏週期",
-              "signal": 0.6295,
-              "weight": 0.07527,
-              "contribution": 0.04738
-            },
-            {
-              "model": "zone_coverage_recovery",
-              "label": "分區覆蓋回補",
-              "signal": 1.0,
-              "weight": 0.0422,
-              "contribution": 0.0422
-            },
-            {
-              "model": "tail_zone",
-              "label": "尾數區間",
-              "signal": 0.3194,
-              "weight": 0.06289,
-              "contribution": 0.02009
-            },
-            {
-              "model": "pair",
-              "label": "共現配對",
-              "signal": 0.3636,
-              "weight": 0.05246,
-              "contribution": 0.01908
-            },
-            {
-              "model": "cross_consensus",
-              "label": "多模型共識",
-              "signal": 0.2864,
-              "weight": 0.06572,
-              "contribution": 0.01883
-            },
-            {
-              "model": "cycle_timing",
-              "label": "週期位置",
-              "signal": 0.569,
-              "weight": 0.0312,
-              "contribution": 0.01775
-            },
-            {
-              "model": "monte_carlo_stability",
-              "label": "蒙地卡羅穩定",
-              "signal": 0.5,
-              "weight": 0.03531,
-              "contribution": 0.01765
-            }
-          ],
-          "selection_model": "micro_confidence_short_pack"
+          "selection_model": "short_pack_multi_model_arbitration"
         },
         {
           "number": 25,
@@ -7051,7 +6721,337 @@
               "contribution": 0.03102
             }
           ],
-          "selection_model": "micro_confidence_short_pack"
+          "selection_model": "short_pack_multi_model_arbitration"
+        },
+        {
+          "number": 20,
+          "rank": 3,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "confidence": 97.0,
+          "sources": [
+            {
+              "model": "omission",
+              "label": "遺漏週期",
+              "signal": 0.6295,
+              "weight": 0.07527,
+              "contribution": 0.04738
+            },
+            {
+              "model": "cross_consensus",
+              "label": "多模型共識",
+              "signal": 0.6261,
+              "weight": 0.06572,
+              "contribution": 0.04115
+            },
+            {
+              "model": "rank_error_correction",
+              "label": "排名錯位修正",
+              "signal": 0.8015,
+              "weight": 0.05061,
+              "contribution": 0.04057
+            },
+            {
+              "model": "freq_100",
+              "label": "近100期熱度",
+              "signal": 0.6,
+              "weight": 0.06712,
+              "contribution": 0.04027
+            },
+            {
+              "model": "freq_50",
+              "label": "近50期熱度",
+              "signal": 0.5556,
+              "weight": 0.07237,
+              "contribution": 0.0402
+            },
+            {
+              "model": "monte_carlo_stability",
+              "label": "蒙地卡羅穩定",
+              "signal": 0.75,
+              "weight": 0.03531,
+              "contribution": 0.02648
+            },
+            {
+              "model": "pair",
+              "label": "共現配對",
+              "signal": 0.5,
+              "weight": 0.05246,
+              "contribution": 0.02623
+            },
+            {
+              "model": "trend_alignment",
+              "label": "快慢趨勢一致",
+              "signal": 0.6761,
+              "weight": 0.03209,
+              "contribution": 0.0217
+            }
+          ],
+          "selection_model": "short_pack_multi_model_arbitration"
+        },
+        {
+          "number": 1,
+          "rank": 5,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "confidence": 97.0,
+          "sources": [
+            {
+              "model": "tail_zone",
+              "label": "尾數區間",
+              "signal": 0.9565,
+              "weight": 0.06289,
+              "contribution": 0.06015
+            },
+            {
+              "model": "rank_error_correction",
+              "label": "排名錯位修正",
+              "signal": 0.9834,
+              "weight": 0.05061,
+              "contribution": 0.04977
+            },
+            {
+              "model": "cross_consensus",
+              "label": "多模型共識",
+              "signal": 0.7406,
+              "weight": 0.06572,
+              "contribution": 0.04867
+            },
+            {
+              "model": "pair",
+              "label": "共現配對",
+              "signal": 0.7273,
+              "weight": 0.05246,
+              "contribution": 0.03815
+            },
+            {
+              "model": "omission",
+              "label": "遺漏週期",
+              "signal": 0.4485,
+              "weight": 0.07527,
+              "contribution": 0.03376
+            },
+            {
+              "model": "freq_50",
+              "label": "近50期熱度",
+              "signal": 0.4444,
+              "weight": 0.07237,
+              "contribution": 0.03216
+            },
+            {
+              "model": "zone_parity_pressure",
+              "label": "區間奇偶壓力",
+              "signal": 1.0,
+              "weight": 0.03031,
+              "contribution": 0.03031
+            },
+            {
+              "model": "monte_carlo_stability",
+              "label": "蒙地卡羅穩定",
+              "signal": 0.75,
+              "weight": 0.03531,
+              "contribution": 0.02648
+            }
+          ],
+          "selection_model": "short_pack_multi_model_arbitration"
+        },
+        {
+          "number": 17,
+          "rank": 7,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "confidence": 97.0,
+          "sources": [
+            {
+              "model": "freq_100",
+              "label": "近100期熱度",
+              "signal": 0.6,
+              "weight": 0.06712,
+              "contribution": 0.04027
+            },
+            {
+              "model": "cross_consensus",
+              "label": "多模型共識",
+              "signal": 0.4678,
+              "weight": 0.06572,
+              "contribution": 0.03075
+            },
+            {
+              "model": "rank_error_correction",
+              "label": "排名錯位修正",
+              "signal": 0.5965,
+              "weight": 0.05061,
+              "contribution": 0.03019
+            },
+            {
+              "model": "tail_zone",
+              "label": "尾數區間",
+              "signal": 0.4728,
+              "weight": 0.06289,
+              "contribution": 0.02973
+            },
+            {
+              "model": "zone_parity_pressure",
+              "label": "區間奇偶壓力",
+              "signal": 0.8954,
+              "weight": 0.03031,
+              "contribution": 0.02714
+            },
+            {
+              "model": "freq_50",
+              "label": "近50期熱度",
+              "signal": 0.3333,
+              "weight": 0.07237,
+              "contribution": 0.02412
+            },
+            {
+              "model": "trend_alignment",
+              "label": "快慢趨勢一致",
+              "signal": 0.6322,
+              "weight": 0.03209,
+              "contribution": 0.02029
+            },
+            {
+              "model": "freq_20",
+              "label": "近20期熱度",
+              "signal": 0.7143,
+              "weight": 0.0272,
+              "contribution": 0.01943
+            }
+          ],
+          "selection_model": "short_pack_multi_model_arbitration"
+        },
+        {
+          "number": 24,
+          "rank": 2,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "confidence": 97.0,
+          "sources": [
+            {
+              "model": "rank_error_correction",
+              "label": "排名錯位修正",
+              "signal": 0.8518,
+              "weight": 0.05061,
+              "contribution": 0.04311
+            },
+            {
+              "model": "zone_coverage_recovery",
+              "label": "分區覆蓋回補",
+              "signal": 1.0,
+              "weight": 0.0422,
+              "contribution": 0.0422
+            },
+            {
+              "model": "omission",
+              "label": "遺漏週期",
+              "signal": 0.5207,
+              "weight": 0.07527,
+              "contribution": 0.03919
+            },
+            {
+              "model": "tail_zone",
+              "label": "尾數區間",
+              "signal": 0.6021,
+              "weight": 0.06289,
+              "contribution": 0.03786
+            },
+            {
+              "model": "cross_consensus",
+              "label": "多模型共識",
+              "signal": 0.5709,
+              "weight": 0.06572,
+              "contribution": 0.03752
+            },
+            {
+              "model": "monte_carlo_stability",
+              "label": "蒙地卡羅穩定",
+              "signal": 0.75,
+              "weight": 0.03531,
+              "contribution": 0.02648
+            },
+            {
+              "model": "bayesian_posterior",
+              "label": "貝氏保守校準",
+              "signal": 0.8378,
+              "weight": 0.02974,
+              "contribution": 0.02492
+            },
+            {
+              "model": "freq_50",
+              "label": "近50期熱度",
+              "signal": 0.3333,
+              "weight": 0.07237,
+              "contribution": 0.02412
+            }
+          ],
+          "selection_model": "short_pack_multi_model_arbitration"
+        },
+        {
+          "number": 30,
+          "rank": 4,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "confidence": 97.0,
+          "sources": [
+            {
+              "model": "rank_error_correction",
+              "label": "排名錯位修正",
+              "signal": 0.9679,
+              "weight": 0.05061,
+              "contribution": 0.04899
+            },
+            {
+              "model": "omission",
+              "label": "遺漏週期",
+              "signal": 0.6295,
+              "weight": 0.07527,
+              "contribution": 0.04738
+            },
+            {
+              "model": "zone_coverage_recovery",
+              "label": "分區覆蓋回補",
+              "signal": 1.0,
+              "weight": 0.0422,
+              "contribution": 0.0422
+            },
+            {
+              "model": "tail_zone",
+              "label": "尾數區間",
+              "signal": 0.3194,
+              "weight": 0.06289,
+              "contribution": 0.02009
+            },
+            {
+              "model": "pair",
+              "label": "共現配對",
+              "signal": 0.3636,
+              "weight": 0.05246,
+              "contribution": 0.01908
+            },
+            {
+              "model": "cross_consensus",
+              "label": "多模型共識",
+              "signal": 0.2864,
+              "weight": 0.06572,
+              "contribution": 0.01883
+            },
+            {
+              "model": "cycle_timing",
+              "label": "週期位置",
+              "signal": 0.569,
+              "weight": 0.0312,
+              "contribution": 0.01775
+            },
+            {
+              "model": "monte_carlo_stability",
+              "label": "蒙地卡羅穩定",
+              "signal": 0.5,
+              "weight": 0.03531,
+              "contribution": 0.01765
+            }
+          ],
+          "selection_model": "short_pack_multi_model_arbitration"
         },
         {
           "number": 27,
@@ -7117,7 +7117,7 @@
               "contribution": 0.02762
             }
           ],
-          "selection_model": "micro_confidence_short_pack"
+          "selection_model": "short_pack_multi_model_arbitration"
         },
         {
           "number": 5,
@@ -7183,7 +7183,7 @@
               "contribution": 0.02237
             }
           ],
-          "selection_model": "micro_confidence_short_pack"
+          "selection_model": "short_pack_multi_model_arbitration"
         }
       ]
     },
@@ -7692,6 +7692,12 @@
           "passed": true,
           "best_variant": "target_precision",
           "variant_results": {
+            "short_pack_precision": {
+              "rounds": 120,
+              "pass_rate": 0.167,
+              "avg_hits": 0.167,
+              "zero_hit_rate": 0.833
+            },
             "micro_confidence": {
               "rounds": 120,
               "pass_rate": 0.167,
@@ -7747,6 +7753,12 @@
           "passed": true,
           "best_variant": "slump_recall",
           "variant_results": {
+            "short_pack_precision": {
+              "rounds": 120,
+              "pass_rate": 0.292,
+              "avg_hits": 0.3,
+              "zero_hit_rate": 0.708
+            },
             "micro_confidence": {
               "rounds": 120,
               "pass_rate": 0.283,
@@ -7784,6 +7796,12 @@
           "passed": true,
           "best_variant": "slump_recall",
           "variant_results": {
+            "short_pack_precision": {
+              "rounds": 120,
+              "pass_rate": 0.408,
+              "avg_hits": 0.425,
+              "zero_hit_rate": 0.592
+            },
             "micro_confidence": {
               "rounds": 120,
               "pass_rate": 0.358,
@@ -19381,6 +19399,12 @@
           "passed": true,
           "best_variant": "target_precision",
           "variant_results": {
+            "short_pack_precision": {
+              "rounds": 120,
+              "pass_rate": 0.167,
+              "avg_hits": 0.167,
+              "zero_hit_rate": 0.833
+            },
             "micro_confidence": {
               "rounds": 120,
               "pass_rate": 0.167,
@@ -19425,97 +19449,347 @@
             }
           }
         },
-        "selection_variant": "micro_confidence",
-        "selection_model": "micro_confidence_short_pack",
-        "micro_confidence_audit": [
+        "release_note": "short pack is always calculated every fresh draw by multi-model arbitration",
+        "selection_variant": "short_pack_precision",
+        "selection_model": "short_pack_multi_model_arbitration",
+        "short_pack_precision_audit": [
           {
             "number": 8,
             "rank": 1,
+            "short_pack_precision_score": 1.2674,
             "micro_confidence_score": 1.0399,
             "score": 1.0,
             "probability_percent": 18.72,
+            "posterior_hit_rate": 0.2028,
+            "objective_edge": 0.0631,
             "cross_validation_passed": 8,
             "stability_count": 5,
-            "recall_priority": 0.9531
-          },
-          {
-            "number": 24,
-            "rank": 2,
-            "micro_confidence_score": 1.0077,
-            "score": 1.0,
-            "probability_percent": 18.72,
-            "cross_validation_passed": 8,
-            "stability_count": 5,
-            "recall_priority": 0.8234
-          },
-          {
-            "number": 20,
-            "rank": 3,
-            "micro_confidence_score": 0.9602,
-            "score": 1.0,
-            "probability_percent": 18.72,
-            "cross_validation_passed": 7,
-            "stability_count": 4,
-            "recall_priority": 0.8349
-          },
-          {
-            "number": 1,
-            "rank": 5,
-            "micro_confidence_score": 0.9136,
-            "score": 1.0,
-            "probability_percent": 18.72,
-            "cross_validation_passed": 7,
-            "stability_count": 3,
-            "recall_priority": 0.8082
+            "recall_priority": 0.9531,
+            "source_model_count": 8,
+            "condition_count": 10,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
           },
           {
             "number": 25,
             "rank": 6,
+            "short_pack_precision_score": 1.1443,
             "micro_confidence_score": 0.8985,
             "score": 1.0,
             "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1696,
+            "objective_edge": 0.0577,
             "cross_validation_passed": 7,
             "stability_count": 3,
-            "recall_priority": 0.7739
+            "recall_priority": 0.7739,
+            "source_model_count": 8,
+            "condition_count": 10,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 24,
+            "rank": 2,
+            "short_pack_precision_score": 1.1415,
+            "micro_confidence_score": 1.0077,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1106,
+            "objective_edge": 0.0531,
+            "cross_validation_passed": 8,
+            "stability_count": 5,
+            "recall_priority": 0.8234,
+            "source_model_count": 8,
+            "condition_count": 9,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 20,
+            "rank": 3,
+            "short_pack_precision_score": 1.1198,
+            "micro_confidence_score": 0.9602,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1207,
+            "objective_edge": 0.0411,
+            "cross_validation_passed": 7,
+            "stability_count": 4,
+            "recall_priority": 0.8349,
+            "source_model_count": 8,
+            "condition_count": 9,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
           },
           {
             "number": 30,
             "rank": 4,
+            "short_pack_precision_score": 1.0971,
             "micro_confidence_score": 0.8957,
             "score": 1.0,
             "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1262,
+            "objective_edge": 0.0556,
             "cross_validation_passed": 5,
             "stability_count": 3,
-            "recall_priority": 0.8448
+            "recall_priority": 0.8448,
+            "source_model_count": 8,
+            "condition_count": 8,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 1,
+            "rank": 5,
+            "short_pack_precision_score": 1.0845,
+            "micro_confidence_score": 0.9136,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.0937,
+            "objective_edge": 0.0509,
+            "cross_validation_passed": 7,
+            "stability_count": 3,
+            "recall_priority": 0.8082,
+            "source_model_count": 8,
+            "condition_count": 9,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
           },
           {
             "number": 17,
             "rank": 7,
+            "short_pack_precision_score": 0.9443,
             "micro_confidence_score": 0.7896,
             "score": 1.0,
             "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1045,
+            "objective_edge": 0.03,
             "cross_validation_passed": 4,
             "stability_count": 4,
-            "recall_priority": 0.696
+            "recall_priority": 0.696,
+            "source_model_count": 8,
+            "condition_count": 7,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 14,
+            "rank": 16,
+            "short_pack_precision_score": 0.9188,
+            "micro_confidence_score": 0.5886,
+            "score": 1.0,
+            "probability_percent": 10.86,
+            "posterior_hit_rate": 0.1262,
+            "objective_edge": 0.0455,
+            "cross_validation_passed": 7,
+            "stability_count": 4,
+            "recall_priority": 0.6282,
+            "source_model_count": 8,
+            "condition_count": 6,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
           },
           {
             "number": 27,
             "rank": 8,
+            "short_pack_precision_score": 0.8974,
             "micro_confidence_score": 0.7265,
             "score": 0.7071,
             "probability_percent": 15.94,
+            "posterior_hit_rate": 0.0998,
+            "objective_edge": 0.0496,
             "cross_validation_passed": 8,
             "stability_count": 1,
-            "recall_priority": 0.7295
+            "recall_priority": 0.7295,
+            "source_model_count": 8,
+            "condition_count": 7,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 12,
+            "rank": 11,
+            "short_pack_precision_score": 0.8955,
+            "micro_confidence_score": 0.633,
+            "score": 1.0,
+            "probability_percent": 13.48,
+            "posterior_hit_rate": 0.1575,
+            "objective_edge": 0.0304,
+            "cross_validation_passed": 6,
+            "stability_count": 5,
+            "recall_priority": 0.5863,
+            "source_model_count": 8,
+            "condition_count": 7,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
           }
-        ]
+        ],
+        "micro_confidence_audit": [
+          {
+            "number": 8,
+            "rank": 1,
+            "short_pack_precision_score": 1.2674,
+            "micro_confidence_score": 1.0399,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.2028,
+            "objective_edge": 0.0631,
+            "cross_validation_passed": 8,
+            "stability_count": 5,
+            "recall_priority": 0.9531,
+            "source_model_count": 8,
+            "condition_count": 10,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 25,
+            "rank": 6,
+            "short_pack_precision_score": 1.1443,
+            "micro_confidence_score": 0.8985,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1696,
+            "objective_edge": 0.0577,
+            "cross_validation_passed": 7,
+            "stability_count": 3,
+            "recall_priority": 0.7739,
+            "source_model_count": 8,
+            "condition_count": 10,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 24,
+            "rank": 2,
+            "short_pack_precision_score": 1.1415,
+            "micro_confidence_score": 1.0077,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1106,
+            "objective_edge": 0.0531,
+            "cross_validation_passed": 8,
+            "stability_count": 5,
+            "recall_priority": 0.8234,
+            "source_model_count": 8,
+            "condition_count": 9,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 20,
+            "rank": 3,
+            "short_pack_precision_score": 1.1198,
+            "micro_confidence_score": 0.9602,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1207,
+            "objective_edge": 0.0411,
+            "cross_validation_passed": 7,
+            "stability_count": 4,
+            "recall_priority": 0.8349,
+            "source_model_count": 8,
+            "condition_count": 9,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 30,
+            "rank": 4,
+            "short_pack_precision_score": 1.0971,
+            "micro_confidence_score": 0.8957,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1262,
+            "objective_edge": 0.0556,
+            "cross_validation_passed": 5,
+            "stability_count": 3,
+            "recall_priority": 0.8448,
+            "source_model_count": 8,
+            "condition_count": 8,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 1,
+            "rank": 5,
+            "short_pack_precision_score": 1.0845,
+            "micro_confidence_score": 0.9136,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.0937,
+            "objective_edge": 0.0509,
+            "cross_validation_passed": 7,
+            "stability_count": 3,
+            "recall_priority": 0.8082,
+            "source_model_count": 8,
+            "condition_count": 9,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 17,
+            "rank": 7,
+            "short_pack_precision_score": 0.9443,
+            "micro_confidence_score": 0.7896,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1045,
+            "objective_edge": 0.03,
+            "cross_validation_passed": 4,
+            "stability_count": 4,
+            "recall_priority": 0.696,
+            "source_model_count": 8,
+            "condition_count": 7,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 14,
+            "rank": 16,
+            "short_pack_precision_score": 0.9188,
+            "micro_confidence_score": 0.5886,
+            "score": 1.0,
+            "probability_percent": 10.86,
+            "posterior_hit_rate": 0.1262,
+            "objective_edge": 0.0455,
+            "cross_validation_passed": 7,
+            "stability_count": 4,
+            "recall_priority": 0.6282,
+            "source_model_count": 8,
+            "condition_count": 6,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          }
+        ],
+        "selected_number_audit": [
+          {
+            "number": 8,
+            "rank": 1,
+            "short_pack_precision_score": 1.2674,
+            "micro_confidence_score": 1.0399,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.2028,
+            "objective_edge": 0.0631,
+            "cross_validation_passed": 8,
+            "stability_count": 5,
+            "recall_priority": 0.9531,
+            "source_model_count": 8,
+            "condition_count": 10,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          }
+        ],
+        "daily_output_required": true,
+        "selection_rule": "short_pack_multi_model_arbitration_v1"
       },
       "two_hit_one": {
         "name": "最強2中1",
         "hit_goal": 1,
         "numbers": [
           8,
-          24
+          25
         ],
         "score_sum": 2.0,
         "avg_score": 1.0,
@@ -19533,7 +19807,7 @@
         },
         "tails": {
           "8": 1,
-          "4": 1
+          "5": 1
         },
         "governance": {
           "rounds": 120,
@@ -19546,6 +19820,12 @@
           "passed": true,
           "best_variant": "slump_recall",
           "variant_results": {
+            "short_pack_precision": {
+              "rounds": 120,
+              "pass_rate": 0.292,
+              "avg_hits": 0.3,
+              "zero_hit_rate": 0.708
+            },
             "micro_confidence": {
               "rounds": 120,
               "pass_rate": 0.283,
@@ -19572,90 +19852,357 @@
             }
           }
         },
-        "selection_variant": "micro_confidence",
-        "selection_model": "micro_confidence_short_pack",
-        "micro_confidence_audit": [
+        "release_note": "short pack is always calculated every fresh draw by multi-model arbitration",
+        "selection_variant": "short_pack_precision",
+        "selection_model": "short_pack_multi_model_arbitration",
+        "short_pack_precision_audit": [
           {
             "number": 8,
             "rank": 1,
+            "short_pack_precision_score": 1.2674,
             "micro_confidence_score": 1.0399,
             "score": 1.0,
             "probability_percent": 18.72,
+            "posterior_hit_rate": 0.2028,
+            "objective_edge": 0.0631,
             "cross_validation_passed": 8,
             "stability_count": 5,
-            "recall_priority": 0.9531
-          },
-          {
-            "number": 24,
-            "rank": 2,
-            "micro_confidence_score": 1.0077,
-            "score": 1.0,
-            "probability_percent": 18.72,
-            "cross_validation_passed": 8,
-            "stability_count": 5,
-            "recall_priority": 0.8234
-          },
-          {
-            "number": 20,
-            "rank": 3,
-            "micro_confidence_score": 0.9602,
-            "score": 1.0,
-            "probability_percent": 18.72,
-            "cross_validation_passed": 7,
-            "stability_count": 4,
-            "recall_priority": 0.8349
-          },
-          {
-            "number": 1,
-            "rank": 5,
-            "micro_confidence_score": 0.9136,
-            "score": 1.0,
-            "probability_percent": 18.72,
-            "cross_validation_passed": 7,
-            "stability_count": 3,
-            "recall_priority": 0.8082
+            "recall_priority": 0.9531,
+            "source_model_count": 8,
+            "condition_count": 10,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
           },
           {
             "number": 25,
             "rank": 6,
+            "short_pack_precision_score": 1.1443,
             "micro_confidence_score": 0.8985,
             "score": 1.0,
             "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1696,
+            "objective_edge": 0.0577,
             "cross_validation_passed": 7,
             "stability_count": 3,
-            "recall_priority": 0.7739
+            "recall_priority": 0.7739,
+            "source_model_count": 8,
+            "condition_count": 10,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 24,
+            "rank": 2,
+            "short_pack_precision_score": 1.1415,
+            "micro_confidence_score": 1.0077,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1106,
+            "objective_edge": 0.0531,
+            "cross_validation_passed": 8,
+            "stability_count": 5,
+            "recall_priority": 0.8234,
+            "source_model_count": 8,
+            "condition_count": 9,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 20,
+            "rank": 3,
+            "short_pack_precision_score": 1.1198,
+            "micro_confidence_score": 0.9602,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1207,
+            "objective_edge": 0.0411,
+            "cross_validation_passed": 7,
+            "stability_count": 4,
+            "recall_priority": 0.8349,
+            "source_model_count": 8,
+            "condition_count": 9,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
           },
           {
             "number": 30,
             "rank": 4,
+            "short_pack_precision_score": 1.0971,
             "micro_confidence_score": 0.8957,
             "score": 1.0,
             "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1262,
+            "objective_edge": 0.0556,
             "cross_validation_passed": 5,
             "stability_count": 3,
-            "recall_priority": 0.8448
+            "recall_priority": 0.8448,
+            "source_model_count": 8,
+            "condition_count": 8,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 1,
+            "rank": 5,
+            "short_pack_precision_score": 1.0845,
+            "micro_confidence_score": 0.9136,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.0937,
+            "objective_edge": 0.0509,
+            "cross_validation_passed": 7,
+            "stability_count": 3,
+            "recall_priority": 0.8082,
+            "source_model_count": 8,
+            "condition_count": 9,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
           },
           {
             "number": 17,
             "rank": 7,
+            "short_pack_precision_score": 0.9443,
             "micro_confidence_score": 0.7896,
             "score": 1.0,
             "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1045,
+            "objective_edge": 0.03,
             "cross_validation_passed": 4,
             "stability_count": 4,
-            "recall_priority": 0.696
+            "recall_priority": 0.696,
+            "source_model_count": 8,
+            "condition_count": 7,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 14,
+            "rank": 16,
+            "short_pack_precision_score": 0.9188,
+            "micro_confidence_score": 0.5886,
+            "score": 1.0,
+            "probability_percent": 10.86,
+            "posterior_hit_rate": 0.1262,
+            "objective_edge": 0.0455,
+            "cross_validation_passed": 7,
+            "stability_count": 4,
+            "recall_priority": 0.6282,
+            "source_model_count": 8,
+            "condition_count": 6,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
           },
           {
             "number": 27,
             "rank": 8,
+            "short_pack_precision_score": 0.8974,
             "micro_confidence_score": 0.7265,
             "score": 0.7071,
             "probability_percent": 15.94,
+            "posterior_hit_rate": 0.0998,
+            "objective_edge": 0.0496,
             "cross_validation_passed": 8,
             "stability_count": 1,
-            "recall_priority": 0.7295
+            "recall_priority": 0.7295,
+            "source_model_count": 8,
+            "condition_count": 7,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 12,
+            "rank": 11,
+            "short_pack_precision_score": 0.8955,
+            "micro_confidence_score": 0.633,
+            "score": 1.0,
+            "probability_percent": 13.48,
+            "posterior_hit_rate": 0.1575,
+            "objective_edge": 0.0304,
+            "cross_validation_passed": 6,
+            "stability_count": 5,
+            "recall_priority": 0.5863,
+            "source_model_count": 8,
+            "condition_count": 7,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
           }
-        ]
+        ],
+        "micro_confidence_audit": [
+          {
+            "number": 8,
+            "rank": 1,
+            "short_pack_precision_score": 1.2674,
+            "micro_confidence_score": 1.0399,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.2028,
+            "objective_edge": 0.0631,
+            "cross_validation_passed": 8,
+            "stability_count": 5,
+            "recall_priority": 0.9531,
+            "source_model_count": 8,
+            "condition_count": 10,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 25,
+            "rank": 6,
+            "short_pack_precision_score": 1.1443,
+            "micro_confidence_score": 0.8985,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1696,
+            "objective_edge": 0.0577,
+            "cross_validation_passed": 7,
+            "stability_count": 3,
+            "recall_priority": 0.7739,
+            "source_model_count": 8,
+            "condition_count": 10,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 24,
+            "rank": 2,
+            "short_pack_precision_score": 1.1415,
+            "micro_confidence_score": 1.0077,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1106,
+            "objective_edge": 0.0531,
+            "cross_validation_passed": 8,
+            "stability_count": 5,
+            "recall_priority": 0.8234,
+            "source_model_count": 8,
+            "condition_count": 9,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 20,
+            "rank": 3,
+            "short_pack_precision_score": 1.1198,
+            "micro_confidence_score": 0.9602,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1207,
+            "objective_edge": 0.0411,
+            "cross_validation_passed": 7,
+            "stability_count": 4,
+            "recall_priority": 0.8349,
+            "source_model_count": 8,
+            "condition_count": 9,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 30,
+            "rank": 4,
+            "short_pack_precision_score": 1.0971,
+            "micro_confidence_score": 0.8957,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1262,
+            "objective_edge": 0.0556,
+            "cross_validation_passed": 5,
+            "stability_count": 3,
+            "recall_priority": 0.8448,
+            "source_model_count": 8,
+            "condition_count": 8,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 1,
+            "rank": 5,
+            "short_pack_precision_score": 1.0845,
+            "micro_confidence_score": 0.9136,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.0937,
+            "objective_edge": 0.0509,
+            "cross_validation_passed": 7,
+            "stability_count": 3,
+            "recall_priority": 0.8082,
+            "source_model_count": 8,
+            "condition_count": 9,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 17,
+            "rank": 7,
+            "short_pack_precision_score": 0.9443,
+            "micro_confidence_score": 0.7896,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1045,
+            "objective_edge": 0.03,
+            "cross_validation_passed": 4,
+            "stability_count": 4,
+            "recall_priority": 0.696,
+            "source_model_count": 8,
+            "condition_count": 7,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 14,
+            "rank": 16,
+            "short_pack_precision_score": 0.9188,
+            "micro_confidence_score": 0.5886,
+            "score": 1.0,
+            "probability_percent": 10.86,
+            "posterior_hit_rate": 0.1262,
+            "objective_edge": 0.0455,
+            "cross_validation_passed": 7,
+            "stability_count": 4,
+            "recall_priority": 0.6282,
+            "source_model_count": 8,
+            "condition_count": 6,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          }
+        ],
+        "selected_number_audit": [
+          {
+            "number": 8,
+            "rank": 1,
+            "short_pack_precision_score": 1.2674,
+            "micro_confidence_score": 1.0399,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.2028,
+            "objective_edge": 0.0631,
+            "cross_validation_passed": 8,
+            "stability_count": 5,
+            "recall_priority": 0.9531,
+            "source_model_count": 8,
+            "condition_count": 10,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 25,
+            "rank": 6,
+            "short_pack_precision_score": 1.1443,
+            "micro_confidence_score": 0.8985,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1696,
+            "objective_edge": 0.0577,
+            "cross_validation_passed": 7,
+            "stability_count": 3,
+            "recall_priority": 0.7739,
+            "source_model_count": 8,
+            "condition_count": 10,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          }
+        ],
+        "daily_output_required": true,
+        "selection_rule": "short_pack_multi_model_arbitration_v1"
       },
       "three_hit_one": {
         "name": "最強3中1",
@@ -19663,7 +20210,7 @@
         "numbers": [
           8,
           20,
-          24
+          25
         ],
         "score_sum": 3.0,
         "avg_score": 1.0,
@@ -19683,7 +20230,7 @@
         "tails": {
           "8": 1,
           "0": 1,
-          "4": 1
+          "5": 1
         },
         "governance": {
           "rounds": 120,
@@ -19696,6 +20243,12 @@
           "passed": true,
           "best_variant": "slump_recall",
           "variant_results": {
+            "short_pack_precision": {
+              "rounds": 120,
+              "pass_rate": 0.408,
+              "avg_hits": 0.425,
+              "zero_hit_rate": 0.592
+            },
             "micro_confidence": {
               "rounds": 120,
               "pass_rate": 0.358,
@@ -19722,90 +20275,374 @@
             }
           }
         },
-        "selection_variant": "micro_confidence",
-        "selection_model": "micro_confidence_short_pack",
-        "micro_confidence_audit": [
+        "release_note": "short pack is always calculated every fresh draw by multi-model arbitration",
+        "selection_variant": "short_pack_precision",
+        "selection_model": "short_pack_multi_model_arbitration",
+        "short_pack_precision_audit": [
           {
             "number": 8,
             "rank": 1,
+            "short_pack_precision_score": 1.2674,
             "micro_confidence_score": 1.0399,
             "score": 1.0,
             "probability_percent": 18.72,
+            "posterior_hit_rate": 0.2028,
+            "objective_edge": 0.0631,
             "cross_validation_passed": 8,
             "stability_count": 5,
-            "recall_priority": 0.9531
-          },
-          {
-            "number": 24,
-            "rank": 2,
-            "micro_confidence_score": 1.0077,
-            "score": 1.0,
-            "probability_percent": 18.72,
-            "cross_validation_passed": 8,
-            "stability_count": 5,
-            "recall_priority": 0.8234
-          },
-          {
-            "number": 20,
-            "rank": 3,
-            "micro_confidence_score": 0.9602,
-            "score": 1.0,
-            "probability_percent": 18.72,
-            "cross_validation_passed": 7,
-            "stability_count": 4,
-            "recall_priority": 0.8349
-          },
-          {
-            "number": 1,
-            "rank": 5,
-            "micro_confidence_score": 0.9136,
-            "score": 1.0,
-            "probability_percent": 18.72,
-            "cross_validation_passed": 7,
-            "stability_count": 3,
-            "recall_priority": 0.8082
+            "recall_priority": 0.9531,
+            "source_model_count": 8,
+            "condition_count": 10,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
           },
           {
             "number": 25,
             "rank": 6,
+            "short_pack_precision_score": 1.1443,
             "micro_confidence_score": 0.8985,
             "score": 1.0,
             "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1696,
+            "objective_edge": 0.0577,
             "cross_validation_passed": 7,
             "stability_count": 3,
-            "recall_priority": 0.7739
+            "recall_priority": 0.7739,
+            "source_model_count": 8,
+            "condition_count": 10,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 24,
+            "rank": 2,
+            "short_pack_precision_score": 1.1415,
+            "micro_confidence_score": 1.0077,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1106,
+            "objective_edge": 0.0531,
+            "cross_validation_passed": 8,
+            "stability_count": 5,
+            "recall_priority": 0.8234,
+            "source_model_count": 8,
+            "condition_count": 9,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 20,
+            "rank": 3,
+            "short_pack_precision_score": 1.1198,
+            "micro_confidence_score": 0.9602,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1207,
+            "objective_edge": 0.0411,
+            "cross_validation_passed": 7,
+            "stability_count": 4,
+            "recall_priority": 0.8349,
+            "source_model_count": 8,
+            "condition_count": 9,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
           },
           {
             "number": 30,
             "rank": 4,
+            "short_pack_precision_score": 1.0971,
             "micro_confidence_score": 0.8957,
             "score": 1.0,
             "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1262,
+            "objective_edge": 0.0556,
             "cross_validation_passed": 5,
             "stability_count": 3,
-            "recall_priority": 0.8448
+            "recall_priority": 0.8448,
+            "source_model_count": 8,
+            "condition_count": 8,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 1,
+            "rank": 5,
+            "short_pack_precision_score": 1.0845,
+            "micro_confidence_score": 0.9136,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.0937,
+            "objective_edge": 0.0509,
+            "cross_validation_passed": 7,
+            "stability_count": 3,
+            "recall_priority": 0.8082,
+            "source_model_count": 8,
+            "condition_count": 9,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
           },
           {
             "number": 17,
             "rank": 7,
+            "short_pack_precision_score": 0.9443,
             "micro_confidence_score": 0.7896,
             "score": 1.0,
             "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1045,
+            "objective_edge": 0.03,
             "cross_validation_passed": 4,
             "stability_count": 4,
-            "recall_priority": 0.696
+            "recall_priority": 0.696,
+            "source_model_count": 8,
+            "condition_count": 7,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 14,
+            "rank": 16,
+            "short_pack_precision_score": 0.9188,
+            "micro_confidence_score": 0.5886,
+            "score": 1.0,
+            "probability_percent": 10.86,
+            "posterior_hit_rate": 0.1262,
+            "objective_edge": 0.0455,
+            "cross_validation_passed": 7,
+            "stability_count": 4,
+            "recall_priority": 0.6282,
+            "source_model_count": 8,
+            "condition_count": 6,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
           },
           {
             "number": 27,
             "rank": 8,
+            "short_pack_precision_score": 0.8974,
             "micro_confidence_score": 0.7265,
             "score": 0.7071,
             "probability_percent": 15.94,
+            "posterior_hit_rate": 0.0998,
+            "objective_edge": 0.0496,
             "cross_validation_passed": 8,
             "stability_count": 1,
-            "recall_priority": 0.7295
+            "recall_priority": 0.7295,
+            "source_model_count": 8,
+            "condition_count": 7,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 12,
+            "rank": 11,
+            "short_pack_precision_score": 0.8955,
+            "micro_confidence_score": 0.633,
+            "score": 1.0,
+            "probability_percent": 13.48,
+            "posterior_hit_rate": 0.1575,
+            "objective_edge": 0.0304,
+            "cross_validation_passed": 6,
+            "stability_count": 5,
+            "recall_priority": 0.5863,
+            "source_model_count": 8,
+            "condition_count": 7,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
           }
-        ]
+        ],
+        "micro_confidence_audit": [
+          {
+            "number": 8,
+            "rank": 1,
+            "short_pack_precision_score": 1.2674,
+            "micro_confidence_score": 1.0399,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.2028,
+            "objective_edge": 0.0631,
+            "cross_validation_passed": 8,
+            "stability_count": 5,
+            "recall_priority": 0.9531,
+            "source_model_count": 8,
+            "condition_count": 10,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 25,
+            "rank": 6,
+            "short_pack_precision_score": 1.1443,
+            "micro_confidence_score": 0.8985,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1696,
+            "objective_edge": 0.0577,
+            "cross_validation_passed": 7,
+            "stability_count": 3,
+            "recall_priority": 0.7739,
+            "source_model_count": 8,
+            "condition_count": 10,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 24,
+            "rank": 2,
+            "short_pack_precision_score": 1.1415,
+            "micro_confidence_score": 1.0077,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1106,
+            "objective_edge": 0.0531,
+            "cross_validation_passed": 8,
+            "stability_count": 5,
+            "recall_priority": 0.8234,
+            "source_model_count": 8,
+            "condition_count": 9,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 20,
+            "rank": 3,
+            "short_pack_precision_score": 1.1198,
+            "micro_confidence_score": 0.9602,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1207,
+            "objective_edge": 0.0411,
+            "cross_validation_passed": 7,
+            "stability_count": 4,
+            "recall_priority": 0.8349,
+            "source_model_count": 8,
+            "condition_count": 9,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 30,
+            "rank": 4,
+            "short_pack_precision_score": 1.0971,
+            "micro_confidence_score": 0.8957,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1262,
+            "objective_edge": 0.0556,
+            "cross_validation_passed": 5,
+            "stability_count": 3,
+            "recall_priority": 0.8448,
+            "source_model_count": 8,
+            "condition_count": 8,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 1,
+            "rank": 5,
+            "short_pack_precision_score": 1.0845,
+            "micro_confidence_score": 0.9136,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.0937,
+            "objective_edge": 0.0509,
+            "cross_validation_passed": 7,
+            "stability_count": 3,
+            "recall_priority": 0.8082,
+            "source_model_count": 8,
+            "condition_count": 9,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 17,
+            "rank": 7,
+            "short_pack_precision_score": 0.9443,
+            "micro_confidence_score": 0.7896,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1045,
+            "objective_edge": 0.03,
+            "cross_validation_passed": 4,
+            "stability_count": 4,
+            "recall_priority": 0.696,
+            "source_model_count": 8,
+            "condition_count": 7,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 14,
+            "rank": 16,
+            "short_pack_precision_score": 0.9188,
+            "micro_confidence_score": 0.5886,
+            "score": 1.0,
+            "probability_percent": 10.86,
+            "posterior_hit_rate": 0.1262,
+            "objective_edge": 0.0455,
+            "cross_validation_passed": 7,
+            "stability_count": 4,
+            "recall_priority": 0.6282,
+            "source_model_count": 8,
+            "condition_count": 6,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          }
+        ],
+        "selected_number_audit": [
+          {
+            "number": 8,
+            "rank": 1,
+            "short_pack_precision_score": 1.2674,
+            "micro_confidence_score": 1.0399,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.2028,
+            "objective_edge": 0.0631,
+            "cross_validation_passed": 8,
+            "stability_count": 5,
+            "recall_priority": 0.9531,
+            "source_model_count": 8,
+            "condition_count": 10,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 25,
+            "rank": 6,
+            "short_pack_precision_score": 1.1443,
+            "micro_confidence_score": 0.8985,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1696,
+            "objective_edge": 0.0577,
+            "cross_validation_passed": 7,
+            "stability_count": 3,
+            "recall_priority": 0.7739,
+            "source_model_count": 8,
+            "condition_count": 10,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          },
+          {
+            "number": 20,
+            "rank": 3,
+            "short_pack_precision_score": 1.1198,
+            "micro_confidence_score": 0.9602,
+            "score": 1.0,
+            "probability_percent": 18.72,
+            "posterior_hit_rate": 0.1207,
+            "objective_edge": 0.0411,
+            "cross_validation_passed": 7,
+            "stability_count": 4,
+            "recall_priority": 0.8349,
+            "source_model_count": 8,
+            "condition_count": 9,
+            "selection_penalty": 0.0,
+            "model": "short_pack_multi_model_arbitration_v1"
+          }
+        ],
+        "daily_output_required": true,
+        "selection_rule": "short_pack_multi_model_arbitration_v1"
       },
       "five_hit_two": {
         "name": "最強5中2",
@@ -20069,7 +20906,7 @@
     "engine_version": "aerospace_assurance_v1",
     "principle": "fail_closed_redundant_verified_deterministic",
     "input_fingerprint_sha256": "2ea4ac7e67360ec5310f825b1222da9712105b98810ce89cb949ae987adc4121",
-    "output_fingerprint_sha256": "01dd8f1498c4a8d6d3d979876b81cb26579c1a362c9f3a330bfc328565a1394a",
+    "output_fingerprint_sha256": "6abf6809de38ca765a59aaa14f995a74083b4c79d1e09c436a248c3cc7a0d998",
     "input_invariants": {
       "passed": true,
       "checked_draws": 5898,
@@ -43296,6 +44133,12 @@
         "passed": true,
         "best_variant": "target_precision",
         "variant_results": {
+          "short_pack_precision": {
+            "rounds": 120,
+            "pass_rate": 0.167,
+            "avg_hits": 0.167,
+            "zero_hit_rate": 0.833
+          },
           "micro_confidence": {
             "rounds": 120,
             "pass_rate": 0.167,
@@ -43340,97 +44183,347 @@
           }
         }
       },
-      "selection_variant": "micro_confidence",
-      "selection_model": "micro_confidence_short_pack",
-      "micro_confidence_audit": [
+      "release_note": "short pack is always calculated every fresh draw by multi-model arbitration",
+      "selection_variant": "short_pack_precision",
+      "selection_model": "short_pack_multi_model_arbitration",
+      "short_pack_precision_audit": [
         {
           "number": 8,
           "rank": 1,
+          "short_pack_precision_score": 1.2674,
           "micro_confidence_score": 1.0399,
           "score": 1.0,
           "probability_percent": 18.72,
+          "posterior_hit_rate": 0.2028,
+          "objective_edge": 0.0631,
           "cross_validation_passed": 8,
           "stability_count": 5,
-          "recall_priority": 0.9531
-        },
-        {
-          "number": 24,
-          "rank": 2,
-          "micro_confidence_score": 1.0077,
-          "score": 1.0,
-          "probability_percent": 18.72,
-          "cross_validation_passed": 8,
-          "stability_count": 5,
-          "recall_priority": 0.8234
-        },
-        {
-          "number": 20,
-          "rank": 3,
-          "micro_confidence_score": 0.9602,
-          "score": 1.0,
-          "probability_percent": 18.72,
-          "cross_validation_passed": 7,
-          "stability_count": 4,
-          "recall_priority": 0.8349
-        },
-        {
-          "number": 1,
-          "rank": 5,
-          "micro_confidence_score": 0.9136,
-          "score": 1.0,
-          "probability_percent": 18.72,
-          "cross_validation_passed": 7,
-          "stability_count": 3,
-          "recall_priority": 0.8082
+          "recall_priority": 0.9531,
+          "source_model_count": 8,
+          "condition_count": 10,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
         },
         {
           "number": 25,
           "rank": 6,
+          "short_pack_precision_score": 1.1443,
           "micro_confidence_score": 0.8985,
           "score": 1.0,
           "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1696,
+          "objective_edge": 0.0577,
           "cross_validation_passed": 7,
           "stability_count": 3,
-          "recall_priority": 0.7739
+          "recall_priority": 0.7739,
+          "source_model_count": 8,
+          "condition_count": 10,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 24,
+          "rank": 2,
+          "short_pack_precision_score": 1.1415,
+          "micro_confidence_score": 1.0077,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1106,
+          "objective_edge": 0.0531,
+          "cross_validation_passed": 8,
+          "stability_count": 5,
+          "recall_priority": 0.8234,
+          "source_model_count": 8,
+          "condition_count": 9,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 20,
+          "rank": 3,
+          "short_pack_precision_score": 1.1198,
+          "micro_confidence_score": 0.9602,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1207,
+          "objective_edge": 0.0411,
+          "cross_validation_passed": 7,
+          "stability_count": 4,
+          "recall_priority": 0.8349,
+          "source_model_count": 8,
+          "condition_count": 9,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
         },
         {
           "number": 30,
           "rank": 4,
+          "short_pack_precision_score": 1.0971,
           "micro_confidence_score": 0.8957,
           "score": 1.0,
           "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1262,
+          "objective_edge": 0.0556,
           "cross_validation_passed": 5,
           "stability_count": 3,
-          "recall_priority": 0.8448
+          "recall_priority": 0.8448,
+          "source_model_count": 8,
+          "condition_count": 8,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 1,
+          "rank": 5,
+          "short_pack_precision_score": 1.0845,
+          "micro_confidence_score": 0.9136,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.0937,
+          "objective_edge": 0.0509,
+          "cross_validation_passed": 7,
+          "stability_count": 3,
+          "recall_priority": 0.8082,
+          "source_model_count": 8,
+          "condition_count": 9,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
         },
         {
           "number": 17,
           "rank": 7,
+          "short_pack_precision_score": 0.9443,
           "micro_confidence_score": 0.7896,
           "score": 1.0,
           "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1045,
+          "objective_edge": 0.03,
           "cross_validation_passed": 4,
           "stability_count": 4,
-          "recall_priority": 0.696
+          "recall_priority": 0.696,
+          "source_model_count": 8,
+          "condition_count": 7,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 14,
+          "rank": 16,
+          "short_pack_precision_score": 0.9188,
+          "micro_confidence_score": 0.5886,
+          "score": 1.0,
+          "probability_percent": 10.86,
+          "posterior_hit_rate": 0.1262,
+          "objective_edge": 0.0455,
+          "cross_validation_passed": 7,
+          "stability_count": 4,
+          "recall_priority": 0.6282,
+          "source_model_count": 8,
+          "condition_count": 6,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
         },
         {
           "number": 27,
           "rank": 8,
+          "short_pack_precision_score": 0.8974,
           "micro_confidence_score": 0.7265,
           "score": 0.7071,
           "probability_percent": 15.94,
+          "posterior_hit_rate": 0.0998,
+          "objective_edge": 0.0496,
           "cross_validation_passed": 8,
           "stability_count": 1,
-          "recall_priority": 0.7295
+          "recall_priority": 0.7295,
+          "source_model_count": 8,
+          "condition_count": 7,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 12,
+          "rank": 11,
+          "short_pack_precision_score": 0.8955,
+          "micro_confidence_score": 0.633,
+          "score": 1.0,
+          "probability_percent": 13.48,
+          "posterior_hit_rate": 0.1575,
+          "objective_edge": 0.0304,
+          "cross_validation_passed": 6,
+          "stability_count": 5,
+          "recall_priority": 0.5863,
+          "source_model_count": 8,
+          "condition_count": 7,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
         }
-      ]
+      ],
+      "micro_confidence_audit": [
+        {
+          "number": 8,
+          "rank": 1,
+          "short_pack_precision_score": 1.2674,
+          "micro_confidence_score": 1.0399,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.2028,
+          "objective_edge": 0.0631,
+          "cross_validation_passed": 8,
+          "stability_count": 5,
+          "recall_priority": 0.9531,
+          "source_model_count": 8,
+          "condition_count": 10,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 25,
+          "rank": 6,
+          "short_pack_precision_score": 1.1443,
+          "micro_confidence_score": 0.8985,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1696,
+          "objective_edge": 0.0577,
+          "cross_validation_passed": 7,
+          "stability_count": 3,
+          "recall_priority": 0.7739,
+          "source_model_count": 8,
+          "condition_count": 10,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 24,
+          "rank": 2,
+          "short_pack_precision_score": 1.1415,
+          "micro_confidence_score": 1.0077,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1106,
+          "objective_edge": 0.0531,
+          "cross_validation_passed": 8,
+          "stability_count": 5,
+          "recall_priority": 0.8234,
+          "source_model_count": 8,
+          "condition_count": 9,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 20,
+          "rank": 3,
+          "short_pack_precision_score": 1.1198,
+          "micro_confidence_score": 0.9602,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1207,
+          "objective_edge": 0.0411,
+          "cross_validation_passed": 7,
+          "stability_count": 4,
+          "recall_priority": 0.8349,
+          "source_model_count": 8,
+          "condition_count": 9,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 30,
+          "rank": 4,
+          "short_pack_precision_score": 1.0971,
+          "micro_confidence_score": 0.8957,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1262,
+          "objective_edge": 0.0556,
+          "cross_validation_passed": 5,
+          "stability_count": 3,
+          "recall_priority": 0.8448,
+          "source_model_count": 8,
+          "condition_count": 8,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 1,
+          "rank": 5,
+          "short_pack_precision_score": 1.0845,
+          "micro_confidence_score": 0.9136,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.0937,
+          "objective_edge": 0.0509,
+          "cross_validation_passed": 7,
+          "stability_count": 3,
+          "recall_priority": 0.8082,
+          "source_model_count": 8,
+          "condition_count": 9,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 17,
+          "rank": 7,
+          "short_pack_precision_score": 0.9443,
+          "micro_confidence_score": 0.7896,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1045,
+          "objective_edge": 0.03,
+          "cross_validation_passed": 4,
+          "stability_count": 4,
+          "recall_priority": 0.696,
+          "source_model_count": 8,
+          "condition_count": 7,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 14,
+          "rank": 16,
+          "short_pack_precision_score": 0.9188,
+          "micro_confidence_score": 0.5886,
+          "score": 1.0,
+          "probability_percent": 10.86,
+          "posterior_hit_rate": 0.1262,
+          "objective_edge": 0.0455,
+          "cross_validation_passed": 7,
+          "stability_count": 4,
+          "recall_priority": 0.6282,
+          "source_model_count": 8,
+          "condition_count": 6,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        }
+      ],
+      "selected_number_audit": [
+        {
+          "number": 8,
+          "rank": 1,
+          "short_pack_precision_score": 1.2674,
+          "micro_confidence_score": 1.0399,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.2028,
+          "objective_edge": 0.0631,
+          "cross_validation_passed": 8,
+          "stability_count": 5,
+          "recall_priority": 0.9531,
+          "source_model_count": 8,
+          "condition_count": 10,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        }
+      ],
+      "daily_output_required": true,
+      "selection_rule": "short_pack_multi_model_arbitration_v1"
     },
     "two_hit_one": {
       "name": "最強2中1",
       "hit_goal": 1,
       "numbers": [
         8,
-        24
+        25
       ],
       "score_sum": 2.0,
       "avg_score": 1.0,
@@ -43448,7 +44541,7 @@
       },
       "tails": {
         "8": 1,
-        "4": 1
+        "5": 1
       },
       "governance": {
         "rounds": 120,
@@ -43461,6 +44554,12 @@
         "passed": true,
         "best_variant": "slump_recall",
         "variant_results": {
+          "short_pack_precision": {
+            "rounds": 120,
+            "pass_rate": 0.292,
+            "avg_hits": 0.3,
+            "zero_hit_rate": 0.708
+          },
           "micro_confidence": {
             "rounds": 120,
             "pass_rate": 0.283,
@@ -43487,90 +44586,357 @@
           }
         }
       },
-      "selection_variant": "micro_confidence",
-      "selection_model": "micro_confidence_short_pack",
-      "micro_confidence_audit": [
+      "release_note": "short pack is always calculated every fresh draw by multi-model arbitration",
+      "selection_variant": "short_pack_precision",
+      "selection_model": "short_pack_multi_model_arbitration",
+      "short_pack_precision_audit": [
         {
           "number": 8,
           "rank": 1,
+          "short_pack_precision_score": 1.2674,
           "micro_confidence_score": 1.0399,
           "score": 1.0,
           "probability_percent": 18.72,
+          "posterior_hit_rate": 0.2028,
+          "objective_edge": 0.0631,
           "cross_validation_passed": 8,
           "stability_count": 5,
-          "recall_priority": 0.9531
-        },
-        {
-          "number": 24,
-          "rank": 2,
-          "micro_confidence_score": 1.0077,
-          "score": 1.0,
-          "probability_percent": 18.72,
-          "cross_validation_passed": 8,
-          "stability_count": 5,
-          "recall_priority": 0.8234
-        },
-        {
-          "number": 20,
-          "rank": 3,
-          "micro_confidence_score": 0.9602,
-          "score": 1.0,
-          "probability_percent": 18.72,
-          "cross_validation_passed": 7,
-          "stability_count": 4,
-          "recall_priority": 0.8349
-        },
-        {
-          "number": 1,
-          "rank": 5,
-          "micro_confidence_score": 0.9136,
-          "score": 1.0,
-          "probability_percent": 18.72,
-          "cross_validation_passed": 7,
-          "stability_count": 3,
-          "recall_priority": 0.8082
+          "recall_priority": 0.9531,
+          "source_model_count": 8,
+          "condition_count": 10,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
         },
         {
           "number": 25,
           "rank": 6,
+          "short_pack_precision_score": 1.1443,
           "micro_confidence_score": 0.8985,
           "score": 1.0,
           "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1696,
+          "objective_edge": 0.0577,
           "cross_validation_passed": 7,
           "stability_count": 3,
-          "recall_priority": 0.7739
+          "recall_priority": 0.7739,
+          "source_model_count": 8,
+          "condition_count": 10,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 24,
+          "rank": 2,
+          "short_pack_precision_score": 1.1415,
+          "micro_confidence_score": 1.0077,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1106,
+          "objective_edge": 0.0531,
+          "cross_validation_passed": 8,
+          "stability_count": 5,
+          "recall_priority": 0.8234,
+          "source_model_count": 8,
+          "condition_count": 9,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 20,
+          "rank": 3,
+          "short_pack_precision_score": 1.1198,
+          "micro_confidence_score": 0.9602,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1207,
+          "objective_edge": 0.0411,
+          "cross_validation_passed": 7,
+          "stability_count": 4,
+          "recall_priority": 0.8349,
+          "source_model_count": 8,
+          "condition_count": 9,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
         },
         {
           "number": 30,
           "rank": 4,
+          "short_pack_precision_score": 1.0971,
           "micro_confidence_score": 0.8957,
           "score": 1.0,
           "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1262,
+          "objective_edge": 0.0556,
           "cross_validation_passed": 5,
           "stability_count": 3,
-          "recall_priority": 0.8448
+          "recall_priority": 0.8448,
+          "source_model_count": 8,
+          "condition_count": 8,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 1,
+          "rank": 5,
+          "short_pack_precision_score": 1.0845,
+          "micro_confidence_score": 0.9136,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.0937,
+          "objective_edge": 0.0509,
+          "cross_validation_passed": 7,
+          "stability_count": 3,
+          "recall_priority": 0.8082,
+          "source_model_count": 8,
+          "condition_count": 9,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
         },
         {
           "number": 17,
           "rank": 7,
+          "short_pack_precision_score": 0.9443,
           "micro_confidence_score": 0.7896,
           "score": 1.0,
           "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1045,
+          "objective_edge": 0.03,
           "cross_validation_passed": 4,
           "stability_count": 4,
-          "recall_priority": 0.696
+          "recall_priority": 0.696,
+          "source_model_count": 8,
+          "condition_count": 7,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 14,
+          "rank": 16,
+          "short_pack_precision_score": 0.9188,
+          "micro_confidence_score": 0.5886,
+          "score": 1.0,
+          "probability_percent": 10.86,
+          "posterior_hit_rate": 0.1262,
+          "objective_edge": 0.0455,
+          "cross_validation_passed": 7,
+          "stability_count": 4,
+          "recall_priority": 0.6282,
+          "source_model_count": 8,
+          "condition_count": 6,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
         },
         {
           "number": 27,
           "rank": 8,
+          "short_pack_precision_score": 0.8974,
           "micro_confidence_score": 0.7265,
           "score": 0.7071,
           "probability_percent": 15.94,
+          "posterior_hit_rate": 0.0998,
+          "objective_edge": 0.0496,
           "cross_validation_passed": 8,
           "stability_count": 1,
-          "recall_priority": 0.7295
+          "recall_priority": 0.7295,
+          "source_model_count": 8,
+          "condition_count": 7,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 12,
+          "rank": 11,
+          "short_pack_precision_score": 0.8955,
+          "micro_confidence_score": 0.633,
+          "score": 1.0,
+          "probability_percent": 13.48,
+          "posterior_hit_rate": 0.1575,
+          "objective_edge": 0.0304,
+          "cross_validation_passed": 6,
+          "stability_count": 5,
+          "recall_priority": 0.5863,
+          "source_model_count": 8,
+          "condition_count": 7,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
         }
-      ]
+      ],
+      "micro_confidence_audit": [
+        {
+          "number": 8,
+          "rank": 1,
+          "short_pack_precision_score": 1.2674,
+          "micro_confidence_score": 1.0399,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.2028,
+          "objective_edge": 0.0631,
+          "cross_validation_passed": 8,
+          "stability_count": 5,
+          "recall_priority": 0.9531,
+          "source_model_count": 8,
+          "condition_count": 10,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 25,
+          "rank": 6,
+          "short_pack_precision_score": 1.1443,
+          "micro_confidence_score": 0.8985,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1696,
+          "objective_edge": 0.0577,
+          "cross_validation_passed": 7,
+          "stability_count": 3,
+          "recall_priority": 0.7739,
+          "source_model_count": 8,
+          "condition_count": 10,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 24,
+          "rank": 2,
+          "short_pack_precision_score": 1.1415,
+          "micro_confidence_score": 1.0077,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1106,
+          "objective_edge": 0.0531,
+          "cross_validation_passed": 8,
+          "stability_count": 5,
+          "recall_priority": 0.8234,
+          "source_model_count": 8,
+          "condition_count": 9,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 20,
+          "rank": 3,
+          "short_pack_precision_score": 1.1198,
+          "micro_confidence_score": 0.9602,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1207,
+          "objective_edge": 0.0411,
+          "cross_validation_passed": 7,
+          "stability_count": 4,
+          "recall_priority": 0.8349,
+          "source_model_count": 8,
+          "condition_count": 9,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 30,
+          "rank": 4,
+          "short_pack_precision_score": 1.0971,
+          "micro_confidence_score": 0.8957,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1262,
+          "objective_edge": 0.0556,
+          "cross_validation_passed": 5,
+          "stability_count": 3,
+          "recall_priority": 0.8448,
+          "source_model_count": 8,
+          "condition_count": 8,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 1,
+          "rank": 5,
+          "short_pack_precision_score": 1.0845,
+          "micro_confidence_score": 0.9136,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.0937,
+          "objective_edge": 0.0509,
+          "cross_validation_passed": 7,
+          "stability_count": 3,
+          "recall_priority": 0.8082,
+          "source_model_count": 8,
+          "condition_count": 9,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 17,
+          "rank": 7,
+          "short_pack_precision_score": 0.9443,
+          "micro_confidence_score": 0.7896,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1045,
+          "objective_edge": 0.03,
+          "cross_validation_passed": 4,
+          "stability_count": 4,
+          "recall_priority": 0.696,
+          "source_model_count": 8,
+          "condition_count": 7,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 14,
+          "rank": 16,
+          "short_pack_precision_score": 0.9188,
+          "micro_confidence_score": 0.5886,
+          "score": 1.0,
+          "probability_percent": 10.86,
+          "posterior_hit_rate": 0.1262,
+          "objective_edge": 0.0455,
+          "cross_validation_passed": 7,
+          "stability_count": 4,
+          "recall_priority": 0.6282,
+          "source_model_count": 8,
+          "condition_count": 6,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        }
+      ],
+      "selected_number_audit": [
+        {
+          "number": 8,
+          "rank": 1,
+          "short_pack_precision_score": 1.2674,
+          "micro_confidence_score": 1.0399,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.2028,
+          "objective_edge": 0.0631,
+          "cross_validation_passed": 8,
+          "stability_count": 5,
+          "recall_priority": 0.9531,
+          "source_model_count": 8,
+          "condition_count": 10,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 25,
+          "rank": 6,
+          "short_pack_precision_score": 1.1443,
+          "micro_confidence_score": 0.8985,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1696,
+          "objective_edge": 0.0577,
+          "cross_validation_passed": 7,
+          "stability_count": 3,
+          "recall_priority": 0.7739,
+          "source_model_count": 8,
+          "condition_count": 10,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        }
+      ],
+      "daily_output_required": true,
+      "selection_rule": "short_pack_multi_model_arbitration_v1"
     },
     "three_hit_one": {
       "name": "最強3中1",
@@ -43578,7 +44944,7 @@
       "numbers": [
         8,
         20,
-        24
+        25
       ],
       "score_sum": 3.0,
       "avg_score": 1.0,
@@ -43598,7 +44964,7 @@
       "tails": {
         "8": 1,
         "0": 1,
-        "4": 1
+        "5": 1
       },
       "governance": {
         "rounds": 120,
@@ -43611,6 +44977,12 @@
         "passed": true,
         "best_variant": "slump_recall",
         "variant_results": {
+          "short_pack_precision": {
+            "rounds": 120,
+            "pass_rate": 0.408,
+            "avg_hits": 0.425,
+            "zero_hit_rate": 0.592
+          },
           "micro_confidence": {
             "rounds": 120,
             "pass_rate": 0.358,
@@ -43637,90 +45009,374 @@
           }
         }
       },
-      "selection_variant": "micro_confidence",
-      "selection_model": "micro_confidence_short_pack",
-      "micro_confidence_audit": [
+      "release_note": "short pack is always calculated every fresh draw by multi-model arbitration",
+      "selection_variant": "short_pack_precision",
+      "selection_model": "short_pack_multi_model_arbitration",
+      "short_pack_precision_audit": [
         {
           "number": 8,
           "rank": 1,
+          "short_pack_precision_score": 1.2674,
           "micro_confidence_score": 1.0399,
           "score": 1.0,
           "probability_percent": 18.72,
+          "posterior_hit_rate": 0.2028,
+          "objective_edge": 0.0631,
           "cross_validation_passed": 8,
           "stability_count": 5,
-          "recall_priority": 0.9531
-        },
-        {
-          "number": 24,
-          "rank": 2,
-          "micro_confidence_score": 1.0077,
-          "score": 1.0,
-          "probability_percent": 18.72,
-          "cross_validation_passed": 8,
-          "stability_count": 5,
-          "recall_priority": 0.8234
-        },
-        {
-          "number": 20,
-          "rank": 3,
-          "micro_confidence_score": 0.9602,
-          "score": 1.0,
-          "probability_percent": 18.72,
-          "cross_validation_passed": 7,
-          "stability_count": 4,
-          "recall_priority": 0.8349
-        },
-        {
-          "number": 1,
-          "rank": 5,
-          "micro_confidence_score": 0.9136,
-          "score": 1.0,
-          "probability_percent": 18.72,
-          "cross_validation_passed": 7,
-          "stability_count": 3,
-          "recall_priority": 0.8082
+          "recall_priority": 0.9531,
+          "source_model_count": 8,
+          "condition_count": 10,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
         },
         {
           "number": 25,
           "rank": 6,
+          "short_pack_precision_score": 1.1443,
           "micro_confidence_score": 0.8985,
           "score": 1.0,
           "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1696,
+          "objective_edge": 0.0577,
           "cross_validation_passed": 7,
           "stability_count": 3,
-          "recall_priority": 0.7739
+          "recall_priority": 0.7739,
+          "source_model_count": 8,
+          "condition_count": 10,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 24,
+          "rank": 2,
+          "short_pack_precision_score": 1.1415,
+          "micro_confidence_score": 1.0077,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1106,
+          "objective_edge": 0.0531,
+          "cross_validation_passed": 8,
+          "stability_count": 5,
+          "recall_priority": 0.8234,
+          "source_model_count": 8,
+          "condition_count": 9,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 20,
+          "rank": 3,
+          "short_pack_precision_score": 1.1198,
+          "micro_confidence_score": 0.9602,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1207,
+          "objective_edge": 0.0411,
+          "cross_validation_passed": 7,
+          "stability_count": 4,
+          "recall_priority": 0.8349,
+          "source_model_count": 8,
+          "condition_count": 9,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
         },
         {
           "number": 30,
           "rank": 4,
+          "short_pack_precision_score": 1.0971,
           "micro_confidence_score": 0.8957,
           "score": 1.0,
           "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1262,
+          "objective_edge": 0.0556,
           "cross_validation_passed": 5,
           "stability_count": 3,
-          "recall_priority": 0.8448
+          "recall_priority": 0.8448,
+          "source_model_count": 8,
+          "condition_count": 8,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 1,
+          "rank": 5,
+          "short_pack_precision_score": 1.0845,
+          "micro_confidence_score": 0.9136,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.0937,
+          "objective_edge": 0.0509,
+          "cross_validation_passed": 7,
+          "stability_count": 3,
+          "recall_priority": 0.8082,
+          "source_model_count": 8,
+          "condition_count": 9,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
         },
         {
           "number": 17,
           "rank": 7,
+          "short_pack_precision_score": 0.9443,
           "micro_confidence_score": 0.7896,
           "score": 1.0,
           "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1045,
+          "objective_edge": 0.03,
           "cross_validation_passed": 4,
           "stability_count": 4,
-          "recall_priority": 0.696
+          "recall_priority": 0.696,
+          "source_model_count": 8,
+          "condition_count": 7,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 14,
+          "rank": 16,
+          "short_pack_precision_score": 0.9188,
+          "micro_confidence_score": 0.5886,
+          "score": 1.0,
+          "probability_percent": 10.86,
+          "posterior_hit_rate": 0.1262,
+          "objective_edge": 0.0455,
+          "cross_validation_passed": 7,
+          "stability_count": 4,
+          "recall_priority": 0.6282,
+          "source_model_count": 8,
+          "condition_count": 6,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
         },
         {
           "number": 27,
           "rank": 8,
+          "short_pack_precision_score": 0.8974,
           "micro_confidence_score": 0.7265,
           "score": 0.7071,
           "probability_percent": 15.94,
+          "posterior_hit_rate": 0.0998,
+          "objective_edge": 0.0496,
           "cross_validation_passed": 8,
           "stability_count": 1,
-          "recall_priority": 0.7295
+          "recall_priority": 0.7295,
+          "source_model_count": 8,
+          "condition_count": 7,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 12,
+          "rank": 11,
+          "short_pack_precision_score": 0.8955,
+          "micro_confidence_score": 0.633,
+          "score": 1.0,
+          "probability_percent": 13.48,
+          "posterior_hit_rate": 0.1575,
+          "objective_edge": 0.0304,
+          "cross_validation_passed": 6,
+          "stability_count": 5,
+          "recall_priority": 0.5863,
+          "source_model_count": 8,
+          "condition_count": 7,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
         }
-      ]
+      ],
+      "micro_confidence_audit": [
+        {
+          "number": 8,
+          "rank": 1,
+          "short_pack_precision_score": 1.2674,
+          "micro_confidence_score": 1.0399,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.2028,
+          "objective_edge": 0.0631,
+          "cross_validation_passed": 8,
+          "stability_count": 5,
+          "recall_priority": 0.9531,
+          "source_model_count": 8,
+          "condition_count": 10,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 25,
+          "rank": 6,
+          "short_pack_precision_score": 1.1443,
+          "micro_confidence_score": 0.8985,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1696,
+          "objective_edge": 0.0577,
+          "cross_validation_passed": 7,
+          "stability_count": 3,
+          "recall_priority": 0.7739,
+          "source_model_count": 8,
+          "condition_count": 10,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 24,
+          "rank": 2,
+          "short_pack_precision_score": 1.1415,
+          "micro_confidence_score": 1.0077,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1106,
+          "objective_edge": 0.0531,
+          "cross_validation_passed": 8,
+          "stability_count": 5,
+          "recall_priority": 0.8234,
+          "source_model_count": 8,
+          "condition_count": 9,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 20,
+          "rank": 3,
+          "short_pack_precision_score": 1.1198,
+          "micro_confidence_score": 0.9602,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1207,
+          "objective_edge": 0.0411,
+          "cross_validation_passed": 7,
+          "stability_count": 4,
+          "recall_priority": 0.8349,
+          "source_model_count": 8,
+          "condition_count": 9,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 30,
+          "rank": 4,
+          "short_pack_precision_score": 1.0971,
+          "micro_confidence_score": 0.8957,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1262,
+          "objective_edge": 0.0556,
+          "cross_validation_passed": 5,
+          "stability_count": 3,
+          "recall_priority": 0.8448,
+          "source_model_count": 8,
+          "condition_count": 8,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 1,
+          "rank": 5,
+          "short_pack_precision_score": 1.0845,
+          "micro_confidence_score": 0.9136,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.0937,
+          "objective_edge": 0.0509,
+          "cross_validation_passed": 7,
+          "stability_count": 3,
+          "recall_priority": 0.8082,
+          "source_model_count": 8,
+          "condition_count": 9,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 17,
+          "rank": 7,
+          "short_pack_precision_score": 0.9443,
+          "micro_confidence_score": 0.7896,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1045,
+          "objective_edge": 0.03,
+          "cross_validation_passed": 4,
+          "stability_count": 4,
+          "recall_priority": 0.696,
+          "source_model_count": 8,
+          "condition_count": 7,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 14,
+          "rank": 16,
+          "short_pack_precision_score": 0.9188,
+          "micro_confidence_score": 0.5886,
+          "score": 1.0,
+          "probability_percent": 10.86,
+          "posterior_hit_rate": 0.1262,
+          "objective_edge": 0.0455,
+          "cross_validation_passed": 7,
+          "stability_count": 4,
+          "recall_priority": 0.6282,
+          "source_model_count": 8,
+          "condition_count": 6,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        }
+      ],
+      "selected_number_audit": [
+        {
+          "number": 8,
+          "rank": 1,
+          "short_pack_precision_score": 1.2674,
+          "micro_confidence_score": 1.0399,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.2028,
+          "objective_edge": 0.0631,
+          "cross_validation_passed": 8,
+          "stability_count": 5,
+          "recall_priority": 0.9531,
+          "source_model_count": 8,
+          "condition_count": 10,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 25,
+          "rank": 6,
+          "short_pack_precision_score": 1.1443,
+          "micro_confidence_score": 0.8985,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1696,
+          "objective_edge": 0.0577,
+          "cross_validation_passed": 7,
+          "stability_count": 3,
+          "recall_priority": 0.7739,
+          "source_model_count": 8,
+          "condition_count": 10,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        },
+        {
+          "number": 20,
+          "rank": 3,
+          "short_pack_precision_score": 1.1198,
+          "micro_confidence_score": 0.9602,
+          "score": 1.0,
+          "probability_percent": 18.72,
+          "posterior_hit_rate": 0.1207,
+          "objective_edge": 0.0411,
+          "cross_validation_passed": 7,
+          "stability_count": 4,
+          "recall_priority": 0.8349,
+          "source_model_count": 8,
+          "condition_count": 9,
+          "selection_penalty": 0.0,
+          "model": "short_pack_multi_model_arbitration_v1"
+        }
+      ],
+      "daily_output_required": true,
+      "selection_rule": "short_pack_multi_model_arbitration_v1"
     },
     "five_hit_two": {
       "name": "最強5中2",
@@ -44735,5 +46391,5 @@
       }
     }
   },
-  "official_prediction_status": "observation_only_recalculated_same_as_official"
+  "official_prediction_status": "observation_only_inserted"
 }

@@ -78,8 +78,8 @@
       "name": "最強3中1",
       "hit_goal": 1,
       "numbers": [
+        5,
         8,
-        20,
         29
       ],
       "hits": 1,
@@ -117,7 +117,7 @@
     }
   },
   "status": "settled",
-  "created_at": "2026-06-25T07:12:49",
-  "settled_at": "2026-06-25T15:33:45",
-  "snapshot_count": 8
+  "created_at": "2026-06-25T08:51:20",
+  "settled_at": "2026-06-26T06:43:02",
+  "snapshot_count": 9
 }

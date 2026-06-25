@@ -44,6 +44,7 @@ def fmt_numbers(numbers):
 
 TEXT_REPLACEMENTS = [
     ("current_precision_stability_v44_micro_confidence_short_packs", "目前精準穩定第44版：短包信心精算"),
+    ("industrial_v19_short_pack_multi_model_arbitration", "工業級第19版：短包多模型仲裁"),
     ("industrial_v18_front9_precision_recall_lock", "工業級第18版：前9精準召回鎖定"),
     ("industrial_v17_micro_confidence_short_packs", "工業級第17版：短包信心精算"),
     ("daily_and_monthly_miss_review_rolls_into_next_prediction_with_recall_mode", "每日與月度失誤回灌到下期召回模式"),
@@ -53,9 +54,13 @@ TEXT_REPLACEMENTS = [
     ("critical_recall_gap", "重大漏抓回補"),
     ("withheld_low_score", "分數未達門檻暫停"),
     ("withheld_backtest_not_passed", "回測未通過暫停輸出"),
+    ("recent walk-forward pack performance did not pass official gate; output as daily research prediction", "近期滾動回測未通過正式門檻，仍列每日研究預測"),
+    ("short pack is always calculated every fresh draw by multi-model arbitration", "短包每期資料更新後固定由多模型仲裁重新計算"),
+    ("strict walk-forward governance with daily variant tournament; lower confidence packs are still output as research predictions", "嚴格滾動回測治理與每日模型競賽；信心較低的包仍列為研究預測"),
     ("cross_consensus", "交叉共識"),
     ("distribution_balance", "分布平衡"),
     ("micro_confidence", "短包信心"),
+    ("short_pack_multi_model_arbitration", "短包多模型仲裁"),
     ("walk-forward", "滾動回測"),
     ("walk_forward", "滾動回測"),
     ("SHA-256", "雜湊指紋"),
@@ -1188,6 +1193,7 @@ def build_html_report(markdown_text):
             status = pack.get("status", "released")
             reason = pack.get("withheld_reason", "")
             variant_label = {
+                "short_pack_precision": "短包多模型仲裁",
                 "micro_confidence": "短包超強信心精算",
                 "target_precision": "目標精準模型",
                 "single_precision": "獨支精準模型",
@@ -1232,10 +1238,11 @@ def build_html_report(markdown_text):
         for row in pack.get("micro_confidence_audit", [])[:5]:
             number = int(row.get("number"))
             mark = "主選" if number in selected else "備選"
+            precision_score = row.get("short_pack_precision_score", row.get("micro_confidence_score"))
             micro_confidence_rows += (
                 "<tr>"
                 f"<td>{label}</td><td>{mark}</td><td>{number:02d}</td>"
-                f"<td>{row.get('rank')}</td><td>{row.get('micro_confidence_score')}</td>"
+                f"<td>{row.get('rank')}</td><td>{precision_score}</td>"
                 f"<td>{row.get('probability_percent')}%</td><td>{row.get('cross_validation_passed')}</td>"
                 f"<td>{row.get('stability_count')}</td><td>{row.get('recall_priority')}</td>"
                 "</tr>"
@@ -2112,7 +2119,7 @@ def build_html_report(markdown_text):
       <h3>高機率信心牌特別強調</h3>
       <table><thead><tr><th>號碼</th><th>排名</th><th>保守機率</th><th>分數</th><th>信心</th><th>召回優先分</th><th>交叉通過</th><th>明確原因</th><th>備註</th></tr></thead><tbody>{decision_high_confidence_rows}</tbody></table>
       <h3>獨隻 / 2中1 / 3中1 短包超強信心精算</h3>
-      <table><thead><tr><th>短包</th><th>狀態</th><th>號碼</th><th>排名</th><th>短包精算分</th><th>保守機率</th><th>交叉通過</th><th>穩定次數</th><th>召回分</th></tr></thead><tbody>{micro_confidence_rows}</tbody></table>
+      <table><thead><tr><th>短包</th><th>狀態</th><th>號碼</th><th>排名</th><th>多模型仲裁分</th><th>保守機率</th><th>交叉通過</th><th>穩定次數</th><th>召回分</th></tr></thead><tbody>{micro_confidence_rows}</tbody></table>
       <p>本期9碼攻擊核心：{fmt_numbers(decision_core_numbers)}</p>
     </section>
     <section class="band notice">
