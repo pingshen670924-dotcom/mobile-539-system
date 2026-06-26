@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-26T23:18:10",
+  "generated_at": "2026-06-26T23:23:23",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000155,
@@ -17,7 +17,7 @@
     "latest_date": "2026-06-26",
     "expected_latest_date": "2026-06-26",
     "lag_days": 0,
-    "checked_at": "2026-06-26T23:17:12"
+    "checked_at": "2026-06-26T23:22:21"
   },
   "windows": [
     {
@@ -2516,13 +2516,13 @@
           "hit_rate": 1.0
         },
         {
-          "reason": "上期失敗號碼僅微降權",
+          "reason": "與上期號碼近100期共現6次",
           "hit": 1,
           "miss": 1,
           "hit_rate": 0.5
         },
         {
-          "reason": "與上期號碼近100期共現6次",
+          "reason": "上期失敗號碼僅微降權",
           "hit": 1,
           "miss": 1,
           "hit_rate": 0.5
@@ -3856,13 +3856,13 @@
             "hit_rate": 1.0
           },
           {
-            "reason": "上期失敗號碼僅微降權",
+            "reason": "與上期號碼近100期共現6次",
             "hit": 1,
             "miss": 1,
             "hit_rate": 0.5
           },
           {
-            "reason": "與上期號碼近100期共現6次",
+            "reason": "上期失敗號碼僅微降權",
             "hit": 1,
             "miss": 1,
             "hit_rate": 0.5
@@ -46554,5 +46554,5 @@
       }
     }
   },
-  "official_prediction_status": "observation_only_inserted"
+  "official_prediction_status": "observation_only_recalculated_same_as_official"
 }
