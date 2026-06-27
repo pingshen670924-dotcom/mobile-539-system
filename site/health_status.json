@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-06-27T16:52:20",
+  "generated_at": "2026-06-27T17:22:01",
   "database_exists": true,
   "backup_count": 1,
-  "latest_backup": "/home/runner/work/mobile-539-system/mobile-539-system/backups/539_20260627_165054.sqlite",
+  "latest_backup": "/home/runner/work/mobile-539-system/mobile-539-system/backups/539_20260627_172034.sqlite",
   "log_exists": true,
   "latest_analysis_exists": true,
   "status": "ok",
@@ -28,7 +28,7 @@
       32
     ],
     "source": "taiwanlottery_latest_result",
-    "fetched_at": "2026-06-27T16:50:56"
+    "fetched_at": "2026-06-27T17:20:35"
   },
   "data_freshness": {
     "status": "fresh",
@@ -37,14 +37,14 @@
   },
   "last_run": {
     "run_type": "latest",
-    "started_at": "2026-06-27T16:50:54",
-    "finished_at": "2026-06-27T16:50:56",
+    "started_at": "2026-06-27T17:20:34",
+    "finished_at": "2026-06-27T17:20:35",
     "status": "success",
     "message": "{\"rows\": 5900, \"invalid_periods\": [], \"duplicate_periods\": [], \"latest_period\": 115000156, \"latest_date\": \"2026-06-27\"}"
   },
   "pending_predictions": 1,
   "settled_predictions": 23,
-  "prediction_snapshots": 182,
+  "prediction_snapshots": 183,
   "prediction_performance": {
     "settled": 23,
     "top5_avg_hits": 0.739,
@@ -201,8 +201,8 @@
   },
   "mobile": {
     "status": "built",
-    "version": "20260627155026",
-    "mobile_built_at": "2026-06-27T15:50:26",
+    "version": "20260627165221",
+    "mobile_built_at": "2026-06-27T16:52:21",
     "latest_period": 115000156,
     "latest_draw_date": "2026-06-27"
   }
