@@ -1,5 +1,5 @@
 ﻿{
-    "repaired_at":  "2026-06-26T06:40:33",
+    "repaired_at":  "2026-06-29T10:08:16",
     "root":  "C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem",
     "runner":  "C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\run_539_once.ps1",
     "main_runner":  "C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\main_one_click.ps1",
@@ -153,9 +153,21 @@
                                       "message":  "schtasks_delete_failed_1"
                                   }
                               ],
-    "legacy_forwarders":  {
-                              "path":  "C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\封包輸出\\539-aerospace-v36-assurance-20260606141635\\run_539_once.ps1",
-                              "status":  "ok",
-                              "message":  "legacy_task_forwarded_to_current_post_draw_sync"
-                          }
+    "legacy_forwarders":  [
+                              {
+                                  "path":  "C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\封包輸出\\539-aerospace-v36-assurance-20260606141635\\run_539_once.ps1",
+                                  "status":  "ok",
+                                  "message":  "legacy_task_forwarded_to_current_post_draw_sync"
+                              },
+                              {
+                                  "path":  "C:\\Users\\MSI\\Documents\\Codex\\539主系統_排程與手機入口修正版_20260611_095431\\run_539_once.ps1",
+                                  "status":  "ok",
+                                  "message":  "legacy_task_forwarded_to_current_post_draw_sync"
+                              },
+                              {
+                                  "path":  "C:\\Users\\MSI\\Documents\\Codex\\2026-06-01\\539\\outputs\\539-mobile-fully-independent-pwa-v21-20260604\\mobile_server.py",
+                                  "status":  "ok",
+                                  "message":  "legacy_mobile_server_forwarded_to_current_system"
+                              }
+                          ]
 }

@@ -45,6 +45,8 @@ def fmt_numbers(numbers):
 TEXT_REPLACEMENTS = [
     ("current_precision_stability_v44_micro_confidence_short_packs", "目前精準穩定第44版：短包信心精算"),
     ("industrial_v19_short_pack_multi_model_arbitration", "工業級第19版：短包多模型仲裁"),
+    ("industrial_v20_recall_pressure_cold_rebound", "工業級第20版：月度召回壓力與冷號反彈"),
+    ("industrial_v21_bagging_tail_zone_pressure", "工業級第21版：多視窗尾數轉移與區間配額"),
     ("industrial_v18_front9_precision_recall_lock", "工業級第18版：前9精準召回鎖定"),
     ("industrial_v17_micro_confidence_short_packs", "工業級第17版：短包信心精算"),
     ("daily_and_monthly_miss_review_rolls_into_next_prediction_with_recall_mode", "每日與月度失誤回灌到下期召回模式"),
@@ -1245,10 +1247,13 @@ def build_html_report(markdown_text):
                 f"<td>{row.get('rank')}</td><td>{precision_score}</td>"
                 f"<td>{row.get('probability_percent')}%</td><td>{row.get('cross_validation_passed')}</td>"
                 f"<td>{row.get('stability_count')}</td><td>{row.get('recall_priority')}</td>"
+                f"<td>{row.get('monthly_recall_pressure', '-')}</td><td>{row.get('cold_rebound_champion', '-')}</td>"
+                f"<td>{row.get('multi_window_bagging', '-')}</td><td>{row.get('tail_transition_bridge', '-')}</td>"
+                f"<td>{row.get('zone_quota_pressure', '-')}</td>"
                 "</tr>"
             )
     if not micro_confidence_rows:
-        micro_confidence_rows = "<tr><td colspan=\"9\">本期尚未產生短包超強信心精算資料。</td></tr>"
+        micro_confidence_rows = "<tr><td colspan=\"14\">本期尚未產生短包超強信心精算資料。</td></tr>"
 
     boosted_weight_rows = ""
     for item in weight_calibration.get("top_boosted_features", []):
@@ -2119,7 +2124,7 @@ def build_html_report(markdown_text):
       <h3>高機率信心牌特別強調</h3>
       <table><thead><tr><th>號碼</th><th>排名</th><th>保守機率</th><th>分數</th><th>信心</th><th>召回優先分</th><th>交叉通過</th><th>明確原因</th><th>備註</th></tr></thead><tbody>{decision_high_confidence_rows}</tbody></table>
       <h3>獨隻 / 2中1 / 3中1 短包超強信心精算</h3>
-      <table><thead><tr><th>短包</th><th>狀態</th><th>號碼</th><th>排名</th><th>多模型仲裁分</th><th>保守機率</th><th>交叉通過</th><th>穩定次數</th><th>召回分</th></tr></thead><tbody>{micro_confidence_rows}</tbody></table>
+      <table><thead><tr><th>短包</th><th>狀態</th><th>號碼</th><th>排名</th><th>多模型仲裁分</th><th>保守機率</th><th>交叉通過</th><th>穩定次數</th><th>召回分</th><th>月漏回拉</th><th>冷彈分</th><th>多視窗</th><th>尾轉分</th><th>區間配額</th></tr></thead><tbody>{micro_confidence_rows}</tbody></table>
       <p>本期9碼攻擊核心：{fmt_numbers(decision_core_numbers)}</p>
     </section>
     <section class="band notice">

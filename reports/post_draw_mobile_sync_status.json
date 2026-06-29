@@ -1,60 +1,60 @@
 ﻿{
     "status":  "fresh_synced_to_desktop_and_phone",
-    "started_at":  "2026-06-25T07:25:56",
-    "updated_at":  "2026-06-25T07:27:47",
+    "started_at":  "2026-06-29T10:32:18",
+    "updated_at":  "2026-06-29T10:35:02",
     "root":  "C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem",
-    "max_minutes":  5,
-    "interval_seconds":  30,
+    "max_minutes":  1,
+    "interval_seconds":  15,
     "attempts":  1,
     "freshness":  {
                       "status":  "fresh",
-                      "latest_date":  "2026-06-24",
-                      "expected_latest_date":  "2026-06-24",
-                      "latest_period":  115000153,
-                      "generated_at":  "2026-06-25T07:27:04"
+                      "latest_date":  "2026-06-27",
+                      "expected_latest_date":  "2026-06-27",
+                      "latest_period":  115000156,
+                      "generated_at":  "2026-06-29T10:34:06"
                   },
     "steps":  [
                   {
                       "label":  "Post-draw latest draw update attempt 1",
                       "exit_code":  0,
                       "required":  false,
-                      "finished_at":  "2026-06-25T07:27:30"
+                      "finished_at":  "2026-06-29T10:34:37"
                   },
                   {
                       "label":  "Rebuild battle report after fresh draw",
                       "exit_code":  0,
                       "required":  true,
-                      "finished_at":  "2026-06-25T07:27:31"
+                      "finished_at":  "2026-06-29T10:34:39"
                   },
                   {
                       "label":  "Rebuild model competition",
                       "exit_code":  0,
                       "required":  false,
-                      "finished_at":  "2026-06-25T07:27:44"
+                      "finished_at":  "2026-06-29T10:34:56"
                   },
                   {
                       "label":  "Health check",
                       "exit_code":  0,
                       "required":  false,
-                      "finished_at":  "2026-06-25T07:27:44"
+                      "finished_at":  "2026-06-29T10:34:56"
                   },
                   {
                       "label":  "Daily integrity audit",
                       "exit_code":  0,
                       "required":  false,
-                      "finished_at":  "2026-06-25T07:27:44"
+                      "finished_at":  "2026-06-29T10:34:56"
                   },
                   {
                       "label":  "Rebuild battle report after audit",
                       "exit_code":  0,
                       "required":  true,
-                      "finished_at":  "2026-06-25T07:27:45"
+                      "finished_at":  "2026-06-29T10:34:57"
                   },
                   {
                       "label":  "Rebuild phone site files",
                       "exit_code":  0,
                       "required":  false,
-                      "finished_at":  "2026-06-25T07:27:45"
+                      "finished_at":  "2026-06-29T10:34:57"
                   },
                   {
                       "label":  "ensure_mobile_server",
@@ -68,26 +68,26 @@
                       "label":  "Refresh phone live URL",
                       "exit_code":  0,
                       "required":  false,
-                      "finished_at":  "2026-06-25T07:27:46"
+                      "finished_at":  "2026-06-29T10:34:59"
                   },
                   {
                       "label":  "start_cloud_phone_publish",
                       "status":  "started",
                       "started":  true,
-                      "finished_at":  "2026-06-25T07:27:46"
+                      "finished_at":  "2026-06-29T10:34:59"
                   },
                   {
                       "label":  "Push LINE report",
                       "exit_code":  0,
                       "required":  false,
-                      "finished_at":  "2026-06-25T07:27:46"
+                      "finished_at":  "2026-06-29T10:34:59"
                   },
                   {
                       "label":  "File integrity and encoding check",
                       "exit_code":  0,
                       "required":  false,
-                      "finished_at":  "2026-06-25T07:27:46"
+                      "finished_at":  "2026-06-29T10:35:02"
                   }
               ],
-    "finished_at":  "2026-06-25T07:27:47"
+    "finished_at":  "2026-06-29T10:35:02"
 }

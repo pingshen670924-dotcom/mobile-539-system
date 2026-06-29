@@ -708,6 +708,210 @@ def rank_error_correction_scores(review):
     return normalize(values)
 
 
+def monthly_recall_pressure_scores(review):
+    if not review or not review.get("has_review"):
+        return {n: 0.0 for n in range(NUMBER_MIN, NUMBER_MAX + 1)}
+    monthly = review.get("monthly_review", {}) or {}
+    if not monthly or not monthly.get("sample_size"):
+        return {n: 0.0 for n in range(NUMBER_MIN, NUMBER_MAX + 1)}
+
+    late_rate = float(monthly.get("late_or_missing_rate", 0) or 0)
+    front_rate = float(monthly.get("front_hit_rate", 0) or 0)
+    pressure = 1.0 + max(0.0, late_rate - 0.45) * 1.35 + max(0.0, 0.34 - front_rate) * 1.10
+    values = {n: 0.0 for n in range(NUMBER_MIN, NUMBER_MAX + 1)}
+
+    missed_top10 = {
+        int(item.get("number")): int(item.get("missed_count", 0) or 0)
+        for item in monthly.get("missed_top10_numbers", [])
+        if item.get("number")
+    }
+    missed_top15 = {
+        int(item.get("number")): int(item.get("missed_count", 0) or 0)
+        for item in monthly.get("missed_top15_numbers", [])
+        if item.get("number")
+    }
+    missed_tails = {
+        int(item.get("tail")): int(item.get("missed_count", 0) or 0)
+        for item in monthly.get("missed_tails", [])
+        if item.get("tail") is not None
+    }
+    missed_zones = {
+        str(item.get("zone")): int(item.get("missed_count", 0) or 0)
+        for item in monthly.get("missed_zones", [])
+        if item.get("zone")
+    }
+
+    for number in range(NUMBER_MIN, NUMBER_MAX + 1):
+        score = 0.0
+        score += min(0.72, missed_top10.get(number, 0) * 0.105)
+        score += min(0.62, missed_top15.get(number, 0) * 0.095)
+        score += min(0.28, missed_tails.get(number % 10, 0) * 0.018)
+        score += min(0.24, missed_zones.get(zone_label(number), 0) * 0.012)
+        values[number] = score * pressure
+
+    for review_day in (monthly.get("daily_reviews") or [])[-8:]:
+        actual_ranks = review_day.get("actual_ranks") or {}
+        for number_text, rank_value in actual_ranks.items():
+            try:
+                number = int(number_text)
+            except (TypeError, ValueError):
+                continue
+            if not (NUMBER_MIN <= number <= NUMBER_MAX):
+                continue
+            if rank_value is None or int(rank_value) > 15:
+                values[number] += 0.34 * pressure
+            elif int(rank_value) > 9:
+                values[number] += 0.18 * pressure
+
+    settled = review.get("last_settled", {}) or {}
+    actual = {int(n) for n in settled.get("actual_numbers", []) if NUMBER_MIN <= int(n) <= NUMBER_MAX}
+    top10 = {int(n) for n in (settled.get("candidate_numbers") or [])[:10] if NUMBER_MIN <= int(n) <= NUMBER_MAX}
+    top15 = {int(n) for n in (settled.get("candidate_numbers") or [])[:15] if NUMBER_MIN <= int(n) <= NUMBER_MAX}
+    for number in actual - top10:
+        values[number] += 0.32 * pressure
+    for number in actual - top15:
+        values[number] += 0.24 * pressure
+        for candidate in range(NUMBER_MIN, NUMBER_MAX + 1):
+            if candidate != number and candidate % 10 == number % 10:
+                values[candidate] += 0.045 * pressure
+            if candidate != number and zone_label(candidate) == zone_label(number):
+                values[candidate] += 0.030 * pressure
+            if 1 <= abs(candidate - number) <= 2:
+                values[candidate] += 0.035 * pressure
+
+    return normalize(values)
+
+
+def cold_rebound_champion_scores(draws):
+    if len(draws) < 80:
+        return {n: 0.0 for n in range(NUMBER_MIN, NUMBER_MAX + 1)}
+    omissions = omission(draws)
+    recent20 = frequency(draws[-20:])
+    recent50 = frequency(draws[-50:])
+    mid100 = frequency(draws[-100:])
+    long300 = frequency(draws[-300:] if len(draws) >= 300 else draws)
+    omission_norm = normalize({n: math.log1p(omissions[n]) for n in range(NUMBER_MIN, NUMBER_MAX + 1)})
+    recent_cold = normalize({
+        n: max(0.0, 1.0 - recent20.get(n, 0) / max(1.0, DRAW_SIZE * 20 / NUMBER_MAX * 2.1))
+        for n in range(NUMBER_MIN, NUMBER_MAX + 1)
+    })
+    mid_support = normalize({n: mid100.get(n, 0) for n in range(NUMBER_MIN, NUMBER_MAX + 1)})
+    long_support = normalize({n: long300.get(n, 0) for n in range(NUMBER_MIN, NUMBER_MAX + 1)})
+    values = {}
+    for number in range(NUMBER_MIN, NUMBER_MAX + 1):
+        recent_count = recent20.get(number, 0)
+        score = (
+            omission_norm[number] * 0.38
+            + recent_cold[number] * 0.24
+            + mid_support[number] * 0.16
+            + long_support[number] * 0.12
+        )
+        if recent_count == 0 and omissions[number] >= EXPECTED_GAP * 0.70:
+            score += 0.18
+        if recent_count <= 1 and recent50.get(number, 0) <= 3 and mid100.get(number, 0) >= 8:
+            score += 0.12
+        if omissions[number] >= EXPECTED_GAP * 1.35:
+            score += 0.10
+        values[number] = score
+    return normalize(values)
+
+
+def multi_window_bagging_scores(draws):
+    if len(draws) < 40:
+        return {n: 0.0 for n in range(NUMBER_MIN, NUMBER_MAX + 1)}
+    windows = [7, 14, 21, 35, 70, 140, 280]
+    weights = [0.08, 0.11, 0.14, 0.16, 0.18, 0.18, 0.15]
+    values = {n: 0.0 for n in range(NUMBER_MIN, NUMBER_MAX + 1)}
+    support = Counter()
+    for window, weight in zip(windows, weights):
+        subset = draws[-window:] if len(draws) >= window else draws
+        freq = frequency(subset)
+        normalized = normalize({n: freq.get(n, 0) for n in range(NUMBER_MIN, NUMBER_MAX + 1)})
+        for number in range(NUMBER_MIN, NUMBER_MAX + 1):
+            values[number] += normalized[number] * weight
+            if normalized[number] >= 0.54:
+                support[number] += 1
+    for number, count in support.items():
+        values[number] += min(0.18, count * 0.028)
+    return normalize(values)
+
+
+def tail_transition_bridge_scores(draws, review=None, lookback=1800):
+    if len(draws) < 80:
+        return {n: 0.0 for n in range(NUMBER_MIN, NUMBER_MAX + 1)}
+    latest_tails = {number % 10 for number in draws[-1]["numbers"]}
+    tail_votes = Counter()
+    start = max(0, len(draws) - lookback - 1)
+    for idx in range(start, len(draws) - 1):
+        tails = {number % 10 for number in draws[idx]["numbers"]}
+        overlap = len(latest_tails & tails)
+        if overlap == 0:
+            continue
+        weight = (overlap / DRAW_SIZE) ** 1.45
+        for number in draws[idx + 1]["numbers"]:
+            tail_votes[number % 10] += weight
+
+    monthly = ((review or {}).get("monthly_review") or {})
+    for item in monthly.get("missed_tails", []):
+        if item.get("tail") is not None:
+            tail_votes[int(item.get("tail"))] += min(1.35, int(item.get("missed_count", 0) or 0) * 0.08)
+
+    settled = ((review or {}).get("last_settled") or {})
+    actual = {int(n) for n in settled.get("actual_numbers", []) if NUMBER_MIN <= int(n) <= NUMBER_MAX}
+    top10 = {int(n) for n in (settled.get("candidate_numbers") or [])[:10] if NUMBER_MIN <= int(n) <= NUMBER_MAX}
+    for number in actual - top10:
+        tail_votes[number % 10] += 0.42
+
+    tail_norm = normalize({tail: tail_votes.get(tail, 0.0) for tail in range(10)})
+    recent20 = frequency(draws[-20:])
+    omissions = omission(draws)
+    values = {}
+    for number in range(NUMBER_MIN, NUMBER_MAX + 1):
+        score = tail_norm[number % 10] * 0.76
+        if recent20.get(number, 0) <= 1 and omissions[number] >= EXPECTED_GAP * 0.55:
+            score += 0.12
+        if number % 10 in latest_tails:
+            score += 0.04
+        values[number] = score
+    return normalize(values)
+
+
+def zone_quota_pressure_scores(draws, review=None, lookback=1800):
+    if len(draws) < 80:
+        return {n: 0.0 for n in range(NUMBER_MIN, NUMBER_MAX + 1)}
+    latest_profile = draw_profile(draws[-1]["numbers"])
+    zone_votes = Counter()
+    start = max(0, len(draws) - lookback - 1)
+    for idx in range(start, len(draws) - 1):
+        similarity = profile_similarity(draw_profile(draws[idx]["numbers"]), latest_profile)
+        if similarity < 0.46:
+            continue
+        for number in draws[idx + 1]["numbers"]:
+            zone_votes[zone_label(number)] += similarity
+
+    monthly = ((review or {}).get("monthly_review") or {})
+    for item in monthly.get("missed_zones", []):
+        label = str(item.get("zone") or "")
+        if label:
+            zone_votes[label] += min(2.2, int(item.get("missed_count", 0) or 0) * 0.09)
+
+    settled = ((review or {}).get("last_settled") or {})
+    actual = {int(n) for n in settled.get("actual_numbers", []) if NUMBER_MIN <= int(n) <= NUMBER_MAX}
+    top10 = {int(n) for n in (settled.get("candidate_numbers") or [])[:10] if NUMBER_MIN <= int(n) <= NUMBER_MAX}
+    for number in actual - top10:
+        zone_votes[zone_label(number)] += 0.52
+
+    zone_norm = normalize({label: zone_votes.get(label, 0.0) for label in ["01-10", "11-20", "21-30", "31-39"]})
+    recent10_counts = Counter(zone_label(number) for draw in draws[-10:] for number in draw["numbers"])
+    values = {}
+    for number in range(NUMBER_MIN, NUMBER_MAX + 1):
+        label = zone_label(number)
+        score = zone_norm[label] * 0.72
+        score += max(0.0, 9.0 - recent10_counts.get(label, 0)) * 0.018
+        values[number] = score
+    return normalize(values)
+
+
 def slump_mode(review):
     recent = ((review or {}).get("rolling_adjustment") or {}).get("recent_performance", {})
     if recent.get("critical_slump"):
@@ -750,6 +954,11 @@ def build_feature_matrix(draws, review=None, include_dependency=True):
     zone_parity_pressure = zone_parity_pressure_scores(draws)
     missed_hit_recovery = missed_hit_recovery_scores(review)
     rank_error_correction = rank_error_correction_scores(review)
+    monthly_recall_pressure = monthly_recall_pressure_scores(review)
+    cold_rebound_champion = cold_rebound_champion_scores(draws)
+    multi_window_bagging = multi_window_bagging_scores(draws)
+    tail_transition_bridge = tail_transition_bridge_scores(draws, review)
+    zone_quota_pressure = zone_quota_pressure_scores(draws, review)
     regime_switch = regime_switch_scores(draws)
     zone_coverage_recovery = zone_coverage_recovery_scores(draws, review)
     cross_consensus = cross_model_consensus_scores([
@@ -772,6 +981,11 @@ def build_feature_matrix(draws, review=None, include_dependency=True):
         zone_parity_pressure,
         missed_hit_recovery,
         rank_error_correction,
+        monthly_recall_pressure,
+        cold_rebound_champion,
+        multi_window_bagging,
+        tail_transition_bridge,
+        zone_quota_pressure,
         regime_switch,
         zone_coverage_recovery,
     ])
@@ -786,6 +1000,11 @@ def build_feature_matrix(draws, review=None, include_dependency=True):
         shape_follow,
         zone_parity_pressure,
         rank_error_correction,
+        monthly_recall_pressure,
+        cold_rebound_champion,
+        multi_window_bagging,
+        tail_transition_bridge,
+        zone_quota_pressure,
         regime_switch,
         zone_coverage_recovery,
     ])
@@ -815,6 +1034,11 @@ def build_feature_matrix(draws, review=None, include_dependency=True):
         feature_scores[number]["zone_parity_pressure"] = zone_parity_pressure[number]
         feature_scores[number]["missed_hit_recovery"] = missed_hit_recovery[number]
         feature_scores[number]["rank_error_correction"] = rank_error_correction[number]
+        feature_scores[number]["monthly_recall_pressure"] = monthly_recall_pressure[number]
+        feature_scores[number]["cold_rebound_champion"] = cold_rebound_champion[number]
+        feature_scores[number]["multi_window_bagging"] = multi_window_bagging[number]
+        feature_scores[number]["tail_transition_bridge"] = tail_transition_bridge[number]
+        feature_scores[number]["zone_quota_pressure"] = zone_quota_pressure[number]
         feature_scores[number]["regime_switch"] = regime_switch[number]
         feature_scores[number]["zone_coverage_recovery"] = zone_coverage_recovery[number]
         feature_scores[number]["date"] = date_score[number]
@@ -852,6 +1076,11 @@ def industrial_weights(review=None):
         "zone_parity_pressure": 0.062,
         "missed_hit_recovery": 0.054,
         "rank_error_correction": 0.075,
+        "monthly_recall_pressure": 0.082,
+        "cold_rebound_champion": 0.072,
+        "multi_window_bagging": 0.064,
+        "tail_transition_bridge": 0.066,
+        "zone_quota_pressure": 0.070,
         "regime_switch": 0.052,
         "zone_coverage_recovery": 0.058,
         "date": 0.025,
@@ -878,6 +1107,11 @@ def industrial_weights(review=None):
                 "zone_parity_pressure": 0.082,
                 "missed_hit_recovery": 0.074,
                 "rank_error_correction": 0.105,
+                "monthly_recall_pressure": 0.132,
+                "cold_rebound_champion": 0.108,
+                "multi_window_bagging": 0.088,
+                "tail_transition_bridge": 0.112,
+                "zone_quota_pressure": 0.122,
                 "regime_switch": 0.074,
                 "zone_coverage_recovery": 0.088,
                 "repeat": 0.005,
@@ -897,6 +1131,11 @@ def industrial_weights(review=None):
                 weights[key] *= 0.74 if mode == "warning" else 0.58
         for key in [
             "rank_error_correction",
+            "monthly_recall_pressure",
+            "cold_rebound_champion",
+            "multi_window_bagging",
+            "tail_transition_bridge",
+            "zone_quota_pressure",
             "missed_hit_recovery",
             "omission",
             "bayesian_posterior",
@@ -940,6 +1179,11 @@ MODEL_SOURCE_LABELS = {
     "zone_parity_pressure": "\u5340\u9593\u5947\u5076\u58d3\u529b",
     "missed_hit_recovery": "\u6f0f\u547d\u4e2d\u56de\u6536",
     "rank_error_correction": "\u6392\u540d\u932f\u4f4d\u4fee\u6b63",
+    "monthly_recall_pressure": "\u6708\u5ea6\u6f0f\u6293\u58d3\u529b\u56de\u62c9",
+    "cold_rebound_champion": "\u51b7\u865f\u53cd\u5f48\u51a0\u8ecd\u6a21\u578b",
+    "multi_window_bagging": "\u591a\u7a97\u53e3\u888b\u88dd\u5171\u8b58",
+    "tail_transition_bridge": "\u5c3e\u6578\u8f49\u79fb\u6a4b\u63a5",
+    "zone_quota_pressure": "\u5340\u9593\u914d\u984d\u58d3\u529b",
     "regime_switch": "\u958b\u734e\u578b\u614b\u5207\u63db",
     "zone_coverage_recovery": "\u5206\u5340\u8986\u84cb\u56de\u88dc",
     "date": "\u65e5\u671f\u724c",
@@ -2287,6 +2531,10 @@ def score_numbers(draws, review=None, include_dependency=True, weights_override=
                 or number in missed_actual_numbers
                 or values.get("rank_error_correction", 0) >= 0.58
                 or values.get("missed_hit_recovery", 0) >= 0.58
+                or values.get("monthly_recall_pressure", 0) >= 0.58
+                or values.get("cold_rebound_champion", 0) >= 0.64
+                or values.get("tail_transition_bridge", 0) >= 0.62
+                or values.get("zone_quota_pressure", 0) >= 0.62
                 or values.get("zone_coverage_recovery", 0) >= 0.62
             )
             if reentry_signal:
@@ -2329,6 +2577,16 @@ def score_numbers(draws, review=None, include_dependency=True, weights_override=
             reasons[number].append("\u6f0f\u547d\u4e2d\u56de\u6536")
         if values["rank_error_correction"] >= 0.7:
             reasons[number].append("\u6392\u540d\u932f\u4f4d\u4fee\u6b63")
+        if values["monthly_recall_pressure"] >= 0.7:
+            reasons[number].append("\u6708\u5ea6\u6f0f\u6293\u58d3\u529b\u56de\u62c9")
+        if values["cold_rebound_champion"] >= 0.7:
+            reasons[number].append("\u51b7\u865f\u53cd\u5f48\u51a0\u8ecd\u6a21\u578b")
+        if values["multi_window_bagging"] >= 0.7:
+            reasons[number].append("\u591a\u7a97\u53e3\u888b\u88dd\u5171\u8b58")
+        if values["tail_transition_bridge"] >= 0.7:
+            reasons[number].append("\u5c3e\u6578\u8f49\u79fb\u6a4b\u63a5")
+        if values["zone_quota_pressure"] >= 0.7:
+            reasons[number].append("\u5340\u9593\u914d\u984d\u58d3\u529b")
         if values["regime_switch"] >= 0.7:
             reasons[number].append("\u958b\u734e\u578b\u614b\u5207\u63db")
         if values["zone_coverage_recovery"] >= 0.7:
@@ -2358,7 +2616,22 @@ def score_numbers(draws, review=None, include_dependency=True, weights_override=
         if number in monthly_recall_numbers and values["rank_error_correction"] >= 0.45:
             raw *= 1.18 if mode == "critical" else 1.12
             reasons[number].append("\u6708\u5ea6\u6f0f\u6293\u865f\u56de\u62c9")
-        elif (number % 10 in missed_actual_tails or zone_label(number) in missed_actual_zones) and mode in {"warning", "critical"}:
+        if values.get("monthly_recall_pressure", 0) >= 0.62:
+            raw *= 1.18 if mode == "critical" else 1.12 if mode == "warning" else 1.07
+            reasons[number].append("\u6708\u5ea6\u6f0f\u6293\u58d3\u529b\u52a0\u6b0a")
+        if values.get("cold_rebound_champion", 0) >= 0.70 and values.get("omission", 0) >= 0.46:
+            raw *= 1.13 if mode == "critical" else 1.09
+            reasons[number].append("\u51b7\u5f48\u51a0\u8ecd\u6a21\u578b\u52a0\u6b0a")
+        if values.get("multi_window_bagging", 0) >= 0.74 and values.get("cross_consensus", 0) >= 0.52:
+            raw *= 1.07 if mode == "critical" else 1.045
+            reasons[number].append("\u591a\u7a97\u53e3\u5171\u8b58\u52a0\u6b0a")
+        if values.get("tail_transition_bridge", 0) >= 0.68:
+            raw *= 1.10 if mode == "critical" else 1.06
+            reasons[number].append("\u5c3e\u6578\u8f49\u79fb\u52a0\u6b0a")
+        if values.get("zone_quota_pressure", 0) >= 0.66:
+            raw *= 1.12 if mode == "critical" else 1.07
+            reasons[number].append("\u5340\u9593\u914d\u984d\u88dc\u5f37")
+        if (number % 10 in missed_actual_tails or zone_label(number) in missed_actual_zones) and mode in {"warning", "critical"}:
             raw *= 1.08
             reasons[number].append("\u6efe\u52d5\u6aa2\u8a0e\u6f0f\u6293\u5c3e\u6578\u5340\u9593\u88dc\u4f4d")
         if (number % 10 in monthly_recall_tails or zone_label(number) in monthly_recall_zones) and mode in {"warning", "critical"}:
@@ -2402,6 +2675,7 @@ def score_numbers(draws, review=None, include_dependency=True, weights_override=
                 "previous_prediction_guard": previous_prediction_guard(number, features[number], review),
                 "model_sources": model_sources,
                 "source_model_count": len(model_sources),
+                "feature_scores": {key: round(float(value or 0), 4) for key, value in features[number].items()},
                 "cross_validation": cross_validation,
                 "confidence_profile": confidence,
                 "confidence_badges": confidence["badges"],
@@ -2738,6 +3012,12 @@ def short_pack_precision_components(item, review=None, selected=None):
     recall_score = recall_priority_score(item, review)
     stability_count = int(item.get("stability_count", 0) or 0)
     source_count = int(item.get("source_model_count", 0) or len(item.get("model_sources", [])))
+    feature_values = item.get("feature_scores", {}) or {}
+    monthly_pressure = float(feature_values.get("monthly_recall_pressure", 0.0) or 0.0)
+    cold_rebound = float(feature_values.get("cold_rebound_champion", 0.0) or 0.0)
+    bagging_score = float(feature_values.get("multi_window_bagging", 0.0) or 0.0)
+    tail_bridge = float(feature_values.get("tail_transition_bridge", 0.0) or 0.0)
+    zone_pressure = float(feature_values.get("zone_quota_pressure", 0.0) or 0.0)
     rank_score = max(0.0, (12 - rank) / 11) if rank <= 12 else max(0.0, (25 - rank) / 26)
     posterior_score = max(0.0, min(1.0, (posterior - 0.075) / 0.115))
     objective_score = max(0.0, min(1.0, (objective_edge + 0.060) / 0.150))
@@ -2759,6 +3039,11 @@ def short_pack_precision_components(item, review=None, selected=None):
         + cross_score * 0.15
         + stability_score * 0.08
         + recall_score * 0.07
+        + monthly_pressure * 0.055
+        + cold_rebound * 0.040
+        + bagging_score * 0.030
+        + tail_bridge * 0.040
+        + zone_pressure * 0.040
         + rank_score * 0.07
         + source_score * 0.05
         + live_adjustment * 0.70
@@ -2783,6 +3068,11 @@ def short_pack_precision_components(item, review=None, selected=None):
             cross_score >= 0.45,
             stability_count >= 2,
             recall_score >= 0.46,
+            monthly_pressure >= 0.50,
+            cold_rebound >= 0.55,
+            bagging_score >= 0.55,
+            tail_bridge >= 0.52,
+            zone_pressure >= 0.52,
             source_count >= 4,
             rank <= 9,
             item.get("high_confidence"),
@@ -2802,6 +3092,11 @@ def short_pack_precision_components(item, review=None, selected=None):
         "cross_validation_passed": passed,
         "stability_count": stability_count,
         "recall_priority": round(recall_score, 4),
+        "monthly_recall_pressure": round(monthly_pressure, 4),
+        "cold_rebound_champion": round(cold_rebound, 4),
+        "multi_window_bagging": round(bagging_score, 4),
+        "tail_transition_bridge": round(tail_bridge, 4),
+        "zone_quota_pressure": round(zone_pressure, 4),
         "source_model_count": source_count,
         "rank_score": round(rank_score, 4),
         "condition_count": condition_count,
@@ -2855,6 +3150,11 @@ def short_pack_precision_audit(candidates, review=None, limit=10):
             "cross_validation_passed": components["cross_validation_passed"],
             "stability_count": components["stability_count"],
             "recall_priority": components["recall_priority"],
+            "monthly_recall_pressure": components["monthly_recall_pressure"],
+            "cold_rebound_champion": components["cold_rebound_champion"],
+            "multi_window_bagging": components["multi_window_bagging"],
+            "tail_transition_bridge": components["tail_transition_bridge"],
+            "zone_quota_pressure": components["zone_quota_pressure"],
             "source_model_count": components["source_model_count"],
             "condition_count": components["condition_count"],
             "selection_penalty": components["selection_penalty"],
@@ -4162,7 +4462,7 @@ def compute_industrial_analysis(draws, review=None):
     }
     decisive_decision = decisive_battle_decision(candidates, packs, release_gate, slump_recall_coverage, unlikely)
     return {
-        "engine_version": "industrial_v19_short_pack_multi_model_arbitration",
+        "engine_version": "industrial_v21_bagging_tail_zone_pressure",
         "leakage_guard": True,
         "repeat_guard": repeat_guard(draws),
         "previous_prediction_guard": {

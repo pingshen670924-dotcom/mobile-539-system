@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-06-27T17:22:01",
+  "generated_at": "2026-06-29T10:34:56",
   "database_exists": true,
-  "backup_count": 1,
-  "latest_backup": "/home/runner/work/mobile-539-system/mobile-539-system/backups/539_20260627_172034.sqlite",
+  "backup_count": 10,
+  "latest_backup": "C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\backups\\539_20260629_103218.sqlite",
   "log_exists": true,
   "latest_analysis_exists": true,
   "status": "ok",
@@ -28,59 +28,59 @@
       32
     ],
     "source": "taiwanlottery_latest_result",
-    "fetched_at": "2026-06-27T17:20:35"
+    "fetched_at": "2026-06-29T10:32:19"
   },
   "data_freshness": {
     "status": "fresh",
     "latest_date": "2026-06-27",
-    "expected_latest_date": "2026-06-26"
+    "expected_latest_date": "2026-06-27"
   },
   "last_run": {
     "run_type": "latest",
-    "started_at": "2026-06-27T17:20:34",
-    "finished_at": "2026-06-27T17:20:35",
+    "started_at": "2026-06-29T10:32:19",
+    "finished_at": "2026-06-29T10:32:19",
     "status": "success",
     "message": "{\"rows\": 5900, \"invalid_periods\": [], \"duplicate_periods\": [], \"latest_period\": 115000156, \"latest_date\": \"2026-06-27\"}"
   },
   "pending_predictions": 1,
-  "settled_predictions": 23,
-  "prediction_snapshots": 183,
+  "settled_predictions": 22,
+  "prediction_snapshots": 179,
   "prediction_performance": {
-    "settled": 23,
-    "top5_avg_hits": 0.739,
-    "top10_avg_hits": 1.304,
-    "top15_avg_hits": 1.913,
-    "set_avg_hits": 0.67,
+    "settled": 22,
+    "top5_avg_hits": 0.773,
+    "top10_avg_hits": 1.364,
+    "top15_avg_hits": 1.909,
+    "set_avg_hits": 0.674,
     "strong_pack_stats": {
       "strong_single": {
-        "rounds": 23,
-        "pass_rate": 0.13,
-        "avg_hits": 0.13
+        "rounds": 22,
+        "pass_rate": 0.136,
+        "avg_hits": 0.136
       },
       "two_hit_one": {
-        "rounds": 23,
-        "pass_rate": 0.348,
-        "avg_hits": 0.348
+        "rounds": 22,
+        "pass_rate": 0.364,
+        "avg_hits": 0.364
       },
       "three_hit_one": {
-        "rounds": 23,
-        "pass_rate": 0.435,
-        "avg_hits": 0.522
+        "rounds": 22,
+        "pass_rate": 0.455,
+        "avg_hits": 0.545
       },
       "five_hit_two": {
-        "rounds": 23,
-        "pass_rate": 0.13,
-        "avg_hits": 0.739
+        "rounds": 22,
+        "pass_rate": 0.136,
+        "avg_hits": 0.727
       },
       "nine_hit_three": {
-        "rounds": 23,
-        "pass_rate": 0.13,
-        "avg_hits": 1.087
+        "rounds": 22,
+        "pass_rate": 0.136,
+        "avg_hits": 1.136
       }
     },
     "research_kpi": {
       "status": "insufficient_samples",
-      "settled_samples": 23,
+      "settled_samples": 22,
       "minimum_settled_samples": 30,
       "target_pass_rate": 1.0,
       "all_observed_pass": false,
@@ -91,84 +91,84 @@
           "label": "15顆中3至5顆",
           "minimum_hits": 3,
           "maximum_hits": 5,
-          "settled_samples": 23,
-          "successes": 9,
-          "target_band_successes": 9,
+          "settled_samples": 22,
+          "successes": 8,
+          "target_band_successes": 8,
           "over_target_successes": 0,
           "failures": 14,
-          "pass_rate": 0.3913,
-          "wilson_lower_95": 0.2216,
-          "average_hits": 1.913,
+          "pass_rate": 0.3636,
+          "wilson_lower_95": 0.1973,
+          "average_hits": 1.9091,
           "met_in_observed_samples": false
         },
         "nine_hit_three": {
           "label": "9顆中3至5顆",
           "minimum_hits": 3,
           "maximum_hits": 5,
-          "settled_samples": 23,
+          "settled_samples": 22,
           "successes": 3,
           "target_band_successes": 3,
           "over_target_successes": 0,
-          "failures": 20,
-          "pass_rate": 0.1304,
-          "wilson_lower_95": 0.0454,
-          "average_hits": 1.087,
+          "failures": 19,
+          "pass_rate": 0.1364,
+          "wilson_lower_95": 0.0475,
+          "average_hits": 1.1364,
           "met_in_observed_samples": false
         },
         "five_hit_two": {
           "label": "5顆中2至5顆",
           "minimum_hits": 2,
           "maximum_hits": 5,
-          "settled_samples": 23,
+          "settled_samples": 22,
           "successes": 3,
           "target_band_successes": 3,
           "over_target_successes": 0,
-          "failures": 20,
-          "pass_rate": 0.1304,
-          "wilson_lower_95": 0.0454,
-          "average_hits": 0.7391,
+          "failures": 19,
+          "pass_rate": 0.1364,
+          "wilson_lower_95": 0.0475,
+          "average_hits": 0.7273,
           "met_in_observed_samples": false
         },
         "three_hit_one": {
           "label": "3顆中1至3顆",
           "minimum_hits": 1,
           "maximum_hits": 3,
-          "settled_samples": 23,
+          "settled_samples": 22,
           "successes": 10,
           "target_band_successes": 10,
           "over_target_successes": 0,
-          "failures": 13,
-          "pass_rate": 0.4348,
-          "wilson_lower_95": 0.2563,
-          "average_hits": 0.5217,
+          "failures": 12,
+          "pass_rate": 0.4545,
+          "wilson_lower_95": 0.2692,
+          "average_hits": 0.5455,
           "met_in_observed_samples": false
         },
         "two_hit_one": {
           "label": "2顆中1至2顆",
           "minimum_hits": 1,
           "maximum_hits": 2,
-          "settled_samples": 23,
+          "settled_samples": 22,
           "successes": 8,
           "target_band_successes": 8,
           "over_target_successes": 0,
-          "failures": 15,
-          "pass_rate": 0.3478,
-          "wilson_lower_95": 0.1881,
-          "average_hits": 0.3478,
+          "failures": 14,
+          "pass_rate": 0.3636,
+          "wilson_lower_95": 0.1973,
+          "average_hits": 0.3636,
           "met_in_observed_samples": false
         },
         "strong_single": {
           "label": "1顆中1顆",
           "minimum_hits": 1,
           "maximum_hits": 1,
-          "settled_samples": 23,
+          "settled_samples": 22,
           "successes": 3,
           "target_band_successes": 3,
           "over_target_successes": 0,
-          "failures": 20,
-          "pass_rate": 0.1304,
-          "wilson_lower_95": 0.0454,
-          "average_hits": 0.1304,
+          "failures": 19,
+          "pass_rate": 0.1364,
+          "wilson_lower_95": 0.0475,
+          "average_hits": 0.1364,
           "met_in_observed_samples": false
         }
       }
@@ -201,8 +201,8 @@
   },
   "mobile": {
     "status": "built",
-    "version": "20260627165221",
-    "mobile_built_at": "2026-06-27T16:52:21",
+    "version": "20260629103437",
+    "mobile_built_at": "2026-06-29T10:34:37",
     "latest_period": 115000156,
     "latest_draw_date": "2026-06-27"
   }

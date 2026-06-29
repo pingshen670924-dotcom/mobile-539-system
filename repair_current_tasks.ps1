@@ -126,8 +126,11 @@ function Remove-ObsoleteTask {
 function Install-LegacyForwarders {
   $results = @()
   $packageOutName = -join @([char]0x5C01, [char]0x5305, [char]0x8F38, [char]0x51FA)
+  $codexRoot = Split-Path -Parent $ScriptDir
+  $legacyStartupName = "539" + (-join @([char]0x4E3B, [char]0x7CFB, [char]0x7D71, [char]0x5F, [char]0x6392, [char]0x7A0B, [char]0x8207, [char]0x624B, [char]0x6A5F, [char]0x5165, [char]0x53E3, [char]0x4FEE, [char]0x6B63, [char]0x7248)) + "_20260611_095431"
   $legacyPaths = @(
-    (Join-Path (Join-Path $ScriptDir $packageOutName) "539-aerospace-v36-assurance-20260606141635\run_539_once.ps1")
+    (Join-Path (Join-Path $ScriptDir $packageOutName) "539-aerospace-v36-assurance-20260606141635\run_539_once.ps1"),
+    (Join-Path (Join-Path $codexRoot $legacyStartupName) "run_539_once.ps1")
   )
   foreach ($path in $legacyPaths) {
     $result = [ordered]@{
@@ -143,7 +146,7 @@ function Install-LegacyForwarders {
         '[Console]::OutputEncoding = [System.Text.Encoding]::UTF8',
         '$OutputEncoding = [System.Text.Encoding]::UTF8',
         '',
-        '$CurrentSync = "' + $PostDrawMonitor + '"',
+        ('$CurrentSync = "' + $PostDrawMonitor + '"'),
         'if (Test-Path -LiteralPath $CurrentSync) {',
         '  & "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -File $CurrentSync -MaxMinutes 240 -IntervalSeconds 45',
         '  exit $LASTEXITCODE',
@@ -160,6 +163,32 @@ function Install-LegacyForwarders {
     }
     $results += $result
   }
+  $legacyMobilePath = Join-Path $codexRoot "2026-06-01\539\outputs\539-mobile-fully-independent-pwa-v21-20260604\mobile_server.py"
+  $mobileResult = [ordered]@{
+    path = $legacyMobilePath
+    status = "pending"
+    message = ""
+  }
+  try {
+    $parent = Split-Path -Parent $legacyMobilePath
+    New-Item -ItemType Directory -Force -Path $parent | Out-Null
+    $py = @(
+      'import runpy',
+      'import sys',
+      '',
+      ('CURRENT = r"' + $MobileServer + '"'),
+      'if __name__ == "__main__":',
+      '    sys.argv = [CURRENT] + sys.argv[1:]',
+      '    runpy.run_path(CURRENT, run_name="__main__")'
+    ) -join [Environment]::NewLine
+    Set-Content -LiteralPath $legacyMobilePath -Value $py -Encoding ASCII
+    $mobileResult.status = "ok"
+    $mobileResult.message = "legacy_mobile_server_forwarded_to_current_system"
+  } catch {
+    $mobileResult.status = "failed"
+    $mobileResult.message = $_.Exception.Message
+  }
+  $results += $mobileResult
   return $results
 }
 
