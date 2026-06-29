@@ -22,11 +22,17 @@ TEXT_SUFFIXES = {
 CODE_SUFFIXES = {".py", ".ps1", ".bat"}
 CJK_ALLOWED_CODE_FILES = {
     "battle_report.py",
+    "daily_midnight_recompute.ps1",
+    "industrial_engine.py",
     "line_push.py",
+    "pages_build.py",
+    "post_draw_mobile_sync.ps1",
     "network_permission_diagnostic.ps1",
+    "repair_current_tasks.ps1",
     "repair_network_permission.ps1",
     "setup_line_push.ps1",
     "system_file_check.py",
+    "update_539.py",
 }
 SKIP_DIRS = {
     "__pycache__",

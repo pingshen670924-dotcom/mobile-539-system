@@ -6,6 +6,7 @@ $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Runner = Join-Path $ScriptDir "run_539_once.ps1"
 $MainRunner = Join-Path $ScriptDir "main_one_click.ps1"
 $PostDrawMonitor = Join-Path $ScriptDir "post_draw_mobile_sync.ps1"
+$MidnightRecompute = Join-Path $ScriptDir "daily_midnight_recompute.ps1"
 $MobileServer = Join-Path $ScriptDir "mobile_server.py"
 $ReportsDir = Join-Path $ScriptDir "reports"
 $StatusPath = Join-Path $ReportsDir "task_repair_status.json"
@@ -146,17 +147,12 @@ function Install-LegacyForwarders {
         '[Console]::OutputEncoding = [System.Text.Encoding]::UTF8',
         '$OutputEncoding = [System.Text.Encoding]::UTF8',
         '',
-        ('$CurrentSync = "' + $PostDrawMonitor + '"'),
-        'if (Test-Path -LiteralPath $CurrentSync) {',
-        '  & "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -File $CurrentSync -MaxMinutes 240 -IntervalSeconds 45',
-        '  exit $LASTEXITCODE',
-        '}',
-        '',
+        '"Legacy TW539 task disabled. Current active tasks are TW539 2045 Deadline Post Draw Sync and TW539 0000 Midnight Full Recompute." | Out-Null',
         'exit 0'
       ) -join [Environment]::NewLine
       Set-Content -LiteralPath $path -Value $content -Encoding UTF8
       $result.status = "ok"
-      $result.message = "legacy_task_forwarded_to_current_post_draw_sync"
+      $result.message = "legacy_task_disabled_noop"
     } catch {
       $result.status = "failed"
       $result.message = $_.Exception.Message
@@ -173,17 +169,15 @@ function Install-LegacyForwarders {
     $parent = Split-Path -Parent $legacyMobilePath
     New-Item -ItemType Directory -Force -Path $parent | Out-Null
     $py = @(
-      'import runpy',
-      'import sys',
+      '"""Legacy TW539 mobile server task disabled.',
+      'Current phone sync is rebuilt by the active post-draw and midnight tasks."""',
       '',
-      ('CURRENT = r"' + $MobileServer + '"'),
       'if __name__ == "__main__":',
-      '    sys.argv = [CURRENT] + sys.argv[1:]',
-      '    runpy.run_path(CURRENT, run_name="__main__")'
+      '    raise SystemExit(0)'
     ) -join [Environment]::NewLine
     Set-Content -LiteralPath $legacyMobilePath -Value $py -Encoding ASCII
     $mobileResult.status = "ok"
-    $mobileResult.message = "legacy_mobile_server_forwarded_to_current_system"
+    $mobileResult.message = "legacy_mobile_server_disabled_noop"
   } catch {
     $mobileResult.status = "failed"
     $mobileResult.message = $_.Exception.Message
@@ -233,28 +227,36 @@ function Restart-CurrentMobileServer {
   return $result
 }
 
-function Install-StartupFolderEntry {
+function Remove-StartupFolderEntries {
   $result = [ordered]@{
-    status = "pending"
-    path = ""
+    status = "ok"
+    removed = @()
+    failed = @()
     message = ""
   }
   try {
     $startupDir = [Environment]::GetFolderPath("Startup")
     if (-not $startupDir) {
-      throw "Startup folder was not found."
+      $result.message = "startup_folder_not_found"
+      return $result
     }
-    New-Item -ItemType Directory -Force -Path $startupDir | Out-Null
-    $startupFile = Join-Path $startupDir "TW539_Current_One_Click_Startup.bat"
-    $bat = @(
-      "@echo off",
-      "cd /d `"$ScriptDir`"",
-      "`"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe`" -NoProfile -ExecutionPolicy Bypass -File `"$MainRunner`""
-    ) -join [Environment]::NewLine
-    Set-Content -LiteralPath $startupFile -Value $bat -Encoding ASCII
-    $result.status = "ok"
-    $result.path = $startupFile
-    $result.message = "startup_folder_entry_installed"
+    $patterns = @("TW539*.bat", "539*.bat", "*539*.lnk", "*TW539*.lnk")
+    foreach ($pattern in $patterns) {
+      Get-ChildItem -LiteralPath $startupDir -Filter $pattern -ErrorAction SilentlyContinue | ForEach-Object {
+        try {
+          Remove-Item -LiteralPath $_.FullName -Force -ErrorAction Stop
+          $result.removed += $_.FullName
+        } catch {
+          $result.failed += [ordered]@{ path = $_.FullName; error = $_.Exception.Message }
+        }
+      }
+    }
+    if ($result.failed.Count -gt 0) {
+      $result.status = "warning"
+      $result.message = "some_startup_entries_could_not_be_removed"
+    } else {
+      $result.message = "startup_entries_removed_or_not_found"
+    }
   } catch {
     $result.status = "failed"
     $result.message = $_.Exception.Message
@@ -268,10 +270,11 @@ $status = [ordered]@{
   runner = $Runner
   main_runner = $MainRunner
   post_draw_monitor = $PostDrawMonitor
+  midnight_recompute = $MidnightRecompute
   mobile_server = $MobileServer
   tasks = @()
   mobile = $null
-  startup_folder = $null
+  startup_folder_cleanup = $null
   obsolete_task_cleanup = @()
   legacy_forwarders = @()
 }
@@ -282,6 +285,9 @@ if (-not (Test-Path -LiteralPath $Runner)) {
 if (-not (Test-Path -LiteralPath $PostDrawMonitor)) {
   throw "post_draw_mobile_sync.ps1 was not found."
 }
+if (-not (Test-Path -LiteralPath $MidnightRecompute)) {
+  throw "daily_midnight_recompute.ps1 was not found."
+}
 if (-not (Test-Path -LiteralPath $MobileServer)) {
   throw "mobile_server.py was not found."
 }
@@ -290,8 +296,10 @@ $PowerShell = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powersh
 $Python = Find-Python
 $RunArgs = '-NoProfile -ExecutionPolicy Bypass -File "' + $Runner + '"'
 $MainArgs = '-NoProfile -ExecutionPolicy Bypass -File "' + $MainRunner + '"'
-$PostDrawArgs = '-NoProfile -ExecutionPolicy Bypass -File "' + $PostDrawMonitor + '" -MaxMinutes 240 -IntervalSeconds 45'
+$PostDrawArgs = '-NoProfile -ExecutionPolicy Bypass -File "' + $PostDrawMonitor + '" -MaxMinutes 12 -IntervalSeconds 30'
+$MidnightArgs = '-NoProfile -ExecutionPolicy Bypass -File "' + $MidnightRecompute + '"'
 $DailyAction = New-CurrentAction -Execute $PowerShell -Argument $PostDrawArgs
+$MidnightAction = New-CurrentAction -Execute $PowerShell -Argument $MidnightArgs
 $StartupAction = New-CurrentAction -Execute $PowerShell -Argument $MainArgs
 $MobileAction = New-CurrentAction -Execute $Python -Argument ('"' + $MobileServer + '"')
 
@@ -302,6 +310,16 @@ $obsoleteTasks = @(
   "539 Daily Latest Result Update 2235",
   "539 Daily Latest Result Update 2305",
   "539 Daily Latest Result Update 2335",
+  "539 Daily Latest Result Update 2035",
+  "539 Daily Latest Result Update 2040",
+  "539 Daily Latest Result Update 2045",
+  "539 Daily Latest Result Update 2050",
+  "539 Daily Latest Result Update 2055",
+  "539 Daily Latest Result Update 2100",
+  "539 Daily Latest Result Update 2115",
+  "539 Daily Latest Result Update 2130",
+  "539 Daily Latest Result Update 2200",
+  "539 Daily Latest Result Update 2300",
   "TW539 Current Daily Update 2105",
   "TW539 Current Daily Update 2135",
   "TW539 Current Daily Update 2205",
@@ -310,41 +328,33 @@ $obsoleteTasks = @(
   "TW539 Current Daily Update 2335",
   "TW539_AUTO_DAILY_RUNNER",
   "TW539_One_Click_Report",
-  "TW539_Research_Platform"
+  "TW539_Research_Platform",
+  "539 Startup Full Run",
+  "TW539 Current Startup Full Run",
+  "539 Mobile Control Server",
+  "TW539 Current Mobile Server",
+  "TW539每日2045更新完成任務",
+  "TW539每日0000完整重算任務",
+  "TW539 2045 Deadline Post Draw Sync",
+  "TW539 0000 Midnight Full Recompute"
 )
 foreach ($obsoleteTask in $obsoleteTasks) {
   $status.obsolete_task_cleanup += Remove-ObsoleteTask -TaskName $obsoleteTask
 }
 $status.legacy_forwarders = Install-LegacyForwarders
 
-$dailyTimes = @("20:35", "20:40", "20:45", "20:50", "20:55", "21:00", "21:10", "21:20", "21:30", "21:45", "22:00", "22:30", "23:00", "23:30", "00:10")
+$dailyTimes = @("20:33")
 $dailyTriggers = @()
 foreach ($timeText in $dailyTimes) {
   $dailyTriggers += New-ScheduledTaskTrigger -Daily -At $timeText
 }
-$status.tasks += Register-TaskWithFallback -TaskName "539 Daily Latest Result Update" -FallbackName "TW539 Current Daily Full Update" -Action $DailyAction -Triggers $dailyTriggers -Description "Start current TW539 post-draw immediate sync monitor, then rebuild desktop and phone report after fresh draw."
+$status.tasks += Register-TaskWithFallback -TaskName "TW539每日2045更新完成任務" -FallbackName "TW539 2045 Deadline Post Draw Sync" -Action $DailyAction -Triggers $dailyTriggers -Description "20:33 draw rule. Start at 20:33, retry every 30 seconds, import latest draw, recalculate models, rebuild desktop report, phone page, cloud page and LINE before the 20:45 deadline when official data is available."
 
-$singleTimes = @{
-  "539 Daily Latest Result Update 2035" = "20:35"
-  "539 Daily Latest Result Update 2045" = "20:45"
-  "539 Daily Latest Result Update 2100" = "21:00"
-  "539 Daily Latest Result Update 2115" = "21:15"
-  "539 Daily Latest Result Update 2130" = "21:30"
-  "539 Daily Latest Result Update 2200" = "22:00"
-  "539 Daily Latest Result Update 2300" = "23:00"
-}
-foreach ($name in $singleTimes.Keys) {
-  $trigger = New-ScheduledTaskTrigger -Daily -At $singleTimes[$name]
-  $fallbackName = "TW" + $name.Replace("539 Daily Latest Result Update", "539 Current Daily Update")
-  $status.tasks += Register-TaskWithFallback -TaskName $name -FallbackName $fallbackName -Action $DailyAction -Triggers @($trigger) -Description "Fallback current TW539 post-draw immediate phone sync monitor."
-}
-
-$startupTrigger = New-ScheduledTaskTrigger -AtLogOn
-$status.tasks += Register-TaskWithFallback -TaskName "539 Startup Full Run" -FallbackName "TW539 Current Startup Full Run" -Action $StartupAction -Triggers @($startupTrigger) -Description "Run current TW539 full one click flow when Windows user logs on."
-$status.tasks += Register-TaskWithFallback -TaskName "539 Mobile Control Server" -FallbackName "TW539 Current Mobile Server" -Action $MobileAction -Triggers @($startupTrigger) -Description "Run current TW539 phone report server."
+$midnightTrigger = New-ScheduledTaskTrigger -Daily -At "00:00"
+$status.tasks += Register-TaskWithFallback -TaskName "TW539每日0000完整重算任務" -FallbackName "TW539 0000 Midnight Full Recompute" -Action $MidnightAction -Triggers @($midnightTrigger) -Description "Run full midnight recalculation, backtesting, integrity audit, battle report rebuild and phone/cloud sync."
 
 $status.mobile = Restart-CurrentMobileServer -PythonPath $Python
-$status.startup_folder = Install-StartupFolderEntry
+$status.startup_folder_cleanup = Remove-StartupFolderEntries
 
 try {
   & $Python $MobileServer "--write-url" | Out-Null
@@ -355,14 +365,11 @@ $status | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $StatusPath -Encodi
 $status.mobile | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $PhoneStatusPath -Encoding UTF8
 
 $failed = @($status.tasks | Where-Object { $_.status -ne "ok" })
-if ($status.startup_folder.status -eq "ok") {
-  $failed = @($failed | Where-Object { $_.task -notin @("539 Startup Full Run", "539 Mobile Control Server") })
-}
 if ($status.mobile.status -ne "ok") {
   $failed += $status.mobile
 }
-if ($status.startup_folder.status -ne "ok") {
-  $failed += $status.startup_folder
+if ($status.startup_folder_cleanup.status -eq "failed") {
+  $failed += $status.startup_folder_cleanup
 }
 if ($failed.Count -gt 0) {
   Write-Host "Task repair finished with warnings."

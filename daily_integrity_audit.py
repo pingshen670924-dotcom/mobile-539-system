@@ -1,4 +1,4 @@
-import json
+﻿import json
 import sqlite3
 from datetime import datetime, time as clock_time, timedelta
 from pathlib import Path
@@ -12,6 +12,7 @@ ANALYSIS_JSON = REPORT_DIR / "latest_analysis.json"
 HEALTH_JSON = REPORT_DIR / "health_status.json"
 HISTORY_JSON = REPORT_DIR / "prediction_history.json"
 BATTLE_HTML = REPORT_DIR / "539\u6700\u65b0\u5f37\u5316\u6230\u5831.html"
+LOW_PROBABILITY_HTML = REPORT_DIR / "539\u4f4e\u6a5f\u7387\u7cbe\u6e96\u66ab\u907f.html"
 AUDIT_JSON = REPORT_DIR / "daily_integrity_audit.json"
 AUDIT_MD = REPORT_DIR / "daily_integrity_audit.md"
 
@@ -47,6 +48,7 @@ def build_audit():
     health = load_json(HEALTH_JSON)
     history = load_json(HISTORY_JSON)
     battle_text = BATTLE_HTML.read_text(encoding="utf-8") if BATTLE_HTML.exists() else ""
+    low_probability_text = LOW_PROBABILITY_HTML.read_text(encoding="utf-8") if LOW_PROBABILITY_HTML.exists() else ""
 
     with sqlite3.connect(DB_PATH) as conn:
         conn.row_factory = sqlite3.Row
@@ -87,6 +89,27 @@ def build_audit():
             """,
             (latest["period"] - 5, latest["period"]),
         ).fetchall()
+        missing_recent_predictions = conn.execute(
+            """
+            SELECT d.period, d.draw_date
+            FROM draws_539 d
+            LEFT JOIN predictions_539 p ON p.target_period=d.period
+            WHERE d.period BETWEEN ? AND ?
+              AND p.target_period IS NULL
+            ORDER BY d.period
+            """,
+            (latest["period"] - 5, latest["period"]),
+        ).fetchall()
+        latest_settlement = conn.execute(
+            """
+            SELECT target_period, status, actual_period, actual_date, top5_hits, top10_hits, top15_hits
+            FROM predictions_539
+            WHERE target_period=?
+            ORDER BY id DESC
+            LIMIT 1
+            """,
+            (latest["period"],),
+        ).fetchone()
 
     expected_date = expected_latest_draw_date()
     add_check(checks, "draw_count_minimum", stats["count"] >= 5800, dict(stats))
@@ -96,6 +119,11 @@ def build_audit():
     add_check(checks, "no_invalid_draw_rows", not invalid_rows, [dict(row) for row in invalid_rows])
     add_check(checks, "no_stale_pending_predictions", not stale_pending, [dict(row) for row in stale_pending])
     add_check(checks, "recent_predictions_settled", all(row["status"] == "settled" for row in recent_settled), [dict(row) for row in recent_settled])
+    add_check(checks, "no_missing_recent_prediction_records", not missing_recent_predictions, [dict(row) for row in missing_recent_predictions])
+    add_check(checks, "latest_draw_has_settled_prediction_record", bool(latest_settlement and latest_settlement["status"] == "settled"), dict(latest_settlement) if latest_settlement else {
+        "missing_target_period": latest["period"],
+        "missing_draw_date": latest["draw_date"],
+    })
 
     analysis_period = analysis.get("latest_draw", {}).get("period")
     add_check(checks, "analysis_matches_database", str(analysis_period) == str(latest["period"]), {"analysis": analysis_period, "database": latest["period"]})
@@ -108,11 +136,18 @@ def build_audit():
         "draw_date": latest["draw_date"],
     })
     add_check(checks, "battle_report_has_settlement_rows", "\u5df2\u7d50\u7b97" in battle_text and "\u5f85\u7d50\u7b97" in battle_text, "settled and pending labels")
-    add_check(checks, "battle_report_has_active_mode", (
-        "\u5df2\u6062\u5fa9 2026-06-04 \u4e2d4\u7248 v31" in battle_text
-        if restored_mode else "\u4e0d\u786c\u6e4a\u653f\u7b56" in battle_text
-    ), analysis.get("prediction_mode", ""))
-    add_check(checks, "battle_report_has_explicit_dates", "\u9810\u6e2c\u4f9d\u64da\u958b\u734e\u65e5" in battle_text and "\u5be6\u969b\u958b\u734e\u65e5" in battle_text, "date labels")
+    add_check(checks, "battle_report_is_compact_precision_report", (
+        "539 \u7cbe\u7b97\u9810\u6e2c\u6230\u5831" in battle_text
+        and "\u5168\u6b77\u53f2\u8cc7\u6599" in battle_text
+        and "\u53ea\u986f\u793a\u5b8c\u6210\u904b\u7b97\u5f8c\u7684\u7cbe\u6e96\u8cc7\u8a0a" in battle_text
+    ), "compact precision report labels")
+    add_check(checks, "battle_report_has_explicit_dates", "\u6700\u65b0\u958b\u734e" in battle_text and "\u9810\u6e2c\u76ee\u6a19" in battle_text and "\u4e0a\u671f\u9810\u6e2c\u6aa2\u8a0e" in battle_text, "date labels")
+    add_check(checks, "battle_report_has_low_probability_link", "539\u4f4e\u6a5f\u7387\u7cbe\u6e96\u66ab\u907f.html" in battle_text, "low probability page link")
+    add_check(checks, "battle_report_has_super_single_section", "\u6700\u5f37\u7368\u96bb1\u4e2d1" in battle_text and "\u7368\u96bb\u7e3d\u5206" in battle_text, "super single section")
+    add_check(checks, "battle_report_has_no_mojibake_question_marks", "???" not in battle_text, "battle report must not contain mojibake question marks")
+    add_check(checks, "low_probability_page_exists", LOW_PROBABILITY_HTML.exists(), str(LOW_PROBABILITY_HTML))
+    add_check(checks, "low_probability_page_has_no_mojibake_question_marks", "???" not in low_probability_text, "low probability page must not contain mojibake question marks")
+    add_check(checks, "low_probability_page_has_required_sections", "\u4f4e\u6a5f\u7387\u7cbe\u6e96\u66ab\u907f" in low_probability_text and "5\u4e0d\u4e2d" in low_probability_text and "15\u4e0d\u4e2d" in low_probability_text, "low probability section labels")
     return finalize(checks, latest=dict(latest), expected_date=expected_date)
 
 

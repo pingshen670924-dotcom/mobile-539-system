@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-06-29T10:35:02",
+  "generated_at": "2026-06-29T14:57:13",
   "status": "ok",
-  "checked_files": 128,
+  "checked_files": 190,
   "failed_count": 0,
   "warning_count": 0,
   "files": [
@@ -33,7 +33,7 @@
       "path": "battle_report.py",
       "status": "ok",
       "warnings": [],
-      "size": 156091
+      "size": 203657
     },
     {
       "path": "build_tw539_release.ps1",
@@ -69,7 +69,13 @@
       "path": "daily_integrity_audit.py",
       "status": "ok",
       "warnings": [],
-      "size": 6861
+      "size": 9623
+    },
+    {
+      "path": "daily_midnight_recompute.ps1",
+      "status": "ok",
+      "warnings": [],
+      "size": 4801
     },
     {
       "path": "dashboard.py",
@@ -87,7 +93,7 @@
       "path": "industrial_engine.py",
       "status": "ok",
       "warnings": [],
-      "size": 201222
+      "size": 218515
     },
     {
       "path": "install_all_auto_tasks.ps1",
@@ -147,7 +153,7 @@
       "path": "mobile_server.py",
       "status": "ok",
       "warnings": [],
-      "size": 20529
+      "size": 20692
     },
     {
       "path": "model_competition.py",
@@ -165,13 +171,13 @@
       "path": "pages_build.py",
       "status": "ok",
       "warnings": [],
-      "size": 11005
+      "size": 14408
     },
     {
       "path": "post_draw_mobile_sync.ps1",
       "status": "ok",
       "warnings": [],
-      "size": 8960
+      "size": 9327
     },
     {
       "path": "publish_free_github.ps1",
@@ -189,7 +195,7 @@
       "path": "repair_current_tasks.ps1",
       "status": "ok",
       "warnings": [],
-      "size": 13619
+      "size": 13564
     },
     {
       "path": "repair_mobile_display.ps1",
@@ -225,7 +231,7 @@
       "path": "system_file_check.py",
       "status": "ok",
       "warnings": [],
-      "size": 8600
+      "size": 8772
     },
     {
       "path": "uninstall_app.ps1",
@@ -249,7 +255,7 @@
       "path": "update_539.py",
       "status": "ok",
       "warnings": [],
-      "size": 53320
+      "size": 64706
     },
     {
       "path": "修復手機版顯示.bat",
@@ -261,43 +267,43 @@
       "path": "手機戰報即時網址.txt",
       "status": "ok",
       "warnings": [],
-      "size": 68
+      "size": 81
     },
     {
       "path": "手機戰報更新狀態.json",
       "status": "ok",
       "warnings": [],
-      "size": 521
+      "size": 711
     },
     {
       "path": "手機控制台網址.txt",
       "status": "ok",
       "warnings": [],
-      "size": 62
+      "size": 75
     },
     {
       "path": "手機獨立版網址.txt",
       "status": "ok",
       "warnings": [],
-      "size": 68
+      "size": 104
     },
     {
       "path": "手機雲端版網址.txt",
       "status": "ok",
       "warnings": [],
-      "size": 109
+      "size": 104
     },
     {
       "path": "手機雲端發布狀態.json",
       "status": "ok",
       "warnings": [],
-      "size": 352
+      "size": 711
     },
     {
       "path": "打開最新手機版.html",
       "status": "ok",
       "warnings": [],
-      "size": 899
+      "size": 907
     },
     {
       "path": "清理舊開機自動啟動_管理員.bat",
@@ -342,16 +348,22 @@
       "size": 1128
     },
     {
+      "path": "reports\\539低機率精準暫避.html",
+      "status": "ok",
+      "warnings": [],
+      "size": 5765
+    },
+    {
       "path": "reports\\539最新強化戰報.html",
       "status": "ok",
       "warnings": [],
-      "size": 110688
+      "size": 13683
     },
     {
       "path": "reports\\539每期預測對比.html",
       "status": "ok",
       "warnings": [],
-      "size": 7785
+      "size": 22238
     },
     {
       "path": "reports\\cleanup_obsolete_runtime.json",
@@ -369,13 +381,13 @@
       "path": "reports\\daily_integrity_audit.json",
       "status": "ok",
       "warnings": [],
-      "size": 3514
+      "size": 5154
     },
     {
       "path": "reports\\daily_integrity_audit.md",
       "status": "ok",
       "warnings": [],
-      "size": 1812
+      "size": 2779
     },
     {
       "path": "reports\\dashboard.html",
@@ -387,7 +399,7 @@
       "path": "reports\\file_integrity_report.json",
       "status": "ok",
       "warnings": [],
-      "size": 17791
+      "size": 26464
     },
     {
       "path": "reports\\file_integrity_report.md",
@@ -405,7 +417,7 @@
       "path": "reports\\health_status.json",
       "status": "ok",
       "warnings": [],
-      "size": 5897
+      "size": 5888
     },
     {
       "path": "reports\\health_status.md",
@@ -417,31 +429,31 @@
       "path": "reports\\latest_analysis.json",
       "status": "ok",
       "warnings": [],
-      "size": 1560347
+      "size": 1613253
     },
     {
       "path": "reports\\latest_analysis.md",
       "status": "ok",
       "warnings": [],
-      "size": 6757
+      "size": 6765
     },
     {
       "path": "reports\\latest_battle_report.html",
       "status": "ok",
       "warnings": [],
-      "size": 110688
+      "size": 13683
     },
     {
       "path": "reports\\latest_battle_report.md",
       "status": "ok",
       "warnings": [],
-      "size": 24132
+      "size": 23071
     },
     {
       "path": "reports\\latest_battle_report.txt",
       "status": "ok",
       "warnings": [],
-      "size": 24132
+      "size": 23071
     },
     {
       "path": "reports\\line_push_status.json",
@@ -453,7 +465,7 @@
       "path": "reports\\mobile_update_status.json",
       "status": "ok",
       "warnings": [],
-      "size": 164
+      "size": 199
     },
     {
       "path": "reports\\model_competition.json",
@@ -471,7 +483,7 @@
       "path": "reports\\monthly_prediction_review.json",
       "status": "ok",
       "warnings": [],
-      "size": 23216
+      "size": 24292
     },
     {
       "path": "reports\\network_permission_diagnostic.json",
@@ -489,13 +501,13 @@
       "path": "reports\\post_draw_mobile_sync_status.json",
       "status": "ok",
       "warnings": [],
-      "size": 909
+      "size": 3728
     },
     {
       "path": "reports\\prediction_history.json",
       "status": "ok",
       "warnings": [],
-      "size": 52526
+      "size": 97575
     },
     {
       "path": "reports\\startup_cleanup_status.json",
@@ -513,7 +525,13 @@
       "path": "reports\\task_repair_status.json",
       "status": "ok",
       "warnings": [],
-      "size": 9298
+      "size": 12987
+    },
+    {
+      "path": "site\\539低機率精準暫避.html",
+      "status": "ok",
+      "warnings": [],
+      "size": 5765
     },
     {
       "path": "site\\clear-cache.html",
@@ -531,13 +549,13 @@
       "path": "site\\health_status.json",
       "status": "ok",
       "warnings": [],
-      "size": 5897
+      "size": 5888
     },
     {
       "path": "site\\index.html",
       "status": "ok",
       "warnings": [],
-      "size": 114212
+      "size": 17203
     },
     {
       "path": "site\\latest.html",
@@ -549,7 +567,13 @@
       "path": "site\\latest_analysis.json",
       "status": "ok",
       "warnings": [],
-      "size": 1560347
+      "size": 1613253
+    },
+    {
+      "path": "site\\low-probability.html",
+      "status": "ok",
+      "warnings": [],
+      "size": 5765
     },
     {
       "path": "site\\model_competition.json",
@@ -561,19 +585,355 @@
       "path": "site\\prediction-history.html",
       "status": "ok",
       "warnings": [],
-      "size": 7785
+      "size": 22238
     },
     {
       "path": "site\\prediction_history.json",
       "status": "ok",
       "warnings": [],
-      "size": 52526
+      "size": 97575
     },
     {
       "path": "site\\version.json",
       "status": "ok",
       "warnings": [],
       "size": 235
+    },
+    {
+      "path": "reports\\history\\period_115000077.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 606
+    },
+    {
+      "path": "reports\\history\\period_115000078.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 605
+    },
+    {
+      "path": "reports\\history\\period_115000079.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 605
+    },
+    {
+      "path": "reports\\history\\period_115000080.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 606
+    },
+    {
+      "path": "reports\\history\\period_115000081.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 606
+    },
+    {
+      "path": "reports\\history\\period_115000082.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 605
+    },
+    {
+      "path": "reports\\history\\period_115000083.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 604
+    },
+    {
+      "path": "reports\\history\\period_115000084.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 606
+    },
+    {
+      "path": "reports\\history\\period_115000085.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 606
+    },
+    {
+      "path": "reports\\history\\period_115000086.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 605
+    },
+    {
+      "path": "reports\\history\\period_115000087.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 603
+    },
+    {
+      "path": "reports\\history\\period_115000088.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 606
+    },
+    {
+      "path": "reports\\history\\period_115000089.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 606
+    },
+    {
+      "path": "reports\\history\\period_115000090.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 606
+    },
+    {
+      "path": "reports\\history\\period_115000091.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 607
+    },
+    {
+      "path": "reports\\history\\period_115000092.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 606
+    },
+    {
+      "path": "reports\\history\\period_115000093.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 605
+    },
+    {
+      "path": "reports\\history\\period_115000094.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 605
+    },
+    {
+      "path": "reports\\history\\period_115000095.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 604
+    },
+    {
+      "path": "reports\\history\\period_115000096.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 606
+    },
+    {
+      "path": "reports\\history\\period_115000097.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 604
+    },
+    {
+      "path": "reports\\history\\period_115000098.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 605
+    },
+    {
+      "path": "reports\\history\\period_115000099.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 605
+    },
+    {
+      "path": "reports\\history\\period_115000100.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 606
+    },
+    {
+      "path": "reports\\history\\period_115000101.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 607
+    },
+    {
+      "path": "reports\\history\\period_115000102.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 606
+    },
+    {
+      "path": "reports\\history\\period_115000103.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 606
+    },
+    {
+      "path": "reports\\history\\period_115000104.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 605
+    },
+    {
+      "path": "reports\\history\\period_115000105.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 605
+    },
+    {
+      "path": "reports\\history\\period_115000106.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 606
+    },
+    {
+      "path": "reports\\history\\period_115000107.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 605
+    },
+    {
+      "path": "reports\\history\\period_115000108.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 605
+    },
+    {
+      "path": "reports\\history\\period_115000109.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 606
+    },
+    {
+      "path": "reports\\history\\period_115000110.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 606
+    },
+    {
+      "path": "reports\\history\\period_115000111.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 606
+    },
+    {
+      "path": "reports\\history\\period_115000112.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 605
+    },
+    {
+      "path": "reports\\history\\period_115000113.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 607
+    },
+    {
+      "path": "reports\\history\\period_115000114.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 607
+    },
+    {
+      "path": "reports\\history\\period_115000115.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 606
+    },
+    {
+      "path": "reports\\history\\period_115000116.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 605
+    },
+    {
+      "path": "reports\\history\\period_115000117.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 603
+    },
+    {
+      "path": "reports\\history\\period_115000118.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 606
+    },
+    {
+      "path": "reports\\history\\period_115000119.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 606
+    },
+    {
+      "path": "reports\\history\\period_115000120.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 606
+    },
+    {
+      "path": "reports\\history\\period_115000121.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 606
+    },
+    {
+      "path": "reports\\history\\period_115000122.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 605
+    },
+    {
+      "path": "reports\\history\\period_115000123.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 606
+    },
+    {
+      "path": "reports\\history\\period_115000124.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 606
+    },
+    {
+      "path": "reports\\history\\period_115000125.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 605
+    },
+    {
+      "path": "reports\\history\\period_115000126.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 606
+    },
+    {
+      "path": "reports\\history\\period_115000127.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 605
+    },
+    {
+      "path": "reports\\history\\period_115000128.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 605
+    },
+    {
+      "path": "reports\\history\\period_115000129.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 605
+    },
+    {
+      "path": "reports\\history\\period_115000130.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 605
+    },
+    {
+      "path": "reports\\history\\period_115000131.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 607
+    },
+    {
+      "path": "reports\\history\\period_115000132.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 604
     },
     {
       "path": "reports\\history\\period_115000133.json",
@@ -642,6 +1002,12 @@
       "size": 1865
     },
     {
+      "path": "reports\\history\\period_115000144.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1857
+    },
+    {
       "path": "reports\\history\\period_115000145.json",
       "status": "ok",
       "warnings": [],
@@ -706,6 +1072,12 @@
       "status": "ok",
       "warnings": [],
       "size": 1867
+    },
+    {
+      "path": "reports\\history\\period_115000156.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 1863
     },
     {
       "path": "reports\\history\\period_115000157.json",

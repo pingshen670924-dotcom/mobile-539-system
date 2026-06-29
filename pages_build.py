@@ -1,8 +1,10 @@
 ﻿import json
 import os
 import shutil
+import time
 from pathlib import Path
 from datetime import datetime
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 
 ROOT = Path(__file__).resolve().parent
@@ -10,6 +12,7 @@ REPORTS = ROOT / "reports"
 SITE = ROOT / "site"
 REPORT = REPORTS / "539\u6700\u65b0\u5f37\u5316\u6230\u5831.html"
 HISTORY_REPORT = REPORTS / "539\u6bcf\u671f\u9810\u6e2c\u5c0d\u6bd4.html"
+LOW_PROBABILITY_REPORT = REPORTS / "539\u4f4e\u6a5f\u7387\u7cbe\u6e96\u66ab\u907f.html"
 REPOSITORY = os.environ.get("GITHUB_REPOSITORY", "pingshen670924-dotcom/mobile-539-system")
 
 
@@ -17,11 +20,93 @@ def repository_url(path=""):
     return f"https://github.com/{REPOSITORY}/{path}".rstrip("/")
 
 
+def cache_busted_url(url, version):
+    if not url:
+        return ""
+    parts = urlsplit(url)
+    query = dict(parse_qsl(parts.query, keep_blank_values=True))
+    query["v"] = version
+    query["t"] = str(int(time.time()))
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
+
+
+def read_text_or_empty(path):
+    try:
+        return path.read_text(encoding="utf-8").strip()
+    except OSError:
+        return ""
+
+
+def read_json_or_empty(path):
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def update_mobile_pointer_files(version, latest_draw, mobile_built_at):
+    timestamp = int(time.time())
+    cloud_url = f"https://pingshen670924-dotcom.github.io/mobile-539-system/clear-cache.html?v={version}&t={timestamp}"
+    status_path = ROOT / "手機戰報更新狀態.json"
+    cloud_status_path = ROOT / "手機雲端發布狀態.json"
+    previous_status = read_json_or_empty(status_path)
+    previous_cloud_status = read_json_or_empty(cloud_status_path)
+    local_report_url = cache_busted_url(
+        previous_status.get("report_url") or read_text_or_empty(ROOT / "手機戰報即時網址.txt"),
+        version,
+    )
+    control_url = cache_busted_url(
+        previous_status.get("control_url") or read_text_or_empty(ROOT / "手機控制台網址.txt"),
+        version,
+    )
+    site_url = cloud_url
+    status = {
+        "status": "local_ready",
+        "version": version,
+        "built_at": mobile_built_at,
+        "latest_period": latest_draw.get("period"),
+        "latest_draw_date": latest_draw.get("draw_date"),
+        "site_url": site_url,
+        "cloud_url": cloud_url,
+        "report_url": local_report_url,
+        "control_url": control_url,
+        "sync_policy": "本機手機版已重建；雲端手機版必須等發布腳本成功後才可標記為已同步。",
+    }
+    cloud_status = {
+        "status": "local_ready_not_published",
+        "message": "本機手機版已重建，等待雲端發布成功；未成功前手機雲端可能仍顯示上一版。",
+        "version": version,
+        "built_at": mobile_built_at,
+        "latest_period": latest_draw.get("period"),
+        "latest_draw_date": latest_draw.get("draw_date"),
+        "prepared_cloud_url": cloud_url,
+        "last_published_version": previous_cloud_status.get("version") if previous_cloud_status.get("status") == "published" else "",
+        "last_published_url": previous_cloud_status.get("url") if previous_cloud_status.get("status") == "published" else "",
+        "report_url": local_report_url,
+        "control_url": control_url,
+        "sync_policy": "禁止把本機重建誤判為雲端已同步；只有 publish_free_github.ps1 成功後才會改為 published。",
+    }
+    (ROOT / "手機獨立版網址.txt").write_text(status["site_url"], encoding="utf-8")
+    (ROOT / "手機雲端版網址.txt").write_text(cloud_url, encoding="utf-8")
+    if local_report_url:
+        (ROOT / "手機戰報即時網址.txt").write_text(local_report_url, encoding="utf-8")
+    if control_url:
+        (ROOT / "手機控制台網址.txt").write_text(control_url, encoding="utf-8")
+    status_path.write_text(json.dumps(status, ensure_ascii=False, indent=2), encoding="utf-8")
+    cloud_status_path.write_text(json.dumps(cloud_status, ensure_ascii=False, indent=2), encoding="utf-8")
+
 def write_mobile_entry(path, version):
-    live_url_path = ROOT / "\u624b\u6a5f\u6230\u5831\u5373\u6642\u7db2\u5740.txt"
-    if live_url_path.exists():
-        target_url = live_url_path.read_text(encoding="utf-8").strip()
-    else:
+    target_url = ""
+    for url_path in [
+        ROOT / "\u624b\u6a5f\u7368\u7acb\u7248\u7db2\u5740.txt",
+        ROOT / "\u624b\u6a5f\u96f2\u7aef\u7248\u7db2\u5740.txt",
+        ROOT / "\u624b\u6a5f\u6230\u5831\u5373\u6642\u7db2\u5740.txt",
+    ]:
+        if url_path.exists():
+            target_url = url_path.read_text(encoding="utf-8").strip()
+            if target_url:
+                break
+    if not target_url:
         target_url = f"site/clear-cache.html?v={version}&t={version}"
     path.write_text(
         f"""<!doctype html>
@@ -66,10 +151,10 @@ def build():
       <p>\u6700\u65b0\u8cc7\u6599\uff1a{latest_draw.get('period', '-')}\u671f / {latest_draw.get('draw_date', '-')} / \u7248\u672c {version}</p>
       <p><a class="mobile-action refresh" href="clear-cache.html?v={version}">\u6e05\u9664\u820a\u7248\u5feb\u53d6\u4e26\u6253\u958b\u6700\u65b0\u624b\u6a5f\u7248</a></p>
       <p><a class="mobile-action history" href="prediction-history.html?v={version}">\u67e5\u770b\u6bcf\u671f\u9810\u6e2c\u5c0d\u6bd4</a></p>
-      <p><a class="mobile-action" href="{repository_url('actions/workflows/daily-update.yml')}">\u767b\u5165 GitHub \u5f8c\u7acb\u5373\u66f4\u65b0</a></p>
+      <p><a class="mobile-action" href="{repository_url('actions/workflows/daily-update.yml')}">\u767b\u5165\u96f2\u7aef\u5e73\u53f0\u5f8c\u7acb\u5373\u66f4\u65b0</a></p>
       <p><button class="mobile-action refresh" type="button" onclick="forceRefresh()">\u5f37\u5236\u91cd\u65b0\u8f09\u5165\u6700\u65b0\u624b\u6a5f\u6210\u679c</button></p>
       <p>\u624b\u6a5f\u7248\u958b\u734e\u5f8c\u5373\u6642\u540c\u6b65\uff1a\u53f0\u5317\u6642\u9593 20:35 \u8d77\u9032\u5165\u5bc6\u96c6\u8ffd\u8e64\uff0c\u6bcf45\u79d2\u8ffd\u53f0\u5f69\u6700\u65b0\u8cc7\u6599\uff0c\u6293\u5230\u5f8c\u7acb\u523b\u91cd\u7b97\u3001\u91cd\u5efa\u96fb\u8166\u6230\u5831\u8207\u624b\u6a5f\u7248\u3002</p>
-      <p>\u624b\u6a5f\u7248\u8207\u96fb\u8166\u7248\u53ef\u540c\u6642\u5b58\u5728\uff1a\u96fb\u8166\u7248\u5728\u672c\u6a5f\u8f38\u51fa\u5b8c\u6574\u6230\u5831\uff0c\u624b\u6a5f\u7248\u5728 GitHub \u96f2\u7aef\u7368\u7acb\u66f4\u65b0\uff0c\u4e92\u4e0d\u8986\u84cb\u3002</p>
+      <p>\u624b\u6a5f\u7248\u8207\u96fb\u8166\u7248\u53ef\u540c\u6642\u5b58\u5728\uff1a\u96fb\u8166\u7248\u5728\u672c\u6a5f\u8f38\u51fa\u5b8c\u6574\u6230\u5831\uff0c\u624b\u6a5f\u7248\u5728\u96f2\u7aef\u7368\u7acb\u66f4\u65b0\uff0c\u4e92\u4e0d\u8986\u84cb\u3002</p>
     </section>
     """
     style = """
@@ -138,6 +223,9 @@ def build():
             shutil.copy2(source, SITE / name)
     if HISTORY_REPORT.exists():
         shutil.copy2(HISTORY_REPORT, SITE / "prediction-history.html")
+    if LOW_PROBABILITY_REPORT.exists():
+        shutil.copy2(LOW_PROBABILITY_REPORT, SITE / "539\u4f4e\u6a5f\u7387\u7cbe\u6e96\u66ab\u907f.html")
+        shutil.copy2(LOW_PROBABILITY_REPORT, SITE / "low-probability.html")
     manifest = {
         "name": "539 \u624b\u6a5f\u7368\u7acb\u7cfb\u7d71",
         "short_name": "539\u7cfb\u7d71",
@@ -157,6 +245,7 @@ def build():
         "cache_policy": "network_first_no_store",
     }
     (SITE / "version.json").write_text(json.dumps(version_payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    update_mobile_pointer_files(version, latest_draw, mobile_built_at)
     latest_html = f"""<!doctype html>
 <html lang="zh-Hant">
 <head>

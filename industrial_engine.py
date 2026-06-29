@@ -2708,6 +2708,140 @@ def previous_guard_blocks_item(item):
     return recovery_count == 0 and strong_count < 2
 
 
+def refresh_candidate_metadata(candidates):
+    refreshed = []
+    for rank, row in enumerate(candidates, 1):
+        item = dict(row)
+        item["rank"] = rank
+        score = float(item.get("score", 0.0) or 0.0)
+        confidence_value = float(item.get("confidence_index", 50.0) or 50.0)
+        probability_value = conservative_probability_percent(score, rank)
+        item["model_probability_percent"] = probability_value
+        confidence = confidence_profile(
+            score,
+            confidence_value,
+            probability_value,
+            item.get("model_sources", []),
+            item.get("cross_validation", {}),
+            rank,
+        )
+        item["confidence_profile"] = confidence
+        item["confidence_badges"] = confidence["badges"]
+        item["confidence_level"] = confidence["level"]
+        item["confidence_label"] = confidence["label"]
+        item["high_confidence"] = confidence["is_high_confidence"]
+        refreshed.append(item)
+    return refreshed
+
+
+def qualified_previous_reentry(item):
+    guard = item.get("previous_prediction_guard") or {}
+    cross_validation = item.get("cross_validation") or {}
+    passed_count = int(cross_validation.get("passed_count") or 0)
+    score = float(item.get("score", 0.0) or 0.0)
+    confidence = float(item.get("confidence_index", 50.0) or 50.0)
+    return bool(guard.get("passed")) and (
+        score >= 0.86
+        or confidence >= 92
+        or passed_count >= 7
+        or int(item.get("stability_count") or 0) >= 5
+    )
+
+
+def add_similarity_reason(item, reason):
+    reasons = [text for text in item.get("reasons", []) if text != reason]
+    item["reasons"] = ([reason] + reasons)[:4]
+
+
+def apply_previous_similarity_guard(candidates, review=None, max_top10_overlap=4, max_top15_overlap=7):
+    previous_top10 = previous_prediction_set(review, limit=10)
+    previous_top15 = previous_prediction_set(review, limit=15)
+    if not previous_top15:
+        return refresh_candidate_metadata(candidates), {
+            "status": "no_previous_prediction",
+            "max_top10_overlap": max_top10_overlap,
+            "max_top15_overlap": max_top15_overlap,
+            "swaps": [],
+        }
+
+    rows = [dict(item) for item in candidates]
+    swaps = []
+
+    def overlap(limit, previous_set):
+        return {item["number"] for item in rows[:limit]} & previous_set
+
+    def repeat_guard_failed(item):
+        guard = item.get("repeat_guard")
+        return bool(guard and not guard.get("passed"))
+
+    def choose_replacement(start_index, previous_set):
+        for index in range(start_index, len(rows)):
+            item = rows[index]
+            if item["number"] in previous_set:
+                continue
+            if previous_guard_blocks_item(item) or repeat_guard_failed(item):
+                continue
+            return index
+        return None
+
+    def choose_demote_index(limit, previous_set):
+        weak_indexes = [
+            index for index, item in enumerate(rows[:limit])
+            if item["number"] in previous_set and not qualified_previous_reentry(item)
+        ]
+        if not weak_indexes:
+            weak_indexes = [
+                index for index, item in enumerate(rows[:limit])
+                if item["number"] in previous_set
+            ]
+        if not weak_indexes:
+            return None
+        return min(
+            weak_indexes,
+            key=lambda index: (
+                float(rows[index].get("score", 0.0) or 0.0),
+                float(rows[index].get("confidence_index", 50.0) or 50.0),
+                int(rows[index].get("stability_count") or 0),
+            ),
+        )
+
+    for phase_name, limit, previous_set, max_overlap in [
+        ("top10", 10, previous_top10, max_top10_overlap),
+        ("top15", 15, previous_top15, max_top15_overlap),
+    ]:
+        attempts = 0
+        while len(overlap(limit, previous_set)) > max_overlap and attempts < 20:
+            attempts += 1
+            demote_index = choose_demote_index(limit, previous_set)
+            replacement_index = choose_replacement(limit, previous_set)
+            if demote_index is None or replacement_index is None:
+                break
+            demoted = rows[demote_index]
+            promoted = rows[replacement_index]
+            add_similarity_reason(demoted, "上期高重疊降權")
+            add_similarity_reason(promoted, "高相似守門補位")
+            rows[demote_index], rows[replacement_index] = promoted, demoted
+            swaps.append({
+                "phase": phase_name,
+                "demoted_number": demoted["number"],
+                "promoted_number": promoted["number"],
+                "reason": "previous_prediction_similarity_guard",
+            })
+
+    rows = refresh_candidate_metadata(rows)
+    final_top10_overlap = sorted(overlap(10, previous_top10))
+    final_top15_overlap = sorted(overlap(15, previous_top15))
+    return rows, {
+        "status": "triggered" if swaps else "passed",
+        "policy": "top10_previous_overlap_max_4_top15_previous_overlap_max_7_unless_strong_reentry",
+        "max_top10_overlap": max_top10_overlap,
+        "max_top15_overlap": max_top15_overlap,
+        "final_top10_overlap": final_top10_overlap,
+        "final_top15_overlap": final_top15_overlap,
+        "swaps": swaps,
+    }
+
+
 def failed_number_reentry_allowed(item, review=None):
     number = int(item.get("number"))
     rolling = (review or {}).get("rolling_adjustment", {})
@@ -3173,6 +3307,163 @@ def short_pack_precision_audit(candidates, review=None, limit=10):
     return rows[:limit]
 
 
+def super_single_layer_result(name, label, score, threshold):
+    score = max(0.0, min(1.0, float(score or 0.0)))
+    return {
+        "name": name,
+        "label": label,
+        "score": round(score, 4),
+        "threshold": round(float(threshold), 4),
+        "passed": score >= threshold,
+    }
+
+
+def super_single_candidate_decision(item, review=None):
+    number = int(item["number"])
+    cross = item.get("cross_validation", {}) or {}
+    passed = int(cross.get("passed_count") or 0)
+    total = int(cross.get("total_count") or 0) or 1
+    probability = float(item.get("model_probability_percent", 0) or 0)
+    posterior = float((item.get("hit_through_calibration") or {}).get("posterior_hit_rate", BASE_PROBABILITY) or BASE_PROBABILITY)
+    objective_edge = float((item.get("objective_feature_calibration") or {}).get("objective_edge", 0.0) or 0.0)
+    feature_values = item.get("feature_scores", {}) or {}
+    short_components = short_pack_precision_components(item, review, [])
+    rank = int(item.get("rank") or 99)
+    source_count = int(item.get("source_model_count", 0) or len(item.get("model_sources", [])))
+    stability_count = int(item.get("stability_count", 0) or 0)
+    recall_score = recall_priority_score(item, review)
+    base_score = float(item.get("score", 0) or 0)
+    confidence_score = max(0.0, min(1.0, (float(item.get("confidence_index", 50) or 50) - 50) / 49))
+    probability_score = max(0.0, min(1.0, probability / 18.72))
+    posterior_score = max(0.0, min(1.0, (posterior - 0.070) / 0.125))
+    objective_score = max(0.0, min(1.0, (objective_edge + 0.070) / 0.170))
+    cross_score = max(0.0, min(1.0, passed / total))
+    stability_score = max(0.0, min(1.0, stability_count / 5))
+    source_score = max(0.0, min(1.0, source_count / 8))
+    rank_score = max(0.0, min(1.0, (16 - rank) / 15))
+    short_score = max(0.0, min(1.0, short_components.get("short_pack_precision_score", 0) / 1.15))
+    bagging_score = float(feature_values.get("multi_window_bagging", 0.0) or 0.0)
+    bayes_score = float(feature_values.get("bayesian_posterior", 0.0) or 0.0)
+    consensus_score = float(feature_values.get("cross_consensus", 0.0) or 0.0)
+    tail_bridge = float(feature_values.get("tail_transition_bridge", 0.0) or 0.0)
+    zone_pressure = float(feature_values.get("zone_quota_pressure", 0.0) or 0.0)
+    cold_rebound = float(feature_values.get("cold_rebound_champion", 0.0) or 0.0)
+    layers = [
+        super_single_layer_result("core_score", "\u7e3d\u5206\u5f37\u5ea6", base_score, 0.62),
+        super_single_layer_result("confidence", "\u4fe1\u5fc3\u6307\u6a19", confidence_score, 0.55),
+        super_single_layer_result("probability", "\u6a5f\u7387\u6821\u6e96", probability_score, 0.78),
+        super_single_layer_result("posterior", "\u5be6\u6230\u7a7f\u900f\u7387", posterior_score, 0.42),
+        super_single_layer_result("objective", "\u6a21\u578b\u512a\u52e2", objective_score, 0.38),
+        super_single_layer_result("cross_validation", "\u4ea4\u53c9\u9a57\u7b97", cross_score, 0.34),
+        super_single_layer_result("stability", "\u591a\u671f\u7a69\u5b9a", stability_score, 0.20),
+        super_single_layer_result("source_count", "\u4f86\u6e90\u6a21\u578b", source_score, 0.45),
+        super_single_layer_result("rank", "\u524d\u6bb5\u6392\u540d", rank_score, 0.40),
+        super_single_layer_result("short_pack", "\u77ed\u5305\u7cbe\u7b97", short_score, 0.52),
+        super_single_layer_result("consensus", "\u5171\u8b58\u6a21\u578b", consensus_score, 0.42),
+        super_single_layer_result("bagging", "\u591a\u8996\u7a97\u7a69\u5b9a", bagging_score, 0.42),
+        super_single_layer_result("bayesian", "\u8c9d\u6c0f\u4fdd\u5b88", bayes_score, 0.42),
+        super_single_layer_result("tail_zone", "\u5c3e\u6578\u5340\u9593", max(tail_bridge, zone_pressure), 0.42),
+        super_single_layer_result("cold_rebound", "\u51b7\u865f\u53cd\u5f48", cold_rebound, 0.42),
+        super_single_layer_result("recall", "\u6efe\u52d5\u56de\u6536", recall_score, 0.35),
+    ]
+    passed_layers = sum(1 for layer in layers if layer["passed"])
+    repeat_blocked = bool(item.get("repeat_guard") and not item["repeat_guard"].get("passed"))
+    previous_blocked = previous_guard_blocks_item(item)
+    failed_blocked = number in failed_number_set(review) and not failed_number_reentry_allowed(item, review)
+    risk_penalty = 0.0
+    risk_flags = []
+    if repeat_blocked:
+        risk_penalty += 0.18
+        risk_flags.append("\u9023\u838a\u5b88\u9580\u672a\u901a\u904e")
+    if previous_blocked:
+        risk_penalty += 0.16
+        risk_flags.append("\u4e0a\u671f\u91cd\u5165\u672a\u9054\u9580\u6abb")
+    if failed_blocked:
+        risk_penalty += 0.15
+        risk_flags.append("\u8fd1\u671f\u5931\u6557\u865f\u78bc\u964d\u6b0a")
+    if rank > 15:
+        risk_penalty += 0.08
+        risk_flags.append("\u6392\u540d\u843d\u5728\u524d15\u4e4b\u5916")
+    super_score = (
+        base_score * 0.16
+        + confidence_score * 0.08
+        + probability_score * 0.10
+        + posterior_score * 0.13
+        + objective_score * 0.12
+        + cross_score * 0.11
+        + stability_score * 0.06
+        + source_score * 0.07
+        + rank_score * 0.06
+        + short_score * 0.10
+        + consensus_score * 0.06
+        + bagging_score * 0.05
+        + bayes_score * 0.05
+        + max(tail_bridge, zone_pressure) * 0.04
+        + cold_rebound * 0.03
+        + recall_score * 0.05
+        + min(passed_layers, 16) / 16 * 0.08
+        - risk_penalty
+    )
+    super_score = max(0.0, min(1.0, super_score))
+    if super_score >= 0.78 and passed_layers >= 9 and not risk_flags:
+        label = "\u6700\u5f37\u9ad8\u4fe1\u5fc3\u7368\u96bb"
+    elif super_score >= 0.68 and passed_layers >= 7:
+        label = "\u6700\u5f37\u7368\u96bb"
+    else:
+        label = "\u672c\u671f\u7368\u96bb\u7814\u7a76\u724c"
+    return {
+        "number": number,
+        "rank": rank,
+        "super_single_score": round(super_score, 4),
+        "confidence_index": item.get("confidence_index"),
+        "model_probability_percent": probability,
+        "passed_layer_count": passed_layers,
+        "total_layer_count": len(layers),
+        "layers": layers,
+        "risk_flags": risk_flags,
+        "risk_penalty": round(risk_penalty, 4),
+        "decision_label": label,
+        "selection_policy": "\u7368\u96bb\u5c08\u7528\uff1a\u7e3d\u5206\u3001\u6a5f\u7387\u3001\u5be6\u6230\u7a7f\u900f\u3001\u4ea4\u53c9\u9a57\u7b97\u3001\u56de\u6e2c\u6efe\u52d5\u3001\u98a8\u63a7\u516d\u5c64\u5408\u6210",
+        "model_sources": item.get("model_sources", []),
+        "candidate": item,
+        "short_pack_precision": short_components,
+    }
+
+
+def super_single_decision(candidates, review=None):
+    rows = []
+    for item in candidates[:30]:
+        decision = super_single_candidate_decision(item, review)
+        rows.append(decision)
+    rows.sort(
+        key=lambda row: (
+            row["super_single_score"],
+            row["passed_layer_count"],
+            row["candidate"].get("score", 0),
+            -int(row["number"]),
+        ),
+        reverse=True,
+    )
+    best = rows[0] if rows else None
+    if best:
+        best["candidate_rankings"] = [
+            {
+                "number": row["number"],
+                "rank": row["rank"],
+                "super_single_score": row["super_single_score"],
+                "passed_layer_count": row["passed_layer_count"],
+                "risk_penalty": row["risk_penalty"],
+            }
+            for row in rows[:8]
+        ]
+    return best or {}
+
+
+def super_single_group(candidates, review=None):
+    decision = super_single_decision(candidates, review)
+    return [decision["number"]] if decision.get("number") else []
+
+
 def stability_group(candidates, size, review=None):
     failed = failed_number_set(review)
     ranked = sorted(
@@ -3333,6 +3624,8 @@ def slump_recall_group(candidates, size, goal, review=None):
 
 def group_by_variant(key, candidates, review=None, variant=None):
     if key == "strong_single":
+        if variant == "super_single":
+            return super_single_group(candidates, review)
         if variant == "short_pack_precision":
             return short_pack_precision_group(candidates, 1, review)
         if variant == "micro_confidence":
@@ -3699,7 +3992,7 @@ def pack_recent_governance(draws, rounds=120):
         "nine_hit_three": {"size": 9, "goal": 3, "min_pass_rate": 0.12, "min_avg_hits": 1.16},
     }
     pack_variants = {
-        "strong_single": ["short_pack_precision", "micro_confidence", "target_precision", "single_precision", "slump_recall", "dedicated", "top_rank", "stability"],
+        "strong_single": ["super_single", "short_pack_precision", "micro_confidence", "target_precision", "single_precision", "slump_recall", "dedicated", "top_rank", "stability"],
         "two_hit_one": ["short_pack_precision", "micro_confidence", "target_precision", "slump_recall", "dedicated"],
         "three_hit_one": ["short_pack_precision", "micro_confidence", "target_precision", "slump_recall", "dedicated"],
         "five_hit_two": ["target_precision", "slump_recall", "dedicated", "top_rank", "stability"],
@@ -3793,6 +4086,7 @@ def strong_packs(candidates, review=None, governance=None):
     governance = governance or {"pack_stats": {}}
     pack_stats = governance.get("pack_stats", {})
     variant_labels = {
+        "super_single": "super_single_multi_layer_engine",
         "short_pack_precision": "short_pack_multi_model_arbitration",
         "micro_confidence": "micro_confidence_short_pack",
         "target_precision": "target_precision_gate",
@@ -3834,7 +4128,9 @@ def strong_packs(candidates, review=None, governance=None):
     for key, (name, goal, size, min_avg_score, min_stability) in specs.items():
         recent_stat = pack_stats.get(key, {})
         variant = recent_stat.get("best_variant", "dedicated")
-        if key in short_pack_keys:
+        if key == "strong_single":
+            variant = "super_single"
+        elif key in short_pack_keys:
             variant = "short_pack_precision"
         elif key == "nine_hit_three" and critical_front_nine_active(review):
             variant = "top_rank"
@@ -3857,7 +4153,12 @@ def strong_packs(candidates, review=None, governance=None):
             packs[key]["selection_variant"] = variant
             packs[key]["selection_model"] = variant_labels.get(variant, variant)
             continue
-        numbers = group_by_variant(key, selection_pool, review, variant)
+        single_decision = {}
+        if key == "strong_single":
+            single_decision = super_single_decision(candidates, review)
+            numbers = [single_decision["number"]] if single_decision.get("number") else []
+        else:
+            numbers = group_by_variant(key, selection_pool, review, variant)
         if not numbers and selection_pool:
             numbers = [selection_pool[0]["number"]] if size == 1 else optimized_group(selection_pool, size, review)
         avg_score = sum(score_map[n] for n in numbers) / len(numbers) if numbers else 0
@@ -3879,6 +4180,10 @@ def strong_packs(candidates, review=None, governance=None):
         packs[key]["governance"] = recent_stat
         packs[key]["selection_variant"] = variant
         packs[key]["selection_model"] = variant_labels.get(variant, variant)
+        if key == "strong_single":
+            packs[key]["super_single_decision"] = single_decision
+            packs[key]["selection_rule"] = "super_single_multi_layer_engine"
+            packs[key]["release_note"] = "strong single is recalculated every fresh draw by the dedicated multi-layer engine"
         if key in short_pack_keys:
             audit_rows = short_pack_precision_audit(candidates, review, limit=10)
             selected_set = set(int(number) for number in packs[key].get("numbers", []))
@@ -3888,7 +4193,8 @@ def strong_packs(candidates, review=None, governance=None):
                 row for row in audit_rows if int(row.get("number")) in selected_set
             ]
             packs[key]["daily_output_required"] = True
-            packs[key]["selection_rule"] = "short_pack_multi_model_arbitration_v1"
+            if key != "strong_single":
+                packs[key]["selection_rule"] = "short_pack_multi_model_arbitration_v1"
 
     wheel = build_covering_wheel(packs["nine_hit_three"].get("numbers", []), ticket_size=5, cover_size=3, max_tickets=12)
     packs["nine_hit_three"]["wheel_tickets"] = wheel["tickets"]
@@ -4310,7 +4616,49 @@ def stability_consensus(draws, base_candidates, review=None):
     }
 
 
-def unlikely_number_analysis(draws, candidates, stability, review=None, limit=12):
+def avoid_confidence_label(score):
+    if score >= 0.82:
+        return "高"
+    if score >= 0.68:
+        return "中高"
+    if score >= 0.55:
+        return "中"
+    return "低"
+
+
+def build_unlikely_avoid_packs(rows):
+    packs = {}
+    for key, name, size in [
+        ("five_miss", "5不中", 5),
+        ("ten_miss", "10不中", 10),
+        ("fifteen_miss", "15不中", 15),
+    ]:
+        pack_rows = rows[:size]
+        if len(pack_rows) < size:
+            packs[key] = {
+                "name": name,
+                "numbers": [],
+                "status": "資料不足不產出",
+                "confidence_label": "低",
+                "warning": "低機率研究不是絕對不開保證",
+            }
+            continue
+        avg_score = sum(float(item.get("avoid_score", 0.0) or 0.0) for item in pack_rows) / size
+        min_score = min(float(item.get("avoid_score", 0.0) or 0.0) for item in pack_rows)
+        packs[key] = {
+            "name": name,
+            "numbers": [item["number"] for item in pack_rows],
+            "status": "已產出",
+            "avg_avoid_score": round(avg_score, 4),
+            "min_avoid_score": round(min_score, 4),
+            "confidence_index": round(avg_score * 100, 1),
+            "confidence_label": avoid_confidence_label(avg_score),
+            "warning": "低機率研究不是絕對不開保證，只作避險與組合污染控管",
+        }
+    return packs
+
+
+def unlikely_number_analysis(draws, candidates, stability, review=None, limit=15):
     features = build_feature_matrix(draws, review, include_dependency=False)
     score_map = {item["number"]: item["score"] for item in candidates}
     rank_map = {item["number"]: index + 1 for index, item in enumerate(candidates)}
@@ -4374,6 +4722,7 @@ def unlikely_number_analysis(draws, candidates, stability, review=None, limit=12
         "method": "inverse_signal_risk_filter",
         "warning": "\u6b64\u5340\u70ba\u98a8\u63a7\u907f\u958b\u89c0\u5bdf\uff0c\u4e0d\u662f\u7d55\u5c0d\u4e0d\u958b\u4fdd\u8b49",
         "numbers": rows[:limit],
+        "avoid_packs": build_unlikely_avoid_packs(rows),
     }
 
 
@@ -4406,6 +4755,43 @@ def unlikely_backtest(draws, rounds=120, avoid_size=10):
     }
 
 
+def unlikely_backtest_by_size(draws, rounds=120, sizes=(5, 10, 15)):
+    if len(draws) < 140:
+        return {}
+    start = max(120, len(draws) - rounds - 1)
+    max_size = max(sizes)
+    totals = {
+        size: {"total": 0, "accidental_hits": 0, "zero_hit_rounds": 0}
+        for size in sizes
+    }
+    for idx in range(start, len(draws) - 1):
+        train = draws[: idx + 1]
+        base_candidates, _ = score_numbers(train, None, include_dependency=False)
+        stable = {"consensus_counts": {}}
+        avoid_rows = unlikely_number_analysis(train, base_candidates, stable, None, limit=max_size)["numbers"]
+        actual = set(draws[idx + 1]["numbers"])
+        for size in sizes:
+            avoid_numbers = {item["number"] for item in avoid_rows[:size]}
+            hits = len(avoid_numbers & actual)
+            totals[size]["total"] += 1
+            totals[size]["accidental_hits"] += hits
+            totals[size]["zero_hit_rounds"] += 1 if hits == 0 else 0
+    results = {}
+    for size, data in totals.items():
+        total = data["total"]
+        random_expectation = DRAW_SIZE * size / NUMBER_MAX
+        key = {5: "five_miss", 10: "ten_miss", 15: "fifteen_miss"}.get(size, f"{size}_miss")
+        results[key] = {
+            "rounds": total,
+            "avoid_size": size,
+            "avg_accidental_hits": round(data["accidental_hits"] / total, 3) if total else 0,
+            "random_expectation": round(random_expectation, 3),
+            "edge_vs_random": round(data["accidental_hits"] / total - random_expectation, 4) if total else 0,
+            "zero_hit_rate": round(data["zero_hit_rounds"] / total, 3) if total else 0,
+        }
+    return results
+
+
 def compute_industrial_analysis(draws, review=None):
     weights, weight_calibration = adaptive_feature_weights(draws, review)
     lifecycle = model_lifecycle_policy(weight_calibration)
@@ -4420,6 +4806,7 @@ def compute_industrial_analysis(draws, review=None):
     candidates, slump_recall_coverage = apply_slump_recall_coverage_mode(draws, candidates, review)
     candidates = apply_top10_boundary_promotion(candidates, review)
     candidates, top9_leakage_lock = apply_top9_leakage_lock(candidates, review)
+    candidates, previous_similarity_guard = apply_previous_similarity_guard(candidates, review)
     pack_governance = pack_recent_governance(draws)
     packs = strong_packs(candidates, review, pack_governance)
     audit = industrial_backtest(draws)
@@ -4445,7 +4832,9 @@ def compute_industrial_analysis(draws, review=None):
         item["number"] for item in candidates
         if item.get("previous_prediction_guard") and item["previous_prediction_guard"].get("passed")
     )
-    unlikely = unlikely_number_analysis(draws, candidates, stability, review)
+    unlikely = unlikely_number_analysis(draws, candidates, stability, review, limit=15)
+    unlikely_backtest_result = unlikely_backtest(draws)
+    unlikely_backtest_result["packs"] = unlikely_backtest_by_size(draws)
     promotion_audit = top10_promotion_audit(candidates, review)
     release_gate = {
         "status": release_status,
@@ -4466,13 +4855,14 @@ def compute_industrial_analysis(draws, review=None):
         "leakage_guard": True,
         "repeat_guard": repeat_guard(draws),
         "previous_prediction_guard": {
-            "policy": "prevent_exact_copy_but_allow_single-number_soft_reentry_when_recovery_or_cross_validation_passes",
+            "policy": "prevent_exact_copy_and_limit_high_similarity_unless_strong_reentry_passes",
             "previous_top15": sorted(previous),
             "reentry_passed": reentry_passed,
             "current_top10_overlap": top10_overlap,
             "current_top15_overlap": top15_overlap,
             "top10_overlap_rate": round(len(top10_overlap) / 10, 3),
             "top15_overlap_rate": round(len(top15_overlap) / 15, 3),
+            "similarity_guard": previous_similarity_guard,
         },
         "stability_consensus": stability,
         "adaptive_weight_calibration": weight_calibration,
@@ -4498,7 +4888,7 @@ def compute_industrial_analysis(draws, review=None):
         "advanced_models": advanced_models,
         "advanced_model_backtest": advanced_backtest,
         "unlikely_number_analysis": unlikely,
-        "unlikely_backtest": unlikely_backtest(draws),
+        "unlikely_backtest": unlikely_backtest_result,
         "precision_governor": pack_governance,
         "model_audit": model_audit(audit, review),
         "regime_analysis": regime_analysis(draws),

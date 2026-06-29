@@ -1,19 +1,19 @@
 {
   "month": "2026-06",
-  "sample_size": 22,
+  "sample_size": 24,
   "status": "critical_recall_gap",
   "diagnosis": "本月主要問題是召回率不足：實開號大量落在 Top15 後段或候選外，必須優先修正排序回拉與包組合覆蓋。",
-  "top5_avg_hits": 0.773,
-  "top10_avg_hits": 1.364,
-  "top15_avg_hits": 1.909,
-  "front_hit_rate": 0.273,
-  "late_or_missing_rate": 0.618,
+  "top5_avg_hits": 0.708,
+  "top10_avg_hits": 1.292,
+  "top15_avg_hits": 1.917,
+  "front_hit_rate": 0.258,
+  "late_or_missing_rate": 0.617,
   "rank_buckets": {
-    "16-25": 22,
-    "26-39": 34,
-    "11-15": 12,
+    "16-25": 24,
+    "26-39": 38,
+    "11-15": 15,
     "01-05": 17,
-    "06-10": 13,
+    "06-10": 14,
     "missing": 12
   },
   "daily_reviews": [
@@ -368,6 +368,39 @@
       ]
     },
     {
+      "actual_date": "2026-06-13",
+      "target_period": 115000144,
+      "actual_numbers": [
+        4,
+        5,
+        6,
+        34,
+        36
+      ],
+      "top5_hits": 0,
+      "top10_hits": 0,
+      "top15_hits": 2,
+      "actual_ranks": {
+        "4": 13,
+        "5": 21,
+        "6": 36,
+        "34": 30,
+        "36": 11
+      },
+      "missed_top10": [
+        4,
+        5,
+        6,
+        34,
+        36
+      ],
+      "missed_top15": [
+        5,
+        6,
+        34
+      ]
+    },
+    {
       "actual_date": "2026-06-15",
       "target_period": 115000145,
       "actual_numbers": [
@@ -714,6 +747,38 @@
         26,
         36
       ]
+    },
+    {
+      "actual_date": "2026-06-27",
+      "target_period": 115000156,
+      "actual_numbers": [
+        4,
+        14,
+        21,
+        31,
+        32
+      ],
+      "top5_hits": 0,
+      "top10_hits": 1,
+      "top15_hits": 2,
+      "actual_ranks": {
+        "4": 10,
+        "14": 37,
+        "21": 15,
+        "31": 23,
+        "32": 34
+      },
+      "missed_top10": [
+        14,
+        21,
+        31,
+        32
+      ],
+      "missed_top15": [
+        14,
+        31,
+        32
+      ]
     }
   ],
   "missed_top10_numbers": [
@@ -722,20 +787,20 @@
       "missed_count": 5
     },
     {
+      "number": 5,
+      "missed_count": 4
+    },
+    {
+      "number": 14,
+      "missed_count": 4
+    },
+    {
       "number": 28,
       "missed_count": 4
     },
     {
       "number": 8,
       "missed_count": 4
-    },
-    {
-      "number": 5,
-      "missed_count": 3
-    },
-    {
-      "number": 14,
-      "missed_count": 3
     },
     {
       "number": 20,
@@ -770,11 +835,11 @@
       "missed_count": 3
     },
     {
-      "number": 1,
+      "number": 32,
       "missed_count": 3
     },
     {
-      "number": 25,
+      "number": 1,
       "missed_count": 3
     }
   ],
@@ -786,6 +851,14 @@
     {
       "number": 29,
       "missed_count": 4
+    },
+    {
+      "number": 5,
+      "missed_count": 3
+    },
+    {
+      "number": 14,
+      "missed_count": 3
     },
     {
       "number": 26,
@@ -808,16 +881,20 @@
       "missed_count": 3
     },
     {
-      "number": 25,
+      "number": 32,
       "missed_count": 3
     },
     {
-      "number": 5,
-      "missed_count": 2
+      "number": 31,
+      "missed_count": 3
     },
     {
-      "number": 14,
-      "missed_count": 2
+      "number": 34,
+      "missed_count": 3
+    },
+    {
+      "number": 25,
+      "missed_count": 3
     },
     {
       "number": 30,
@@ -826,31 +903,27 @@
     {
       "number": 38,
       "missed_count": 2
-    },
-    {
-      "number": 2,
-      "missed_count": 2
-    },
-    {
-      "number": 37,
-      "missed_count": 2
-    },
-    {
-      "number": 27,
-      "missed_count": 2
     }
   ],
   "missed_tails": [
+    {
+      "tail": 4,
+      "missed_count": 13
+    },
     {
       "tail": 8,
       "missed_count": 12
     },
     {
-      "tail": 4,
-      "missed_count": 10
+      "tail": 5,
+      "missed_count": 9
     },
     {
       "tail": 0,
+      "missed_count": 9
+    },
+    {
+      "tail": 6,
       "missed_count": 9
     },
     {
@@ -858,24 +931,16 @@
       "missed_count": 9
     },
     {
-      "tail": 5,
-      "missed_count": 8
+      "tail": 1,
+      "missed_count": 9
     },
     {
       "tail": 9,
       "missed_count": 8
     },
     {
-      "tail": 6,
-      "missed_count": 7
-    },
-    {
-      "tail": 1,
-      "missed_count": 7
-    },
-    {
       "tail": 2,
-      "missed_count": 5
+      "missed_count": 6
     },
     {
       "tail": 3,
@@ -885,19 +950,19 @@
   "missed_zones": [
     {
       "zone": "21-30",
-      "missed_count": 26
+      "missed_count": 27
     },
     {
       "zone": "01-10",
-      "missed_count": 21
+      "missed_count": 24
     },
     {
       "zone": "11-20",
-      "missed_count": 18
+      "missed_count": 19
     },
     {
       "zone": "31-39",
-      "missed_count": 15
+      "missed_count": 19
     }
   ],
   "source_performance": [
@@ -908,13 +973,13 @@
       "hit_rate": 1.0
     },
     {
-      "reason": "與上期號碼近100期共現6次",
+      "reason": "上期失敗號碼僅微降權",
       "hit": 1,
       "miss": 1,
       "hit_rate": 0.5
     },
     {
-      "reason": "上期失敗號碼僅微降權",
+      "reason": "與上期號碼近100期共現6次",
       "hit": 1,
       "miss": 1,
       "hit_rate": 0.5
@@ -926,28 +991,40 @@
       "hit_rate": 0.333
     },
     {
+      "reason": "區間配額壓力",
+      "hit": 2,
+      "miss": 5,
+      "hit_rate": 0.286
+    },
+    {
       "reason": "共現關聯",
-      "hit": 20,
-      "miss": 62,
-      "hit_rate": 0.244
+      "hit": 21,
+      "miss": 66,
+      "hit_rate": 0.241
     },
     {
       "reason": "區間奇偶壓力",
-      "hit": 10,
-      "miss": 31,
-      "hit_rate": 0.244
+      "hit": 11,
+      "miss": 40,
+      "hit_rate": 0.216
     },
     {
       "reason": "中期穩定",
       "hit": 3,
-      "miss": 10,
-      "hit_rate": 0.231
+      "miss": 11,
+      "hit_rate": 0.214
+    },
+    {
+      "reason": "分布平衡風控",
+      "hit": 4,
+      "miss": 16,
+      "hit_rate": 0.2
     },
     {
       "reason": "快慢趨勢一致",
-      "hit": 2,
-      "miss": 7,
-      "hit_rate": 0.222
+      "hit": 3,
+      "miss": 12,
+      "hit_rate": 0.2
     },
     {
       "reason": "滾動檢討命中來源升權",
@@ -956,54 +1033,42 @@
       "hit_rate": 0.2
     },
     {
-      "reason": "開獎型態切換",
-      "hit": 4,
-      "miss": 17,
-      "hit_rate": 0.19
-    },
-    {
       "reason": "漏命中回收",
       "hit": 4,
       "miss": 17,
       "hit_rate": 0.19
-    },
-    {
-      "reason": "昨日預測號軟性降權",
-      "hit": 2,
-      "miss": 9,
-      "hit_rate": 0.182
     }
   ],
   "pack_summary": {
     "strong_single": {
-      "rounds": 22,
-      "pass_rate": 0.136,
-      "avg_hits": 0.136,
-      "zero_hit_rate": 0.864
+      "rounds": 24,
+      "pass_rate": 0.125,
+      "avg_hits": 0.125,
+      "zero_hit_rate": 0.875
     },
     "two_hit_one": {
-      "rounds": 22,
-      "pass_rate": 0.364,
-      "avg_hits": 0.364,
-      "zero_hit_rate": 0.636
+      "rounds": 24,
+      "pass_rate": 0.333,
+      "avg_hits": 0.333,
+      "zero_hit_rate": 0.667
     },
     "three_hit_one": {
-      "rounds": 22,
-      "pass_rate": 0.455,
-      "avg_hits": 0.545,
-      "zero_hit_rate": 0.545
+      "rounds": 24,
+      "pass_rate": 0.417,
+      "avg_hits": 0.5,
+      "zero_hit_rate": 0.583
     },
     "five_hit_two": {
-      "rounds": 22,
-      "pass_rate": 0.136,
-      "avg_hits": 0.727,
-      "zero_hit_rate": 0.455
+      "rounds": 24,
+      "pass_rate": 0.125,
+      "avg_hits": 0.667,
+      "zero_hit_rate": 0.5
     },
     "nine_hit_three": {
-      "rounds": 22,
-      "pass_rate": 0.136,
-      "avg_hits": 1.136,
-      "zero_hit_rate": 0.318
+      "rounds": 24,
+      "pass_rate": 0.125,
+      "avg_hits": 1.042,
+      "zero_hit_rate": 0.375
     }
   },
   "best_days": [

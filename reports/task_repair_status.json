@@ -1,81 +1,47 @@
 ﻿{
-    "repaired_at":  "2026-06-29T10:08:16",
+    "repaired_at":  "2026-06-29T12:24:33",
     "root":  "C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem",
     "runner":  "C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\run_539_once.ps1",
     "main_runner":  "C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\main_one_click.ps1",
     "post_draw_monitor":  "C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\post_draw_mobile_sync.ps1",
+    "midnight_recompute":  "C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\daily_midnight_recompute.ps1",
     "mobile_server":  "C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\mobile_server.py",
     "tasks":  [
                   {
-                      "task":  "539 Daily Latest Result Update",
+                      "task":  "TW539瘥2045?湔摰?隞餃?",
                       "status":  "ok",
-                      "message":  "registered_to_current_system"
-                  },
-                  {
-                      "task":  "539 Daily Latest Result Update 2130",
-                      "status":  "ok",
-                      "message":  "registered_to_current_system"
-                  },
-                  {
-                      "task":  "539 Daily Latest Result Update 2100",
-                      "status":  "ok",
-                      "message":  "registered_to_current_system"
-                  },
-                  {
-                      "task":  "539 Daily Latest Result Update 2045",
-                      "status":  "ok",
-                      "message":  "registered_to_current_system"
-                  },
-                  {
-                      "task":  "539 Daily Latest Result Update 2300",
-                      "status":  "ok",
-                      "message":  "registered_to_current_system"
-                  },
-                  {
-                      "task":  "539 Daily Latest Result Update 2200",
-                      "status":  "ok",
-                      "message":  "registered_to_current_system"
-                  },
-                  {
-                      "task":  "539 Daily Latest Result Update 2115",
-                      "status":  "ok",
-                      "message":  "registered_to_current_system"
-                  },
-                  {
-                      "task":  "539 Daily Latest Result Update 2035",
-                      "status":  "ok",
-                      "message":  "registered_to_current_system"
-                  },
-                  {
-                      "task":  "539 Startup Full Run",
-                      "status":  "failed",
-                      "message":  "Access is denied.\r\n",
-                      "fallback_task":  "TW539 Current Startup Full Run",
+                      "message":  "primary_locked_fallback_registered",
+                      "fallback_task":  "TW539 2045 Deadline Post Draw Sync",
                       "primary_status":  "failed",
-                      "primary_message":  "Access is denied.\r\n"
+                      "primary_message":  "The filename, directory name, or volume label syntax is incorrect.\r\n"
                   },
                   {
-                      "task":  "539 Mobile Control Server",
-                      "status":  "failed",
-                      "message":  "Access is denied.\r\n",
-                      "fallback_task":  "TW539 Current Mobile Server",
+                      "task":  "TW539瘥0000摰??隞餃?",
+                      "status":  "ok",
+                      "message":  "primary_locked_fallback_registered",
+                      "fallback_task":  "TW539 0000 Midnight Full Recompute",
                       "primary_status":  "failed",
-                      "primary_message":  "Access is denied.\r\n"
+                      "primary_message":  "The filename, directory name, or volume label syntax is incorrect.\r\n"
                   }
               ],
     "mobile":  {
                    "status":  "ok",
                    "stopped_processes":  [
-
+                                             20296
                                          ],
                    "started":  true,
                    "message":  "current_mobile_server_started"
                },
-    "startup_folder":  {
-                           "status":  "ok",
-                           "path":  "C:\\Users\\MSI\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\TW539_Current_One_Click_Startup.bat",
-                           "message":  "startup_folder_entry_installed"
-                       },
+    "startup_folder_cleanup":  {
+                                   "status":  "ok",
+                                   "removed":  [
+
+                                               ],
+                                   "failed":  [
+
+                                              ],
+                                   "message":  "startup_entries_removed_or_not_found"
+                               },
     "obsolete_task_cleanup":  [
                                   {
                                       "task":  "539 Daily Latest Result Update 2105",
@@ -106,6 +72,56 @@
                                       "task":  "539 Daily Latest Result Update 2335",
                                       "status":  "failed",
                                       "message":  "schtasks_delete_failed_1"
+                                  },
+                                  {
+                                      "task":  "539 Daily Latest Result Update 2035",
+                                      "status":  "not_found",
+                                      "message":  ""
+                                  },
+                                  {
+                                      "task":  "539 Daily Latest Result Update 2040",
+                                      "status":  "not_found",
+                                      "message":  ""
+                                  },
+                                  {
+                                      "task":  "539 Daily Latest Result Update 2045",
+                                      "status":  "not_found",
+                                      "message":  ""
+                                  },
+                                  {
+                                      "task":  "539 Daily Latest Result Update 2050",
+                                      "status":  "not_found",
+                                      "message":  ""
+                                  },
+                                  {
+                                      "task":  "539 Daily Latest Result Update 2055",
+                                      "status":  "not_found",
+                                      "message":  ""
+                                  },
+                                  {
+                                      "task":  "539 Daily Latest Result Update 2100",
+                                      "status":  "not_found",
+                                      "message":  ""
+                                  },
+                                  {
+                                      "task":  "539 Daily Latest Result Update 2115",
+                                      "status":  "not_found",
+                                      "message":  ""
+                                  },
+                                  {
+                                      "task":  "539 Daily Latest Result Update 2130",
+                                      "status":  "not_found",
+                                      "message":  ""
+                                  },
+                                  {
+                                      "task":  "539 Daily Latest Result Update 2200",
+                                      "status":  "not_found",
+                                      "message":  ""
+                                  },
+                                  {
+                                      "task":  "539 Daily Latest Result Update 2300",
+                                      "status":  "not_found",
+                                      "message":  ""
                                   },
                                   {
                                       "task":  "TW539 Current Daily Update 2105",
@@ -151,23 +167,63 @@
                                       "task":  "TW539_Research_Platform",
                                       "status":  "failed",
                                       "message":  "schtasks_delete_failed_1"
+                                  },
+                                  {
+                                      "task":  "539 Startup Full Run",
+                                      "status":  "failed",
+                                      "message":  "schtasks_delete_failed_1"
+                                  },
+                                  {
+                                      "task":  "TW539 Current Startup Full Run",
+                                      "status":  "not_found",
+                                      "message":  ""
+                                  },
+                                  {
+                                      "task":  "539 Mobile Control Server",
+                                      "status":  "failed",
+                                      "message":  "schtasks_delete_failed_1"
+                                  },
+                                  {
+                                      "task":  "TW539 Current Mobile Server",
+                                      "status":  "not_found",
+                                      "message":  ""
+                                  },
+                                  {
+                                      "task":  "TW539瘥2045?湔摰?隞餃?",
+                                      "status":  "not_found",
+                                      "message":  ""
+                                  },
+                                  {
+                                      "task":  "TW539瘥0000摰??隞餃?",
+                                      "status":  "not_found",
+                                      "message":  ""
+                                  },
+                                  {
+                                      "task":  "TW539 2045 Deadline Post Draw Sync",
+                                      "status":  "removed",
+                                      "message":  "removed_by_register_scheduled_task"
+                                  },
+                                  {
+                                      "task":  "TW539 0000 Midnight Full Recompute",
+                                      "status":  "removed",
+                                      "message":  "removed_by_register_scheduled_task"
                                   }
                               ],
     "legacy_forwarders":  [
                               {
                                   "path":  "C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\封包輸出\\539-aerospace-v36-assurance-20260606141635\\run_539_once.ps1",
                                   "status":  "ok",
-                                  "message":  "legacy_task_forwarded_to_current_post_draw_sync"
+                                  "message":  "legacy_task_disabled_noop"
                               },
                               {
                                   "path":  "C:\\Users\\MSI\\Documents\\Codex\\539主系統_排程與手機入口修正版_20260611_095431\\run_539_once.ps1",
                                   "status":  "ok",
-                                  "message":  "legacy_task_forwarded_to_current_post_draw_sync"
+                                  "message":  "legacy_task_disabled_noop"
                               },
                               {
                                   "path":  "C:\\Users\\MSI\\Documents\\Codex\\2026-06-01\\539\\outputs\\539-mobile-fully-independent-pwa-v21-20260604\\mobile_server.py",
                                   "status":  "ok",
-                                  "message":  "legacy_mobile_server_forwarded_to_current_system"
+                                  "message":  "legacy_mobile_server_disabled_noop"
                               }
                           ]
 }

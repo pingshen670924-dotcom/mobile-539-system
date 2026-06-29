@@ -1,6 +1,7 @@
 ﻿import json
 import sqlite3
 import re
+import html
 from collections import defaultdict
 from datetime import datetime, timedelta
 from html.parser import HTMLParser
@@ -22,6 +23,7 @@ BATTLE_HTML = REPORT_DIR / "latest_battle_report.html"
 ENHANCED_BATTLE_HTML = REPORT_DIR / "539\u6700\u65b0\u5f37\u5316\u6230\u5831.html"
 HISTORY_JSON = REPORT_DIR / "prediction_history.json"
 HISTORY_HTML = REPORT_DIR / "539\u6bcf\u671f\u9810\u6e2c\u5c0d\u6bd4.html"
+LOW_PROBABILITY_HTML = REPORT_DIR / "539\u4f4e\u6a5f\u7387\u7cbe\u6e96\u66ab\u907f.html"
 HISTORY_DIR = REPORT_DIR / "history"
 TAIPEI_TZ = ZoneInfo("Asia/Taipei")
 
@@ -43,6 +45,25 @@ def fmt_numbers(numbers):
 
 
 TEXT_REPLACEMENTS = [
+    ("recent walk-forward pack performance did not pass official gate; output as daily research prediction", "近期滾動回測包表現未通過正式門檻，改列每日研究預測"),
+    ("daily research prediction is always provided, but official confidence gate did not pass", "每日研究預測仍會輸出，但正式信心門檻未通過"),
+    ("strict walk-forward governance with daily variant tournament; lower confidence packs are still output as research predictions", "嚴格滾動回測治理與每日模型競賽；信心較低的包仍列為研究預測"),
+    ("recent_slump_recall_coverage_switch", "近期低迷召回覆蓋切換"),
+    ("recent_fast_walk_forward_feature_weight_calibration", "近期快速滾動回測特徵權重校準"),
+    ("recent_低迷召回_coverage_switch", "近期低迷召回覆蓋切換"),
+    ("recent_fast_滾動回測_feature_weight_calibration", "近期快速滾動回測特徵權重校準"),
+    ("Top11-15 has captured real hits; ranking calibration should promote stable consensus and mid-rank validated signals into Top10.", "第11到15名曾捕捉實際命中號，排序校準要把穩定共識與中段驗證訊號提前到前十名。"),
+    ("insufficient_samples", "樣本不足"),
+    ("watch_only", "觀察候選"),
+    ("official_release", "正式發布"),
+    ("official", "正式"),
+    ("yellow", "黃燈"),
+    ("green", "綠燈"),
+    ("red", "紅燈"),
+    ("blocked", "已阻擋"),
+    ("not_ranked", "未入排名"),
+    ("hit_in_top15", "前15名內命中"),
+    ("outside_top15", "前15名外"),
     ("current_precision_stability_v44_micro_confidence_short_packs", "目前精準穩定第44版：短包信心精算"),
     ("industrial_v19_short_pack_multi_model_arbitration", "工業級第19版：短包多模型仲裁"),
     ("industrial_v20_recall_pressure_cold_rebound", "工業級第20版：月度召回壓力與冷號反彈"),
@@ -54,8 +75,39 @@ TEXT_REPLACEMENTS = [
     ("pull_rank_10_to_15_signal_inside_top9", "將第10到15名訊號拉入前9名"),
     ("front_rank_overconfidence_penalty", "前段排名過度自信降權"),
     ("critical_recall_gap", "重大漏抓回補"),
+    ("research_prediction", "研究預測"),
+    ("auto_repaired_from_pre_draw_data", "依開獎前資料自動補建"),
+    ("reconstructed_missing_prediction", "缺漏預測已補建"),
+    ("prevent_exact_copy_and_limit_high_similarity_unless_strong_reentry_passes", "禁止照抄上期；除非重入號通過強條件，否則限制相似度"),
+    ("qualified_reentry_allowed", "重入條件通過"),
+    ("soft_guard_previous_prediction", "上期號碼軟性降權"),
+    ("previous_prediction_similarity_guard", "上期相似度守門"),
+    ("previous_prediction_soft_guard", "上期號碼軟性降權"),
+    ("previous_prediction_reentry_blocked", "上期號碼重入未過門檻"),
+    ("repeat_gate_blocked", "連莊守門未過"),
+    ("winning_source_boost", "命中來源升權"),
+    ("losing_source_penalty", "未命中來源降權"),
+    ("settled_prediction_live_precision_calibration", "已結算實戰精準校準"),
+    ("top9_late_hit_leakage_lock", "前九名晚命中防漏鎖定"),
+    ("after_top15_zero_hit_switch_to_tail_neighbor_zone_drag_coverage", "前十五名落空後改用尾數、鄰號、區間與拖牌覆蓋"),
+    ("promote_11_to_25_when_late_hit_missed_actual_or_stability_is_detected_and_repeat_guard_passes", "偵測晚命中、漏抓或穩定訊號且連莊守門通過時，將第11到25名回拉"),
+    ("top10_previous_overlap_max_4_top15_previous_overlap_max_7_unless_strong_reentry", "除非強重入通過，否則前十名最多重疊4號、前十五名最多重疊7號"),
+    ("recent_model_upgrade_downgrade_quarantine", "近期模型自動升降與隔離"),
+    ("short_pack_multi_model_arbitration_v1", "短包多模型仲裁第一版"),
+    ("single_precision", "獨支精準"),
+    ("short_pack_precision", "短包精準"),
+    ("micro_confidence", "短包信心"),
+    ("slump_recall", "低迷召回"),
+    ("target_precision", "目標精準"),
+    ("top_rank_baseline", "前段排名基準"),
+    ("slump_recall_coverage", "低迷召回覆蓋"),
     ("withheld_low_score", "分數未達門檻暫停"),
     ("withheld_backtest_not_passed", "回測未通過暫停輸出"),
+    ("daily research prediction is always provided, but official confidence gate did not pass", "每日研究預測仍會輸出，但正式信心門檻未通過"),
+    ("average score is below strict release threshold; output as daily research prediction", "平均分數低於嚴格發布門檻，改列每日研究預測"),
+    ("contains previous prediction re-entry numbers that failed the strict gate; output as daily research prediction", "含有未通過嚴格門檻的上期重入號，改列每日研究預測"),
+    ("strict confidence pool failed; output as daily research prediction", "嚴格信心池未通過，改列每日研究預測"),
+    ("release only if 60/120/360 windows beat random expectation and zero-hit risk gate", "僅在近60、120、360期均優於隨機基準且零命中風險過關時發布"),
     ("recent walk-forward pack performance did not pass official gate; output as daily research prediction", "近期滾動回測未通過正式門檻，仍列每日研究預測"),
     ("short pack is always calculated every fresh draw by multi-model arbitration", "短包每期資料更新後固定由多模型仲裁重新計算"),
     ("strict walk-forward governance with daily variant tournament; lower confidence packs are still output as research predictions", "嚴格滾動回測治理與每日模型競賽；信心較低的包仍列為研究預測"),
@@ -63,6 +115,26 @@ TEXT_REPLACEMENTS = [
     ("distribution_balance", "分布平衡"),
     ("micro_confidence", "短包信心"),
     ("short_pack_multi_model_arbitration", "短包多模型仲裁"),
+    ("neighbor", "鄰號連動"),
+    ("zone_coverage_recovery", "分區覆蓋回補"),
+    ("tail_zone", "尾數區間"),
+    ("repeat", "連莊回測"),
+    ("multi_window_bagging", "多視窗共識"),
+    ("validated_dependency", "樣本外連動"),
+    ("freq_5", "近5期熱度"),
+    ("freq_10", "近10期熱度"),
+    ("freq_50", "近50期熱度"),
+    ("freq_100", "近100期熱度"),
+    ("zone_parity_pressure", "區間奇偶壓力"),
+    ("time_series", "時間序列"),
+    ("regime_switch", "開獎型態切換"),
+    ("verified", "已驗證"),
+    ("medium", "中等"),
+    ("TV", "總變動距離"),
+    ("R2-1", "第二輪第1組"),
+    ("R2-2", "第二輪第2組"),
+    ("R2-3", "第二輪第3組"),
+    ("R2-4", "第二輪第4組"),
     ("walk-forward", "滾動回測"),
     ("walk_forward", "滾動回測"),
     ("SHA-256", "雜湊指紋"),
@@ -70,11 +142,17 @@ TEXT_REPLACEMENTS = [
     ("EWMA", "指數加權"),
     ("KPI", "成效指標"),
     ("FDR", "偽發現率"),
+    ("P值", "機率值"),
+    ("三區段Z", "三區段標準化值"),
+    ("v34", "第34版"),
+    ("Reliability assurance only; it does not guarantee lottery prediction accuracy.", "僅為穩定性檢查，不代表保證開獎命中。"),
 ]
 
 WORD_LABELS = {
     "True": "是",
     "False": "否",
+    "true": "是",
+    "false": "否",
     "None": "-",
     "passed": "通過",
     "pass": "通過",
@@ -91,6 +169,15 @@ WORD_LABELS = {
     "prediction": "預測",
     "output": "輸出",
     "gate": "守門",
+    "did": "",
+    "not": "未",
+    "as": "作為",
+    "strict": "嚴格",
+    "governance": "治理",
+    "variant": "版本",
+    "packs": "包",
+    "pack": "包",
+    "lower": "較低",
     "evaluated": "已評估",
     "triggered": "已觸發",
     "withheld": "暫停",
@@ -100,12 +187,18 @@ WORD_LABELS = {
 }
 
 
+def replace_visible_token(text, source, target):
+    if re.fullmatch(r"[A-Za-z]+", source):
+        return re.sub(rf"(?<![A-Za-z0-9_]){re.escape(source)}(?![A-Za-z0-9_])", target, text)
+    return text.replace(source, target)
+
+
 def localize_text(text):
     if not text:
         return text
     localized = text
     for source, target in TEXT_REPLACEMENTS:
-        localized = localized.replace(source, target)
+        localized = replace_visible_token(localized, source, target)
     localized = re.sub(r"(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2})", r"\1 \2", localized)
     localized = re.sub(r"Top(\d+)-Top(\d+)", r"前\1名-前\2名", localized)
     localized = re.sub(r"Top(\d+)-(\d+)", r"第\1到\2名", localized)
@@ -114,6 +207,12 @@ def localize_text(text):
     for source, target in WORD_LABELS.items():
         localized = re.sub(rf"(?<![A-Za-z0-9_]){re.escape(source)}(?![A-Za-z0-9_])", target, localized)
     return localized
+
+
+def localize_html_global_tokens(html_text):
+    # Visible text is localized by the HTML parser above. Do not replace globally:
+    # doing so can corrupt script identifiers such as prediction or captured.
+    return html_text
 
 
 class VisibleTextLocalizer(HTMLParser):
@@ -176,6 +275,8 @@ def official_status_label(status):
         "updated_pending": "\u5df2\u91cd\u65b0\u904b\u7b97\u4e26\u66f4\u65b0\u6b63\u5f0f\u9810\u6e2c",
         "corrected_pending": "\u5df2\u91cd\u65b0\u904b\u7b97\u4e26\u5957\u7528\u91cd\u8907\u865f\u5b88\u9580\u4fee\u6b63",
         "recalculated_same_as_official": "\u5df2\u91cd\u65b0\u904b\u7b97\uff0c\u7d50\u679c\u8207\u76ee\u524d\u6b63\u5f0f\u9810\u6e2c\u76f8\u540c",
+        "recalculated_same_as_official_refreshed": "\u5df2\u91cd\u65b0\u904b\u7b97\uff0c\u7d50\u679c\u76f8\u540c\uff0c\u6b63\u5f0f\u9810\u6e2c\u6642\u9593\u8207\u56de\u6e2c\u5df2\u5237\u65b0",
+        "observation_only_recalculated_same_as_official_refreshed": "\u672a\u9054\u6b63\u5f0f\u767c\u5e03\u9580\u6abb\uff0c\u4f46\u5df2\u91cd\u65b0\u904b\u7b97\uff0c\u89c0\u5bdf\u9810\u6e2c\u6642\u9593\u8207\u56de\u6e2c\u5df2\u5237\u65b0",
         "stale_data_blocked": "\u8cc7\u6599\u672a\u9054\u61c9\u6709\u958b\u734e\u65e5\uff0c\u7981\u6b62\u7522\u751f\u65b0\u6b63\u5f0f\u9810\u6e2c",
         "aerospace_assurance_blocked": "\u822a\u592a\u7d1a\u5b8c\u6574\u6027\u5be9\u6838\u672a\u901a\u904e\uff0c\u7981\u6b62\u7522\u751f\u6b63\u5f0f\u9810\u6e2c",
         "preserved_settled": "\u8a72\u671f\u6b63\u5f0f\u9810\u6e2c\u5df2\u7d50\u7b97\uff0c\u672c\u6b21\u53ea\u4fdd\u7559\u5feb\u7167",
@@ -218,22 +319,28 @@ def resolved_data_freshness(analysis, health, latest):
     }
 
 
-def latest_settled_prediction():
+def latest_settled_prediction(target_period=None):
     if not DB_PATH.exists():
         return {}
     with sqlite3.connect(DB_PATH) as conn:
+        where = "WHERE status='settled'"
+        params = []
+        if target_period is not None:
+            where += " AND target_period=?"
+            params.append(target_period)
         row = conn.execute(
-            """
+            f"""
             SELECT based_on_period, based_on_date, target_period, actual_period, actual_date,
                    actual_numbers_json, candidates_json, suggested_sets_json,
                    strong_packs_json, set_hits_json, strong_pack_hits_json,
                    top5_hits, top10_hits, top15_hits, created_at, settled_at,
                    model_weights_json
             FROM predictions_539
-            WHERE status='settled'
+            {where}
             ORDER BY actual_period DESC, id DESC
             LIMIT 1
-            """
+            """,
+            params,
         ).fetchone()
     if not row:
         return {}
@@ -256,6 +363,31 @@ def latest_settled_prediction():
         "created_at": row[14],
         "settled_at": row[15],
         "model_weights": json.loads(row[16] or "{}"),
+    }
+
+
+def review_alignment(latest):
+    latest_period = latest.get("period")
+    latest_date = latest.get("draw_date")
+    latest_review = latest_settled_prediction(latest_period) if latest_period else {}
+    latest_available = latest_settled_prediction()
+    missing = bool(latest_period and latest_date and not latest_review)
+    return {
+        "missing": missing,
+        "expected_period": latest_period,
+        "expected_date": latest_date,
+        "review": latest_review,
+        "latest_available": latest_available,
+        "label": (
+            f"缺少 {latest_date} 第{latest_period}期命中檢討"
+            if missing
+            else latest_review.get("actual_date", "-")
+        ),
+        "message": (
+            f"最新開獎 {latest_date} 第{latest_period}期已存在，但沒有找到開獎前保存的正式預測紀錄；禁止用較舊檢討冒充上期。"
+            if missing
+            else "最新開獎已有對應命中檢討。"
+        ),
     }
 
 
@@ -294,6 +426,7 @@ def prediction_history():
     if not DB_PATH.exists():
         return []
     with sqlite3.connect(DB_PATH) as conn:
+        conn.row_factory = sqlite3.Row
         rows = conn.execute(
             """
             SELECT based_on_period, based_on_date, target_period, candidates_json,
@@ -309,7 +442,16 @@ def prediction_history():
             ORDER BY target_period DESC, id DESC
             """
         ).fetchall()
+        draw_rows = conn.execute(
+            """
+            SELECT period, draw_date, n1, n2, n3, n4, n5
+            FROM draws_539
+            ORDER BY period DESC
+            LIMIT 80
+            """
+        ).fetchall()
     history = []
+    recorded_targets = set()
     for row in rows:
         candidates = json.loads(row[3] or "[]")
         actual_numbers = json.loads(row[7] or "[]")
@@ -341,6 +483,37 @@ def prediction_history():
                 "snapshot_count": row[15],
             }
         )
+        if row[2] is not None:
+            recorded_targets.add(row[2])
+    for draw in draw_rows:
+        period = draw["period"]
+        if period in recorded_targets:
+            continue
+        history.append(
+            {
+                "based_on_period": None,
+                "based_on_date": None,
+                "target_period": period,
+                "target_expected_date": draw["draw_date"],
+                "top5": [],
+                "top10": [],
+                "top15": [],
+                "actual_period": period,
+                "actual_date": draw["draw_date"],
+                "actual_numbers": [draw["n1"], draw["n2"], draw["n3"], draw["n4"], draw["n5"]],
+                "top5_hits": None,
+                "top10_hits": None,
+                "top15_hits": None,
+                "top10_hit_numbers": [],
+                "strong_pack_hits": {},
+                "status": "missing_prediction",
+                "created_at": "",
+                "settled_at": "",
+                "snapshot_count": 0,
+                "integrity_issue": "缺正式預測紀錄，不能結算命中率",
+            }
+        )
+    history.sort(key=lambda item: (item.get("target_period") or 0, item.get("created_at") or ""), reverse=True)
     return history
 
 
@@ -628,13 +801,27 @@ def build_report():
     unlikely_backtest = industrial.get("unlikely_backtest", {})
     freshness = resolved_data_freshness(analysis, health, latest)
     release_label = "\u6b63\u5f0f\u4e3b\u63a8" if release_gate.get("status") == "official" else "\u660e\u78ba\u4f5c\u6230\u98a8\u63a7\u7d1a"
-    settled_prediction = latest_settled_prediction()
+    review_state = review_alignment(latest)
+    settled_prediction = review_state.get("review") or {}
+    latest_available_review = review_state.get("latest_available") or {}
     pending_prediction = latest_pending_prediction()
     latest_draw_date = latest.get("draw_date", "")
     report_generated_at = analysis.get("generated_at", "")
     expected_latest_date = freshness.get("expected_latest_date", "")
     latest_data_date = freshness.get("latest_date", latest_draw_date)
     prediction_target_date = next_draw_date(latest_draw_date) if latest_draw_date else ""
+    full_history_count = health.get("draw_count") or (health.get("data") or {}).get("draw_count") or 0
+    full_history_count_text = str(full_history_count) if full_history_count else "未知"
+    full_history_date_range = health.get("date_range") or (health.get("data") or {}).get("date_range") or []
+    full_history_period_range = health.get("period_range") or (health.get("data") or {}).get("period_range") or []
+    if len(full_history_date_range) >= 2:
+        full_history_date_text = f"{full_history_date_range[0]} 至 {full_history_date_range[1]}"
+    else:
+        full_history_date_text = f"最早資料 至 {latest_data_date or latest_draw_date}"
+    if len(full_history_period_range) >= 2:
+        full_history_period_text = f"{full_history_period_range[0]} 至 {full_history_period_range[1]}"
+    else:
+        full_history_period_text = "完整期別"
     pending_target_date = (
         next_draw_date(pending_prediction.get("based_on_date"))
         if pending_prediction.get("based_on_date")
@@ -645,6 +832,28 @@ def build_report():
     candidate_review_rows = settled_candidate_review_rows(settled_prediction)
     audit_detail = prediction_audit(settled_prediction)
     rank_calibration = rank_calibration_audit()
+    latest_review_label = (
+        review_state.get("label")
+        if review_state.get("missing")
+        else settled_prediction.get("actual_date", "-")
+    )
+    latest_review_status = "缺少最新期檢討" if review_state.get("missing") else "最新期已結算"
+    latest_available_review_text = (
+        f"最近可查檢討：{latest_available_review.get('based_on_date', '-')} 預測 -> "
+        f"{latest_available_review.get('actual_date', '-')} 開獎"
+        if latest_available_review
+        else "最近可查檢討：無"
+    )
+    missing_review_html = ""
+    if review_state.get("missing"):
+        missing_review_html = (
+            '<section class="band notice">'
+            '<h2>最新期檢討缺漏異常</h2>'
+            f'<p><strong>{review_state.get("message")}</strong></p>'
+            f'<p>{latest_available_review_text}</p>'
+            '<p>鐵律修正：開獎資料更新後，若找不到該期開獎前保存的正式預測紀錄，戰報必須標示異常，禁止用舊日期檢討冒充最新檢討。</p>'
+            '</section>'
+        )
     champion = competition.get("champion", {})
 
     lines = [
@@ -655,9 +864,10 @@ def build_report():
         f"- \u8cc7\u6599\u65b0\u9bae\u5ea6\uff1a{freshness.get('status', '')} / \u61c9\u6709\u6700\u65b0\u65e5\u671f {freshness.get('expected_latest_date', '')}",
         f"- \u6700\u65b0\u671f\u5225\uff1a{latest['period']} ({latest['draw_date']})",
         "- \u6700\u65b0\u865f\u78bc\uff1a" + fmt_numbers(latest["numbers"]),
+        f"- \u5168\u6b77\u53f2\u8cc7\u6599\u5eab\u904b\u7b97\uff1a{full_history_date_text} / \u5171 {full_history_count_text} \u671f / \u671f\u5225 {full_history_period_text}",
         f"- \u9810\u6e2c\u76ee\u6a19\u671f\uff1a{latest['period'] + 1}",
         f"- \u6b63\u5f0f\u9810\u6e2c\u72c0\u614b\uff1a{official_status_label(official_status_code)}",
-        f"- \u76ee\u524d\u5f85\u7d50\u7b97\u8ffd\u8e64\u8a18\u9304\uff1a\u4f9d\u64da\u671f {pending_prediction.get('based_on_period', '\u7121')} / \u76ee\u6a19\u671f {pending_prediction.get('target_period', '\u7121')} / \u5efa\u7acb {pending_prediction.get('created_at', '\u7121')}",
+        f"- \u76ee\u524d\u5f85\u7d50\u7b97\u8ffd\u8e64\u8a18\u9304\uff1a\u5168\u6b77\u53f2\u904b\u7b97\u81f3\u6700\u65b0\u5207\u9ede\u671f {pending_prediction.get('based_on_period', '\u7121')} / \u76ee\u6a19\u671f {pending_prediction.get('target_period', '\u7121')} / \u5efa\u7acb {pending_prediction.get('created_at', '\u7121')}",
         f"- \u904b\u7b97\u6a21\u5f0f\uff1a{mode_label}",
         "- \u91cd\u865f\u653f\u7b56\uff1a\u6700\u65b0\u958b\u734e\u865f\u4e0d\u518d\u786c\u6027\u6392\u9664\uff0c\u50c5\u4f9d\u9023\u838a\u56de\u6e2c\u8edf\u6027\u964d\u6b0a",
         f"- \u5de5\u696d\u5f15\u64ce\uff1a{industrial.get('engine_version', '')}",
@@ -992,6 +1202,20 @@ def build_report():
                 "### \u4f4e\u6a5f\u7387\u66ab\u907f\u865f\u78bc",
                 f"- \u8aaa\u660e\uff1a{unlikely.get('warning')}",
                 f"- \u56de\u6e2c\uff1a\u8fd1 {unlikely_bt.get('rounds')} \u671f\uff0c\u66ab\u907f {unlikely_bt.get('avoid_size')} \u78bc\u5e73\u5747\u8aa4\u4e2d {unlikely_bt.get('avg_accidental_hits')}\uff0c\u96a8\u6a5f\u57fa\u6e96 {unlikely_bt.get('random_expectation')}\uff0c\u5dee\u503c {unlikely_bt.get('edge_vs_random')}\uff0c\u5b8c\u5168\u907f\u958b\u7387 {unlikely_bt.get('zero_hit_rate')}",
+                "| 避險包 | 號碼 | 信心指標 | 平均暫避分 | 平均誤中 | 完全避開率 |",
+                "| --- | --- | ---: | ---: | ---: | ---: |",
+            ])
+            unlikely_bt_packs = unlikely_bt.get("packs", {}) if isinstance(unlikely_bt, dict) else {}
+            for key, label in [("five_miss", "5不中"), ("ten_miss", "10不中"), ("fifteen_miss", "15不中")]:
+                pack = (unlikely.get("avoid_packs") or {}).get(key, {})
+                pack_bt = unlikely_bt_packs.get(key, {})
+                lines.append(
+                    f"| {label} | {fmt_numbers(pack.get('numbers', [])) or '-'} | "
+                    f"{pack.get('confidence_label', '-')} / {pack.get('confidence_index', '-')} | "
+                    f"{pack.get('avg_avoid_score', '-')} | {pack_bt.get('avg_accidental_hits', '-')} | "
+                    f"{pack_bt.get('zero_hit_rate', '-')} |"
+                )
+            lines.extend([
                 "| # | \u865f\u78bc | \u66ab\u907f\u6307\u6578 | \u51fa\u73fe\u8a55\u5206 | \u539f\u56e0 |",
                 "| ---: | ---: | ---: | ---: | --- |",
             ])
@@ -1112,13 +1336,27 @@ def build_html_report(markdown_text):
         f"\u4fe1\u5fc3\u6307\u6578 {qualification.get('minimum_confidence_index')} / "
         f"\u7a69\u5b9a\u5171\u8b58 {qualification.get('minimum_stability_count')}"
     )
-    settled_prediction = latest_settled_prediction()
+    review_state = review_alignment(latest)
+    settled_prediction = review_state.get("review") or {}
+    latest_available_review = review_state.get("latest_available") or {}
     pending_prediction = latest_pending_prediction()
     latest_draw_date = latest.get("draw_date", "")
     report_generated_at = analysis.get("generated_at", "")
     expected_latest_date = freshness.get("expected_latest_date", "")
     latest_data_date = freshness.get("latest_date", latest_draw_date)
     prediction_target_date = next_draw_date(latest_draw_date) if latest_draw_date else ""
+    full_history_count = health.get("draw_count") or (health.get("data") or {}).get("draw_count") or 0
+    full_history_count_text = str(full_history_count) if full_history_count else "未知"
+    full_history_date_range = health.get("date_range") or (health.get("data") or {}).get("date_range") or []
+    full_history_period_range = health.get("period_range") or (health.get("data") or {}).get("period_range") or []
+    if len(full_history_date_range) >= 2:
+        full_history_date_text = f"{full_history_date_range[0]} 至 {full_history_date_range[1]}"
+    else:
+        full_history_date_text = f"最早資料 至 {latest_data_date or latest_draw_date}"
+    if len(full_history_period_range) >= 2:
+        full_history_period_text = f"{full_history_period_range[0]} 至 {full_history_period_range[1]}"
+    else:
+        full_history_period_text = "完整期別"
     pending_target_date = (
         next_draw_date(pending_prediction.get("based_on_date"))
         if pending_prediction.get("based_on_date")
@@ -1129,6 +1367,28 @@ def build_html_report(markdown_text):
     candidate_review_rows = settled_candidate_review_rows(settled_prediction)
     audit_detail = prediction_audit(settled_prediction)
     rank_calibration = rank_calibration_audit()
+    latest_review_label = (
+        review_state.get("label")
+        if review_state.get("missing")
+        else settled_prediction.get("actual_date", "-")
+    )
+    latest_review_status = "缺少最新期檢討" if review_state.get("missing") else "最新期已結算"
+    latest_available_review_text = (
+        f"最近可查檢討：{latest_available_review.get('based_on_date', '-')} 預測 -> "
+        f"{latest_available_review.get('actual_date', '-')} 開獎"
+        if latest_available_review
+        else "最近可查檢討：無"
+    )
+    missing_review_html = ""
+    if review_state.get("missing"):
+        missing_review_html = (
+            '<section class="band notice">'
+            '<h2>最新期檢討缺漏異常</h2>'
+            f'<p><strong>{review_state.get("message")}</strong></p>'
+            f'<p>{latest_available_review_text}</p>'
+            '<p>鐵律修正：開獎資料更新後，若找不到該期開獎前保存的正式預測紀錄，戰報必須標示異常，禁止用舊日期檢討冒充最新檢討。</p>'
+            '</section>'
+        )
 
     def card(title, value, sub=""):
         return (
@@ -1550,6 +1810,24 @@ def build_html_report(markdown_text):
             "</tr>"
         )
 
+    unlikely_pack_rows = ""
+    unlikely_backtest_packs = unlikely_backtest.get("packs", {}) if isinstance(unlikely_backtest, dict) else {}
+    for key, label in [("five_miss", "5不中"), ("ten_miss", "10不中"), ("fifteen_miss", "15不中")]:
+        pack = (unlikely.get("avoid_packs") or {}).get(key, {})
+        pack_bt = unlikely_backtest_packs.get(key, {})
+        unlikely_pack_rows += (
+            "<tr>"
+            f"<td>{label}</td>"
+            f"<td>{fmt_numbers(pack.get('numbers', [])) or '-'}</td>"
+            f"<td>{pack.get('confidence_label', '-')} / {pack.get('confidence_index', '-')}</td>"
+            f"<td>{pack.get('avg_avoid_score', '-')}</td>"
+            f"<td>{pack_bt.get('rounds', '-')}</td>"
+            f"<td>{pack_bt.get('avg_accidental_hits', '-')}</td>"
+            f"<td>{pack_bt.get('zero_hit_rate', '-')}</td>"
+            f"<td>{pack.get('warning', '')}</td>"
+            "</tr>"
+        )
+
     settled_actual_html = " ".join(red_circle(row["number"]) if row["hit"] else f"{row['number']:02d}" for row in settled_rows)
     settled_rows_html = ""
     for row in settled_rows:
@@ -1895,8 +2173,9 @@ def build_html_report(markdown_text):
     observation_note = "" if release_status == "official" else "\u672c\u5340\u70ba\u660e\u78ba\u4f5c\u6230\u98a8\u63a7\u7d1a\uff1a\u865f\u78bc\u7167\u5e38\u8f38\u51fa\uff0c\u4f46\u56de\u6e2c\u98a8\u63a7\u6703\u63d0\u9ad8\u4fdd\u5b88\u6aa2\u67e5"
     official_status = official_status_label(official_status_code)
     pending_summary = (
-        f"\u9810\u6e2c\u4f9d\u64da\u671f {pending_prediction.get('based_on_period', '\u7121')} / "
-        f"\u9810\u6e2c\u4f9d\u64da\u958b\u734e\u65e5 {pending_prediction.get('based_on_date', '\u7121')} / "
+        f"\u5168\u6b77\u53f2\u8cc7\u6599\u5eab {full_history_date_text} / \u5171 {full_history_count_text} \u671f / "
+        f"\u6700\u65b0\u8cc7\u6599\u5207\u9ede\u671f {pending_prediction.get('based_on_period', '\u7121')} / "
+        f"\u6700\u65b0\u8cc7\u6599\u5207\u9ede\u65e5 {pending_prediction.get('based_on_date', '\u7121')} / "
         f"\u9810\u6e2c\u76ee\u6a19\u671f {pending_prediction.get('target_period', '\u7121')} / "
         f"\u9810\u8a08\u958b\u734e\u65e5 {next_draw_date(pending_prediction.get('based_on_date')) if pending_prediction.get('based_on_date') else '\u7121'} / "
         f"\u904b\u7b97\u5efa\u7acb\u6642\u9593 {pending_prediction.get('created_at', '\u7121')}"
@@ -2008,7 +2287,12 @@ def build_html_report(markdown_text):
 
     history_rows = ""
     for item in history:
-        status = "\u5df2\u7d50\u7b97" if item.get("status") == "settled" else "\u5f85\u7d50\u7b97"
+        if item.get("status") == "settled":
+            status = "\u5df2\u7d50\u7b97"
+        elif item.get("status") == "missing_prediction":
+            status = "缺正式預測紀錄"
+        else:
+            status = "\u5f85\u7d50\u7b97"
         history_rows += (
             "<tr>"
             f"<td>{item.get('target_period')}<br><span class=\"sub\">\u9810\u8a08\u958b\u734e\u65e5 {item.get('target_expected_date') or '-'}</span></td>"
@@ -2089,29 +2373,44 @@ def build_html_report(markdown_text):
   <header>
     <h1>539 \u958b\u734e\u9810\u6e2c\u6230\u5831</h1>
     <p>\u5831\u8868\u7522\u751f {report_generated_at} / \u6700\u65b0\u958b\u734e\u65e5 {latest_draw_date} / \u9810\u6e2c\u76ee\u6a19\u65e5 {prediction_target_date}</p>
+    <p>\u5168\u6b77\u53f2\u8cc7\u6599\u5eab\u904b\u7b97\uff1a{full_history_date_text} / \u5171 {full_history_count_text} \u671f / \u671f\u5225 {full_history_period_text}</p>
     <p>\u6700\u65b0\u671f\u5225 {latest.get('period')} / \u958b\u734e {latest_numbers}</p>
   </header>
   <main>
     <nav class="tabbar" aria-label="\u6230\u5831\u5206\u9801">
-      <button type="button" class="active" data-tab="prediction">\u4e0b\u671f\u9810\u6e2c</button>
-      <button type="button" data-tab="review">\u4e0a\u671f\u672a\u547d\u4e2d\u6aa2\u8a0e</button>
+      <button type="button" class="active" data-tab="prediction">\u4e0b\u671f\u9ad8\u6a5f\u7387\u9810\u6e2c</button>
+      <button type="button" data-tab="review">\u4e0a\u671f\u547d\u4e2d\u8207\u672a\u547d\u4e2d\u6aa2\u8a0e</button>
+      <button type="button" data-tab="avoid">\u4f4e\u6a5f\u7387\u66ab\u907f</button>
       <button type="button" data-tab="models">\u6a21\u578b\u56de\u6e2c\u8207\u6539\u5584\u898f\u5283</button>
     </nav>
     <div id="prediction" class="tab-panel active"></div>
     <div id="review" class="tab-panel"></div>
+    <div id="avoid" class="tab-panel"></div>
     <div id="models" class="tab-panel"></div>
     <section class="band notice">
       <h2>\u91cd\u8981\u65e5\u671f\u5100\u8868\u677f</h2>
       <div class="dategrid">
         <div class="dateitem"><strong>\u5831\u8868\u7522\u751f\u6642\u9593</strong><span>{report_generated_at}</span></div>
         <div class="dateitem"><strong>\u8cc7\u6599\u6700\u65b0\u958b\u734e\u65e5</strong><span>{latest_data_date}</span></div>
-        <div class="dateitem"><strong>\u672c\u6b21\u9810\u6e2c\u4f9d\u64da\u65e5</strong><span>{pending_prediction.get('based_on_date', latest_draw_date)}</span></div>
+        <div class="dateitem"><strong>\u5168\u6b77\u53f2\u8cc7\u6599\u5eab\u7bc4\u570d</strong><span>{full_history_date_text} / \u5171 {full_history_count_text} \u671f</span></div>
+        <div class="dateitem"><strong>\u6700\u65b0\u8cc7\u6599\u5207\u9ede\uff08\u4e0d\u662f\u55ae\u65e5\u904b\u7b97\uff09</strong><span>{pending_prediction.get('based_on_date', latest_draw_date)}</span></div>
         <div class="dateitem"><strong>\u4e0b\u671f\u9810\u6e2c\u76ee\u6a19\u65e5</strong><span>{pending_target_date}</span></div>
-        <div class="dateitem"><strong>\u4e0a\u671f\u6aa2\u8a0e\u958b\u734e\u65e5</strong><span>{settled_prediction.get('actual_date', '-')}</span></div>
+        <div class="dateitem"><strong>最新期檢討狀態</strong><span>{latest_review_label}</span></div>
       </div>
     </section>
+    {missing_review_html}
+    <section class="band notice">
+      <h2>每日更新鐵律時間表</h2>
+      <table><tbody>
+        <tr><th>每日開獎時間</th><td>20:33</td></tr>
+        <tr><th>開獎後更新截止</th><td>20:45 前必須完成最新開獎匯入、命中結算、重新運算、回測、電腦戰報與手機版同步。</td></tr>
+        <tr><th>午夜完整重算</th><td>00:00 自動重新運算、重新回測、重新校正模型、重建戰報與手機版。</td></tr>
+        <tr><th>預測有效期間</th><td>20:45 至 24:00 完成下期預測問題修正；00:00 後以午夜完整重算結果為準。</td></tr>
+        <tr><th>禁止事項</th><td>禁止未重新運算就沿用前一期預測；若資料未更新，必須持續追最新開獎資料並留下狀態紀錄。</td></tr>
+      </tbody></table>
+    </section>
     <section class="band hotbox">
-      <h2>本期明確作戰答案（資料日 {latest_data_date} / 目標日 {pending_target_date}）</h2>
+      <h2>本期明確作戰答案（全歷史資料庫運算至 {latest_data_date} / 目標日 {pending_target_date}）</h2>
       <p><strong>{decision_action_label}</strong> / 等級：{decision_grade_label} / 低迷召回：{decisive_decision.get('slump_recall_triggered')} / 近期回測通過：{decisive_decision.get('recent_performance_passed')}</p>
       <div class="grid">
         {card('明確獨支', fmt_numbers(decisive_decision.get('primary_single', [])) or '-', '本期一號核心')}
@@ -2128,7 +2427,7 @@ def build_html_report(markdown_text):
       <p>本期9碼攻擊核心：{fmt_numbers(decision_core_numbers)}</p>
     </section>
     <section class="band notice">
-      <h2>\u672c\u671f\u767c\u5e03\u7d50\u8ad6\uff08\u8cc7\u6599\u65e5 {latest_data_date} / \u76ee\u6a19\u65e5 {pending_target_date}\uff09</h2>
+      <h2>\u672c\u671f\u767c\u5e03\u7d50\u8ad6\uff08\u5168\u6b77\u53f2\u8cc7\u6599\u5eab\u81f3 {latest_data_date} / \u76ee\u6a19\u65e5 {pending_target_date}\uff09</h2>
       <p><span class="status {'fresh' if freshness.get('status') == 'fresh' else 'blocked'}">{freshness_label}</span>
       <span class="status {'fresh' if release_status == 'official' else 'blocked'}">{release_label}</span></p>
       <p><strong>\u904b\u7b97\u6a21\u5f0f\uff1a{mode_label}</strong></p>
@@ -2144,23 +2443,25 @@ def build_html_report(markdown_text):
       <h2>\u65e5\u671f\u57fa\u6e96\u7e3d\u8868</h2>
       <table><tbody>
         <tr><th>\u5831\u8868\u7522\u751f\u6642\u9593</th><td>{report_generated_at}</td></tr>
+        <tr><th>\u5168\u6b77\u53f2\u8cc7\u6599\u5eab\u7bc4\u570d</th><td>{full_history_date_text} / \u5171 {full_history_count_text} \u671f / \u671f\u5225 {full_history_period_text}</td></tr>
         <tr><th>\u53f0\u5f69\u8cc7\u6599\u6700\u65b0\u65e5</th><td>{latest_data_date}</td></tr>
         <tr><th>\u7cfb\u7d71\u61c9\u6709\u6700\u65b0\u65e5</th><td>{expected_latest_date}</td></tr>
         <tr><th>\u6700\u65b0\u958b\u734e\u671f / \u65e5</th><td>{latest.get('period')} / {latest_draw_date}</td></tr>
-        <tr><th>\u672c\u6b21\u9810\u6e2c\u4f9d\u64da\u671f / \u65e5</th><td>{pending_prediction.get('based_on_period', latest.get('period'))} / {pending_prediction.get('based_on_date', latest_draw_date)}</td></tr>
+        <tr><th>\u6700\u65b0\u8cc7\u6599\u5207\u9ede\u671f / \u65e5\uff08\u5168\u6b77\u53f2\u904b\u7b97\u81f3\u6b64\uff09</th><td>{pending_prediction.get('based_on_period', latest.get('period'))} / {pending_prediction.get('based_on_date', latest_draw_date)}</td></tr>
         <tr><th>\u672c\u6b21\u9810\u6e2c\u76ee\u6a19\u671f / \u9810\u8a08\u65e5</th><td>{pending_prediction.get('target_period', '') or '\u5f85\u4e0b\u671f\u958b\u734e\u7de8\u865f'} / {pending_target_date}</td></tr>
-        <tr><th>\u6700\u8fd1\u547d\u4e2d\u6aa2\u8a0e\u5c0d\u61c9</th><td>{settled_prediction.get('based_on_date', '-')} \u9810\u6e2c -> {settled_prediction.get('actual_date', '-')} \u958b\u734e</td></tr>
+        <tr><th>最新期檢討狀態</th><td>{latest_review_status} / {latest_available_review_text}</td></tr>
       </tbody></table>
     </section>
     <section class="band notice">
-      <h2>\u4e0a\u671f\u547d\u4e2d\u6aa2\u8a0e\u6458\u8981\uff08\u6aa2\u8a0e\u958b\u734e\u65e5 {settled_prediction.get('actual_date', '-')}\uff09</h2>
+      <h2>最新期命中檢討摘要（{latest_review_label}）</h2>
+      <p>{review_state.get('message')}</p>
+      <p>本區實際對應：{settled_prediction.get('based_on_date', '-')} 預測 -> {settled_prediction.get('actual_date', '-')} 開獎 / 實開：{fmt_numbers(settled_prediction.get('actual_numbers', [])) or '-'} / Top5 {settled_prediction.get('top5_hits', '-')} / Top10 {settled_prediction.get('top10_hits', '-')} / Top15 {settled_prediction.get('top15_hits', '-')}</p>
       <p>{failure_banner}</p>
-      <p>\u5be6\u969b\u4e0a\u671f\u958b\u734e\uff1a{fmt_numbers(settled_prediction.get('actual_numbers', []))} / Top5 {settled_prediction.get('top5_hits')} / Top10 {settled_prediction.get('top10_hits')} / Top15 {settled_prediction.get('top15_hits')}</p>
       <p>\u5b88\u9580\u653f\u7b56\u56de\u6e2c\uff1a\u8fd1 {guard_audit.get('rounds')} \u671f\uff0c\u6628\u65e5 Top15 \u5728\u518d\u4e0b\u671f\u5e73\u5747\u4ecd\u547d\u4e2d {guard_audit.get('previous_top15_next_avg_hits')}\uff0c\u91cd\u865f\u5e73\u5747\u547d\u4e2d {guard_audit.get('repeat_next_avg_hits')}\u3002</p>
       <p>\u65b0\u653f\u7b56\uff1a{guard_audit.get('decision')} / \u6700\u5927\u8edf\u964d\u6b0a {guard_audit.get('max_soft_penalty')} / \u7981\u6b62\u786c\u6027\u6392\u9664\u3002</p>
     </section>
     <section class="band notice">
-      <h2>\u7814\u7a76\u547d\u4e2d KPI \u8207\u7981\u6b62\u865b\u5831\u9580\u6abb\uff08\u7522\u751f {report_generated_at}\uff09</h2>
+      <h2>\u7814\u7a76\u547d\u4e2d\u6210\u6548\u6307\u6a19\u8207\u7981\u6b62\u865b\u5831\u9580\u6abb\uff08\u7522\u751f {report_generated_at}\uff09</h2>
       <p>\u72c0\u614b\uff1a{research_kpi.get('status')} / \u6b63\u5f0f\u5be6\u7e3e\u6a23\u672c {research_kpi.get('settled_samples')} / \u6700\u4f4e\u6a23\u672c {research_kpi.get('minimum_settled_samples')}</p>
       <p>\u9019\u4e9b\u662f\u7814\u7a76\u76ee\u6a19\uff0c\u4e0d\u662f\u6a02\u900f\u5fc5\u4e2d\u4fdd\u8b49\u3002\u4efb\u4e00\u7d1a\u672a\u9054\u6a19\u6216\u6a23\u672c\u4e0d\u8db3\uff0c\u4e00\u5f8b\u7981\u6b62\u6b63\u5f0f\u4e3b\u63a8\u3002</p>
       <table><thead><tr><th>\u76ee\u6a19</th><th>\u9054\u6a19\u671f\u6578</th><th>\u76ee\u6a19\u5340\u9593</th><th>\u8d85\u6a19\u547d\u4e2d</th><th>\u901a\u904e\u7387</th><th>\u5e73\u5747\u547d\u4e2d</th><th>95% \u4e0b\u9650</th><th>\u5224\u5b9a</th></tr></thead><tbody>{kpi_rows}</tbody></table>
@@ -2170,9 +2471,9 @@ def build_html_report(markdown_text):
       <p>{rank_calibration.get('diagnosis', '')}</p>
       <p>\u672c\u6b21\u5df2\u5c07\u7a69\u5b9a\u5171\u8b58\u6392\u540d\u6b0a\u91cd\u7531 28% \u63d0\u9ad8\u5230 38%\uff0c\u7528\u4f86\u4fee\u6b63\u547d\u4e2d\u865f\u843d\u5728 11-15 \u540d\u7684\u6392\u5e8f\u504f\u5dee\u3002</p>
       <table><thead><tr><th>\u6392\u540d\u5340\u9593</th><th>\u547d\u4e2d\u6578</th><th>\u5360\u6bd4</th></tr></thead><tbody>{rank_bucket_rows}</tbody></table>
-      <h3>Top11-15 \u547d\u4e2d\u4f86\u6e90</h3>
+      <h3>\u7b2c11\u523015\u540d\u547d\u4e2d\u4f86\u6e90</h3>
       <table><thead><tr><th>\u4f86\u6e90\u7406\u7531</th><th>\u6b21\u6578</th><th>\u6d89\u53ca\u865f\u78bc</th></tr></thead><tbody>{late_rank_reason_rows}</tbody></table>
-      <h3>Top11-15 \u547d\u4e2d\u660e\u7d30</h3>
+      <h3>\u7b2c11\u523015\u540d\u547d\u4e2d\u660e\u7d30</h3>
       <table><thead><tr><th>\u9810\u6e2c -> \u958b\u734e</th><th>\u865f\u78bc</th><th>\u539f\u6392\u540d</th><th>\u5206\u6578</th><th>\u4fe1\u5fc3</th><th>\u4f86\u6e90</th></tr></thead><tbody>{late_rank_detail_rows}</tbody></table>
     </section>
     <section class="band">
@@ -2276,7 +2577,7 @@ def build_html_report(markdown_text):
       <table><thead><tr><th>\u865f\u78bc</th><th>\u539f\u6392\u540d</th><th>\u64fe\u52d5\u5f8c Top10 \u7559\u5b58\u7387</th></tr></thead><tbody>{uncertainty_rows}</tbody></table>
     </section>
     <section class="band">
-      <h2>\u4e0b\u671f\u9810\u6e2c\u5c08\u5340\uff1a\u9032\u968e\u9810\u6e2c\u6a21\u578b\uff08\u4f9d\u64da {latest_draw_date} / \u76ee\u6a19 {pending_target_date}\uff09</h2>
+      <h2>\u4e0b\u671f\u9810\u6e2c\u5c08\u5340\uff1a\u9032\u968e\u9810\u6e2c\u6a21\u578b\uff08\u5168\u6b77\u53f2\u8cc7\u6599\u904b\u7b97\u81f3 {latest_draw_date} / \u76ee\u6a19 {pending_target_date}\uff09</h2>
       <p>{advanced.get('warning', '')}</p>
       <p>\u9032\u968e\u6a21\u578b\u5171\u8b58 Top12\uff1a{fmt_numbers(advanced.get('consensus_top12', []))}</p>
       <table><thead><tr><th>\u6a21\u578b</th><th>Top10</th><th>Top10 \u56de\u6e2c</th><th>\u5c0d\u96a8\u6a5f\u5dee\u503c</th><th>\u65b9\u6cd5</th></tr></thead><tbody>{advanced_rows}</tbody></table>
@@ -2289,7 +2590,7 @@ def build_html_report(markdown_text):
       {''.join(pack_cards)}
     </div>
     <section class="band">
-      <h2>\u7cbe\u6e96\u5ea6\u6cbb\u7406\u5668 v34\uff1a\u5f37\u724c\u767c\u5e03\u5be9\u6838\uff08\u7522\u751f {report_generated_at}\uff09</h2>
+      <h2>\u7cbe\u6e96\u5ea6\u6cbb\u7406\u5668\u7b2c34\u7248\uff1a\u5f37\u724c\u767c\u5e03\u5be9\u6838\uff08\u7522\u751f {report_generated_at}\uff09</h2>
       <p>\u71c8\u865f\uff1a{precision_governor.get('release_light', '-')} / \u901a\u904e\u5305\u6578\uff1a{precision_governor.get('allowed_pack_count', 0)} / \u56de\u6e2c\u6a23\u672c\uff1a{precision_governor.get('rounds', 0)} / \u8aaa\u660e\uff1a{precision_governor.get('message', '')}</p>
       <p>\u9435\u5f8b\uff1a\u6bcf\u65e5\u5fc5\u7522\u51fa\u4eca\u65e5\u4f5c\u6230\u9810\u6e2c\uff0c\u4f46\u6b63\u5f0f\u4e3b\u63a8\u9808\u901a\u904e\u8fd1\u671f walk-forward \u56de\u6e2c\u3002\u7cfb\u7d71\u6703\u6bcf\u65e5\u6bd4\u8f03\u5c08\u7528\u6a21\u578b\u3001\u7e3d\u5206\u6392\u540d\u3001\u7a69\u5b9a\u5171\u8b58\u4e09\u7a2e\u7248\u672c\uff0c\u7528\u8fd1\u671f\u8868\u73fe\u6700\u597d\u7684\u7248\u672c\u7522\u51fa\u4eca\u65e5\u865f\u78bc\u3002</p>
       <table><thead><tr><th>\u5f37\u724c\u7d1a\u5225</th><th>\u72c0\u614b</th><th>\u865f\u78bc</th><th>\u63a1\u7528\u6a21\u578b</th><th>\u56de\u6e2c\u6a23\u672c</th><th>\u9054\u6a19\u7387</th><th>\u5e73\u5747\u547d\u4e2d</th><th>\u96f6\u547d\u4e2d\u7387</th><th>\u56de\u6e2c\u5224\u5b9a</th><th>\u767c\u5e03\u539f\u56e0 / \u98a8\u96aa\u539f\u56e0</th></tr></thead><tbody>{pack_governance_rows}</tbody></table>
@@ -2326,6 +2627,8 @@ def build_html_report(markdown_text):
       <h2>\u4e0b\u671f\u9810\u6e2c\u5c08\u5340\uff1a\u4f4e\u6a5f\u7387\u66ab\u907f\u865f\u78bc\uff08\u76ee\u6a19 {pending_target_date}\uff09</h2>
       <p>{unlikely.get('warning', '')}</p>
       <p>\u56de\u6e2c\uff1a\u8fd1 {unlikely_backtest.get('rounds')} \u671f\uff0c\u66ab\u907f {unlikely_backtest.get('avoid_size')} \u78bc\u5e73\u5747\u8aa4\u4e2d {unlikely_backtest.get('avg_accidental_hits')}\uff0c\u96a8\u6a5f\u57fa\u6e96 {unlikely_backtest.get('random_expectation')}\uff0c\u5dee\u503c {unlikely_backtest.get('edge_vs_random')}\uff0c\u5b8c\u5168\u907f\u958b\u7387 {unlikely_backtest.get('zero_hit_rate')}</p>
+      <h3>5不中 / 10不中 / 15不中 避險包</h3>
+      <table><thead><tr><th>避險包</th><th>號碼</th><th>信心指標</th><th>平均暫避分</th><th>回測期數</th><th>平均誤中</th><th>完全避開率</th><th>風控說明</th></tr></thead><tbody>{unlikely_pack_rows}</tbody></table>
       <table><thead><tr><th>#</th><th>\u865f\u78bc</th><th>\u66ab\u907f\u6307\u6578</th><th>\u51fa\u73fe\u8a55\u5206</th><th>\u5019\u9078\u6392\u540d</th><th>\u7a69\u5b9a\u6b21\u6578</th><th>\u66ab\u907f\u539f\u56e0</th></tr></thead><tbody>{unlikely_rows}</tbody></table>
     </section>
     <section class="band">
@@ -2352,7 +2655,7 @@ def build_html_report(markdown_text):
     <section class="band">
       <h2>\u901a\u904e\u6a23\u672c\u5916\u9a57\u8b49\u7684\u865f\u78bc\u9023\u52d5</h2>
       <p>\u901a\u904e\u9023\u52d5\u6578\uff1a{dependency.get('validated_link_count', 0)}\u3002\u95dc\u806f\u4e0d\u7b49\u65bc\u56e0\u679c\uff0c\u672a\u904e\u986f\u8457\u6027\u9580\u6abb\u8005\u5168\u90e8\u6dd8\u6c70\u3002</p>
-      <table><thead><tr><th>\u4f86\u6e90</th><th>\u76ee\u6a19</th><th>\u4e09\u5340\u6bb5\u6a23\u672c</th><th>\u4e09\u5340\u6bb5\u63d0\u5347</th><th>\u4e09\u5340\u6bb5Z</th><th>P\u503c</th><th>FDR</th><th>\u4fdd\u5b88\u63d0\u5347</th></tr></thead><tbody>{dependency_rows_html}</tbody></table>
+      <table><thead><tr><th>\u4f86\u6e90</th><th>\u76ee\u6a19</th><th>\u4e09\u5340\u6bb5\u6a23\u672c</th><th>\u4e09\u5340\u6bb5\u63d0\u5347</th><th>\u4e09\u5340\u6bb5\u6a19\u6e96\u5316\u503c</th><th>\u6a5f\u7387\u503c</th><th>\u507d\u767c\u73fe\u7387</th><th>\u4fdd\u5b88\u63d0\u5347</th></tr></thead><tbody>{dependency_rows_html}</tbody></table>
     </section>
     <section class="band">
       <h2>539 \u7248\u8def\u724c\u7368\u7acb\u5206\u6790</h2>
@@ -2383,13 +2686,15 @@ def build_html_report(markdown_text):
       <table><thead><tr><th>#</th><th>\u865f\u78bc</th><th>\u6a5f\u7387</th><th>\u5206\u6578</th><th>\u98a8\u63a7</th><th>\u539f\u56e0</th></tr></thead><tbody>{blocked_two_stage_rows}</tbody></table>
     </section>
     <section class="band">
-      <h2>\u5019\u9078 Top 15</h2>
+      <h2>\u5019\u9078\u524d15\u540d</h2>
       <table><thead><tr><th>#</th><th>\u865f\u78bc</th><th>\u6392\u540d</th><th>\u5206\u6578</th><th>\u4fdd\u5b88\u6a5f\u7387</th><th>\u4fe1\u5fc3</th><th>\u907a\u6f0f</th><th>\u9ad8\u4fe1\u5fc3\u6a19\u8a18</th><th>\u4f86\u6e90\u6a21\u578b</th><th>\u4ea4\u53c9\u9a57\u8b49</th><th>\u7406\u7531</th></tr></thead><tbody>{candidate_rows}</tbody></table>
     </section>
     <section class="band">
       <h2>\u4f4e\u6a5f\u7387\u66ab\u907f\u865f\u78bc\uff08\u98a8\u63a7\u89c0\u5bdf\uff09</h2>
       <p>{unlikely.get('warning', '')}</p>
       <p>\u56de\u6e2c\uff1a\u8fd1 {unlikely_backtest.get('rounds')} \u671f\uff0c\u66ab\u907f {unlikely_backtest.get('avoid_size')} \u78bc\u5e73\u5747\u8aa4\u4e2d {unlikely_backtest.get('avg_accidental_hits')}\uff0c\u96a8\u6a5f\u57fa\u6e96 {unlikely_backtest.get('random_expectation')}\uff0c\u5dee\u503c {unlikely_backtest.get('edge_vs_random')}\uff0c\u5b8c\u5168\u907f\u958b\u7387 {unlikely_backtest.get('zero_hit_rate')}</p>
+      <h3>5不中 / 10不中 / 15不中 避險包</h3>
+      <table><thead><tr><th>避險包</th><th>號碼</th><th>信心指標</th><th>平均暫避分</th><th>回測期數</th><th>平均誤中</th><th>完全避開率</th><th>風控說明</th></tr></thead><tbody>{unlikely_pack_rows}</tbody></table>
       <table><thead><tr><th>#</th><th>\u865f\u78bc</th><th>\u66ab\u907f\u6307\u6578</th><th>\u51fa\u73fe\u8a55\u5206</th><th>\u5019\u9078\u6392\u540d</th><th>\u7a69\u5b9a\u6b21\u6578</th><th>\u66ab\u907f\u539f\u56e0</th></tr></thead><tbody>{unlikely_rows}</tbody></table>
     </section>
     <section class="band">
@@ -2411,6 +2716,7 @@ def build_html_report(markdown_text):
       const panels = {{
         prediction: document.getElementById("prediction"),
         review: document.getElementById("review"),
+        avoid: document.getElementById("avoid"),
         models: document.getElementById("models")
       }};
       const tabbar = document.querySelector(".tabbar");
@@ -2418,9 +2724,10 @@ def build_html_report(markdown_text):
         if (element === tabbar || element.classList.contains("tab-panel")) return null;
         const title = (element.querySelector("h2")?.textContent || "").trim();
         if (element.classList.contains("grid")) return "prediction";
-        if (/上期|檢討|KPI|校準|滾動|歷史對比/.test(title)) return "review";
-        if (/模型|回測|航太|版路|穩定共識|8區|連動|輪組/.test(title)) return "models";
-        if (/下期|候選|低機率|發布|日期基準|本期/.test(title)) return "prediction";
+        if (/低機率|暫避|避險/.test(title)) return "avoid";
+        if (/上期|檢討|成效指標|校準|滾動|歷史對比|本月/.test(title)) return "review";
+        if (/模型|回測|航太|版路|穩定共識|8區|連動|輪組|治理器|樣本外/.test(title)) return "models";
+        if (/下期|候選|發布|日期基準|本期|重要日期/.test(title)) return "prediction";
         return "prediction";
       }};
       Array.from(main.children).forEach((element) => {{
@@ -2451,13 +2758,18 @@ def build_html_report(markdown_text):
       }};
       compactPanel(
         panels.prediction,
-        /重要日期|明確作戰|高機率信心牌|本期發布|日期基準|下期預測專區|精準度治理器|候選 Top 15|低機率/,
+        /重要日期|明確作戰|高機率信心牌|本期發布|日期基準|下期預測專區|候選前15名/,
         "進階預測細節"
       );
       compactPanel(
         panels.review,
-        /上期命中檢討摘要|上期命中檢討專區|每日檢討後滾動調整|研究命中 KPI/,
+        /上期命中檢討摘要|上期命中檢討專區|每日檢討後滾動調整|研究命中成效指標|本月預測總檢討/,
         "進階檢討細節"
+      );
+      compactPanel(
+        panels.avoid,
+        /低機率|暫避|避險/,
+        "進階暫避細節"
       );
       compactPanel(
         panels.models,
@@ -2473,7 +2785,12 @@ def build_html_report(markdown_text):
 def build_history_html(history):
     rows = ""
     for item in history:
-        status = "\u5df2\u7d50\u7b97" if item.get("status") == "settled" else "\u5f85\u7d50\u7b97"
+        if item.get("status") == "settled":
+            status = "\u5df2\u7d50\u7b97"
+        elif item.get("status") == "missing_prediction":
+            status = "缺正式預測紀錄"
+        else:
+            status = "\u5f85\u7d50\u7b97"
         rows += (
             "<tr>"
             f"<td>{item.get('target_period')}<br>\u9810\u8a08\u958b\u734e\u65e5 {item.get('target_expected_date') or '-'}</td><td>{status}</td>"
@@ -2523,19 +2840,510 @@ def build_history_html(history):
 </html>"""
 
 
+def escape_html(value):
+    return html.escape("" if value is None else str(value), quote=True)
+
+
+def fmt_percent(value, scale_if_fraction=True):
+    if value is None or value == "":
+        return "-"
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return escape_html(value)
+    if scale_if_fraction and abs(number) <= 1.5:
+        number *= 100
+    return f"{number:.1f}%"
+
+
+def fmt_decimal(value, digits=3):
+    if value is None or value == "":
+        return "-"
+    try:
+        return f"{float(value):.{digits}f}"
+    except (TypeError, ValueError):
+        return escape_html(value)
+
+
+def status_zh(status):
+    labels = {
+        "released": "\u5df2\u767c\u5e03",
+        "research_prediction": "\u7814\u7a76\u9810\u6e2c",
+        "withheld": "\u66ab\u505c\u767c\u5e03",
+        "pending": "\u5f85\u7d50\u7b97",
+        "settled": "\u5df2\u7d50\u7b97",
+        "official": "\u6b63\u5f0f",
+        "watch_only": "\u89c0\u5bdf",
+        "fresh": "\u8cc7\u6599\u65b0\u9bae",
+        "stale": "\u8cc7\u6599\u904e\u671f",
+    }
+    return labels.get(status or "", status or "-")
+
+
+def history_basis_text(health, latest_date):
+    count = health.get("draw_count") or (health.get("data") or {}).get("draw_count") or 0
+    date_range = health.get("date_range") or (health.get("data") or {}).get("date_range") or []
+    period_range = health.get("period_range") or (health.get("data") or {}).get("period_range") or []
+    date_text = f"{date_range[0]} \u5230 {date_range[1]}" if len(date_range) >= 2 else f"\u5168\u6b77\u53f2\u8d77\u9ede \u5230 {latest_date}"
+    period_text = f"{period_range[0]} \u5230 {period_range[1]}" if len(period_range) >= 2 else "\u5168\u671f\u5225"
+    return count, date_text, period_text
+
+
+def compact_source_text(item, limit=3):
+    sources = item.get("model_sources") or []
+    labels = [str(source.get("label") or source.get("model") or "") for source in sources[:limit] if source]
+    return "\u3001".join(labels) if labels else "-"
+
+
+def pack_status_label(pack):
+    status = pack.get("status")
+    if pack.get("official_release"):
+        return "\u6b63\u5f0f\u767c\u5e03"
+    if status == "released":
+        return "\u5df2\u767c\u5e03"
+    if status == "research_prediction":
+        return "\u7814\u7a76\u9810\u6e2c"
+    return status_zh(status)
+
+
+def compact_pack_rows(packs):
+    order = [
+        ("strong_single", "\u7368\u96bb1\u4e2d1"),
+        ("two_hit_one", "2\u4e2d1"),
+        ("three_hit_one", "3\u4e2d1"),
+        ("five_hit_two", "5\u4e2d2"),
+        ("nine_hit_three", "9\u4e2d3"),
+    ]
+    rows = []
+    for key, label in order:
+        pack = packs.get(key) or {}
+        gov = pack.get("governance") or {}
+        passed_text = "\u901a\u904e" if gov.get("passed") else "\u672a\u901a\u904e"
+        rows.append(
+            "<tr>"
+            f"<td>{label}</td>"
+            f"<td>{fmt_numbers(pack.get('numbers', [])) or '-'}</td>"
+            f"<td>{pack_status_label(pack)}</td>"
+            f"<td>{gov.get('rounds', '-')}</td>"
+            f"<td>{fmt_percent(gov.get('pass_rate'))}</td>"
+            f"<td>{fmt_decimal(gov.get('avg_hits'))}</td>"
+            f"<td>{passed_text}</td>"
+            "</tr>"
+        )
+    return "".join(rows)
+
+
+def compact_candidate_rows(candidates, limit=9):
+    rows = []
+    for item in candidates[:limit]:
+        cv = item.get("cross_validation") or {}
+        rows.append(
+            "<tr>"
+            f"<td class='num'>{int(item.get('number')):02d}</td>"
+            f"<td>{item.get('rank', '-')}</td>"
+            f"<td>{fmt_percent(item.get('score'))}</td>"
+            f"<td>{fmt_decimal(item.get('confidence_index'), 1)}</td>"
+            f"<td>{fmt_decimal(item.get('model_probability_percent'), 2)}%</td>"
+            f"<td>{item.get('omission', '-')}</td>"
+            f"<td>{cv.get('passed_count', '-')}</td>"
+            f"<td>{escape_html(compact_source_text(item, 4))}</td>"
+            "</tr>"
+        )
+    return "".join(rows) or "<tr><td colspan='8'>\u672c\u671f\u7121\u5019\u9078\u8cc7\u6599</td></tr>"
+
+
+def compact_model_rows(analysis, health):
+    rows = []
+    backtest = analysis.get("backtest") or {}
+    strategies = backtest.get("strategies") or {}
+    ranked = sorted(
+        strategies.items(),
+        key=lambda pair: (pair[1].get("top10_edge_vs_random", -99), pair[1].get("top15_edge_vs_random", -99)),
+        reverse=True,
+    )[:8]
+    for name, data in ranked:
+        rows.append(
+            "<tr>"
+            f"<td>{escape_html(name)}</td>"
+            f"<td>{data.get('rounds', '-')}</td>"
+            f"<td>{fmt_decimal(data.get('top5_avg_hits'))}</td>"
+            f"<td>{fmt_decimal(data.get('top10_avg_hits'))}</td>"
+            f"<td>{fmt_decimal(data.get('top15_avg_hits'))}</td>"
+            f"<td>{fmt_decimal(data.get('top10_edge_vs_random'))}</td>"
+            "</tr>"
+        )
+    return "".join(rows) or "<tr><td colspan='6'>\u6c92\u6709\u53ef\u7528\u56de\u6e2c\u8cc7\u6599</td></tr>"
+
+
+def compact_lifecycle_rows(analysis):
+    lifecycle = ((analysis.get("industrial_engine") or {}).get("model_lifecycle") or {}).get("models") or []
+    important = [item for item in lifecycle if item.get("action") in {"upgrade", "downgrade", "quarantine"}][:10]
+    rows = []
+    for item in important:
+        rows.append(
+            "<tr>"
+            f"<td>{escape_html(item.get('label') or item.get('feature'))}</td>"
+            f"<td>{escape_html(item.get('action_label') or item.get('action'))}</td>"
+            f"<td>{fmt_decimal(item.get('recent_edge'), 4)}</td>"
+            f"<td>{fmt_decimal(item.get('full_edge'), 4)}</td>"
+            f"<td>{escape_html(item.get('reason', ''))}</td>"
+            "</tr>"
+        )
+    return "".join(rows) or "<tr><td colspan='5'>\u672c\u671f\u6c92\u6709\u6a21\u578b\u7570\u52d5</td></tr>"
+
+
+def compact_review_html(history):
+    settled = next((item for item in history if item.get("status") == "settled"), None)
+    if not settled:
+        return "<p>\u76ee\u524d\u6c92\u6709\u5df2\u7d50\u7b97\u8cc7\u6599</p>"
+    actual = settled.get("actual_numbers") or []
+    misses = [number for number in settled.get("top15", []) if number not in actual]
+    strong_hits = settled.get("strong_pack_hits") or {}
+    pack_rows = []
+    for key, value in strong_hits.items():
+        passed_text = "\u9054\u6a19" if value.get("passed") else "\u672a\u9054\u6a19"
+        pack_rows.append(
+            "<tr>"
+            f"<td>{escape_html(value.get('name') or key)}</td>"
+            f"<td>{fmt_numbers(value.get('numbers', []))}</td>"
+            f"<td>{value.get('hits', '-')}</td>"
+            f"<td>{passed_text}</td>"
+            "</tr>"
+        )
+    pack_table = "".join(pack_rows) or "<tr><td colspan='4'>\u6c92\u6709\u5f37\u724c\u6aa2\u8a0e</td></tr>"
+    return f"""
+      <p><strong>\u5df2\u7d50\u7b97\uff1a\u4e0a\u671f\u9810\u6e2c\u6aa2\u8a0e\uff1a{settled.get('based_on_date')} \u9810\u6e2c \u5230 {settled.get('actual_date')} \u958b\u734e</strong></p>
+      <table><tbody>
+        <tr><th>\u5be6\u969b\u958b\u734e</th><td>{fmt_numbers(actual)}</td></tr>
+        <tr><th>Top5 / Top10 / Top15</th><td>{settled.get('top5_hits')} / {settled.get('top10_hits')} / {settled.get('top15_hits')}</td></tr>
+        <tr><th>Top10 \u547d\u4e2d\u865f</th><td>{fmt_hit_numbers(settled.get('top10', []), actual)}</td></tr>
+        <tr><th>Top15 \u672a\u4e2d\u865f</th><td>{fmt_numbers(misses)}</td></tr>
+      </tbody></table>
+      <h3>\u5f37\u724c\u6aa2\u8a0e</h3>
+      <table><thead><tr><th>\u985e\u578b</th><th>\u865f\u78bc</th><th>\u547d\u4e2d</th><th>\u7d50\u679c</th></tr></thead><tbody>{pack_table}</tbody></table>
+    """
+
+
+def compact_super_single_html(packs, candidates):
+    single_pack = (packs or {}).get("strong_single") or {}
+    decision = single_pack.get("super_single_decision") or {}
+    numbers = single_pack.get("numbers") or []
+    if not decision and numbers:
+        number = int(numbers[0])
+        item = next((row for row in candidates if int(row.get("number")) == number), {})
+        decision = {
+            "number": number,
+            "decision_label": "\u672c\u671f\u6700\u9ad8\u5206\u7368\u96bb",
+            "super_single_score": item.get("score"),
+            "confidence_index": item.get("confidence_index"),
+            "model_probability_percent": item.get("model_probability_percent"),
+            "rank": item.get("rank"),
+            "passed_layer_count": (item.get("cross_validation") or {}).get("passed_count"),
+            "total_layer_count": (item.get("cross_validation") or {}).get("total_count"),
+            "layers": [],
+            "risk_flags": [],
+            "model_sources": item.get("model_sources", []),
+            "selection_policy": "\u5019\u9078\u6392\u540d\u56de\u88dc",
+        }
+    if not decision:
+        return "<div class='band singlebox'><h2>\u6700\u5f37\u7368\u96bb1\u4e2d1</h2><p>\u672c\u671f\u6c92\u6709\u53ef\u7528\u7368\u96bb\u8cc7\u6599\u3002</p></div>"
+    layers = decision.get("layers") or []
+    layer_rows = []
+    for layer in layers:
+        passed = "\u901a\u904e" if layer.get("passed") else "\u672a\u904e"
+        layer_rows.append(
+            "<tr>"
+            f"<td>{escape_html(layer.get('label') or layer.get('name'))}</td>"
+            f"<td>{fmt_percent(layer.get('score'))}</td>"
+            f"<td>{passed}</td>"
+            "</tr>"
+        )
+    source_text = "\u3001".join(
+        str(source.get("label") or source.get("model"))
+        for source in (decision.get("model_sources") or [])[:6]
+        if source
+    ) or "-"
+    risk_text = "\u3001".join(decision.get("risk_flags") or []) or "\u672a\u89f8\u767c\u91cd\u5927\u98a8\u96aa"
+    return f"""
+    <div class="band singlebox">
+      <h2>\u6700\u5f37\u7368\u96bb1\u4e2d1</h2>
+      <div class="grid">
+        <div class="card hot-card"><div class="label">\u7368\u96bb\u865f\u78bc</div><div class="value num">{int(decision.get('number')):02d}</div></div>
+        <div class="card"><div class="label">\u5224\u5b9a</div><div class="value">{escape_html(decision.get('decision_label'))}</div></div>
+        <div class="card"><div class="label">\u7368\u96bb\u7e3d\u5206</div><div class="value">{fmt_percent(decision.get('super_single_score'))}</div></div>
+        <div class="card"><div class="label">\u6a21\u578b\u6a5f\u7387</div><div class="value">{fmt_decimal(decision.get('model_probability_percent'), 2)}%</div></div>
+        <div class="card"><div class="label">\u4ea4\u53c9\u5c64\u6578</div><div class="value">{decision.get('passed_layer_count', '-')}/{decision.get('total_layer_count', '-')}</div></div>
+      </div>
+      <p><strong>\u904b\u7b97\u908f\u8f2f\uff1a</strong>{escape_html(decision.get('selection_policy'))}</p>
+      <p><strong>\u4f86\u6e90\u6a21\u578b\uff1a</strong>{escape_html(source_text)}</p>
+      <p><strong>\u98a8\u63a7\uff1a</strong>{escape_html(risk_text)}</p>
+      <table><thead><tr><th>\u9a57\u7b97\u5c64</th><th>\u5206\u6578</th><th>\u5224\u5b9a</th></tr></thead><tbody>{''.join(layer_rows) or '<tr><td colspan="3">\u672a\u63d0\u4f9b\u5206\u5c64\u7d30\u9805</td></tr>'}</tbody></table>
+    </div>
+    """
+
+
+def build_compact_html_report():
+    analysis = load_json(ANALYSIS_JSON)
+    health = load_json(HEALTH_JSON)
+    daily_audit = load_json(DAILY_AUDIT_JSON)
+    history = prediction_history()
+    latest = analysis.get("latest_draw", {})
+    latest_date = latest.get("draw_date", "-")
+    target_date = next_draw_date(latest_date) if latest_date and latest_date != "-" else "-"
+    count, date_text, period_text = history_basis_text(health, latest_date)
+    candidates = analysis.get("official_candidates") or analysis.get("candidates") or []
+    industrial = analysis.get("industrial_engine") or {}
+    decision = industrial.get("decisive_battle_decision") or {}
+    packs = analysis.get("strong_prediction_packs") or {}
+    freshness = analysis.get("data_freshness") or health.get("data_freshness") or {}
+    performance = health.get("prediction_performance") or {}
+    strong_stats = performance.get("strong_pack_stats") or {}
+    unlikely = industrial.get("unlikely_number_analysis") or {}
+    avoid_packs = unlikely.get("avoid_packs") or {}
+    latest_numbers = fmt_numbers(latest.get("numbers", []))
+    high_numbers = [item.get("number") for item in decision.get("high_confidence_numbers", [])[:9]]
+    pending = next((item for item in history if item.get("status") == "pending"), {})
+    report_time = analysis.get("generated_at", taipei_now().isoformat(timespec="seconds")).replace("T", " ")
+    audit_status = daily_audit.get("status", "\u672a\u6aa2\u67e5")
+    low_url = LOW_PROBABILITY_HTML.name
+    stats_rows = []
+    for key, label in [("strong_single", "\u7368\u96bb1\u4e2d1"), ("two_hit_one", "2\u4e2d1"), ("three_hit_one", "3\u4e2d1"), ("five_hit_two", "5\u4e2d2"), ("nine_hit_three", "9\u4e2d3")]:
+        stat = strong_stats.get(key) or {}
+        stats_rows.append(
+            "<tr>"
+            f"<td>{label}</td>"
+            f"<td>{stat.get('rounds', '-')}</td>"
+            f"<td>{fmt_percent(stat.get('pass_rate'))}</td>"
+            f"<td>{fmt_decimal(stat.get('avg_hits'))}</td>"
+            "</tr>"
+        )
+    low_summary_rows = []
+    for key in ["five_miss", "ten_miss", "fifteen_miss"]:
+        pack = avoid_packs.get(key) or {}
+        low_summary_rows.append(
+            "<tr>"
+            f"<td>{escape_html(pack.get('name', key))}</td>"
+            f"<td>{fmt_numbers(pack.get('numbers', []))}</td>"
+            f"<td>{fmt_decimal(pack.get('confidence_index'), 1)}</td>"
+            f"<td>{fmt_percent(pack.get('avg_avoid_score'))}</td>"
+            f"<td><a href='{low_url}'>\u958b\u555f\u4f4e\u6a5f\u7387\u9801</a></td>"
+            "</tr>"
+        )
+    super_single_html = compact_super_single_html(packs, candidates)
+    return f"""<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>539 \u7cbe\u7b97\u9810\u6e2c\u6230\u5831</title>
+  <style>
+    body{{margin:0;background:#f5f7fb;color:#172033;font-family:"Microsoft JhengHei",Arial,sans-serif;}}
+    header{{background:#111827;color:white;padding:22px 24px;}}
+    main{{max-width:1180px;margin:0 auto;padding:18px;}}
+    .tabs{{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}}
+    .tabs button{{border:1px solid #cbd5e1;background:white;border-radius:7px;padding:10px 14px;font-weight:800;cursor:pointer;}}
+    .tabs button.active{{background:#0f766e;color:white;border-color:#0f766e;}}
+    .panel{{display:none;}}
+    .panel.active{{display:block;}}
+    .band{{background:white;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:14px;overflow:auto;}}
+    .grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;}}
+    .card{{border:1px solid #e5e7eb;border-radius:8px;padding:12px;background:#fbfdff;}}
+    .hot-card{{border-color:#fecaca;background:#fff1f2;}}
+    .singlebox{{border-color:#fecaca;background:#fffafa;}}
+    .label{{font-size:13px;color:#64748b;font-weight:700;}}
+    .value{{font-size:22px;font-weight:900;margin-top:6px;}}
+    table{{width:100%;border-collapse:collapse;min-width:760px;}}
+    th,td{{border-bottom:1px solid #e5e7eb;padding:9px;text-align:left;vertical-align:top;}}
+    th{{background:#f1f5f9;}}
+    .num{{font-size:20px;font-weight:900;color:#b91c1c;}}
+    .warn{{background:#fff7ed;border-color:#fed7aa;}}
+    a{{color:#0f766e;font-weight:800;}}
+    @media(max-width:680px){{main{{padding:10px}}header{{padding:16px}}table{{min-width:680px}}}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>539 \u7cbe\u7b97\u9810\u6e2c\u6230\u5831</h1>
+  <p>\u7522\u751f\u6642\u9593 {report_time} / \u5168\u6b77\u53f2\u8cc7\u6599 {date_text} / \u5171 {count} \u671f / \u671f\u5225 {period_text}</p>
+  <p>\u6700\u65b0\u958b\u734e {latest.get('period', '-')} \u671f / {latest_date} / {latest_numbers}\u3000\u9810\u6e2c\u76ee\u6a19 {target_date}</p>
+</header>
+<main>
+  <nav class="tabs">
+    <button class="active" data-tab="prediction">\u4e0b\u671f\u9810\u6e2c</button>
+    <button data-tab="review">\u4e0a\u671f\u6aa2\u8a0e</button>
+    <button data-tab="models">\u6a21\u578b\u6210\u6548</button>
+    <button data-tab="avoid">\u4f4e\u6a5f\u7387</button>
+  </nav>
+  <section id="prediction" class="panel active">
+    <div class="band">
+      <h2>\u6838\u5fc3\u6c7a\u7b56</h2>
+      <div class="grid">
+        <div class="card"><div class="label">\u8cc7\u6599\u72c0\u614b</div><div class="value">{status_zh(freshness.get('status'))}</div></div>
+        <div class="card"><div class="label">\u6aa2\u67e5</div><div class="value">{escape_html(audit_status)}</div></div>
+        <div class="card"><div class="label">\u5f85\u7d50\u7b97\u76ee\u6a19\u671f</div><div class="value">{pending.get('target_period', latest.get('period', 0) + 1)}</div></div>
+        <div class="card hot-card"><div class="label">\u7368\u96bb</div><div class="value">{fmt_numbers(decision.get('primary_single', [])) or fmt_numbers((packs.get('strong_single') or {}).get('numbers', [])) or '-'}</div></div>
+        <div class="card"><div class="label">9\u78bc\u6838\u5fc3</div><div class="value">{fmt_numbers(decision.get('attack_core_top9', [])) or fmt_numbers(pending.get('top10', [])[:9]) or '-'}</div></div>
+      </div>
+      <p>\u904b\u7b97\u539f\u5247\uff1a\u53ea\u986f\u793a\u5b8c\u6210\u904b\u7b97\u5f8c\u7684\u7cbe\u6e96\u8cc7\u8a0a\uff1b\u4f9d\u5168\u6b77\u53f2\u8cc7\u6599\u5eab\u3001\u591a\u6a21\u578b\u4ea4\u53c9\u9a57\u7b97\u8207\u6efe\u52d5\u56de\u6e2c\u8f38\u51fa\u3002</p>
+    </div>
+    {super_single_html}
+    <div class="band">
+      <h2>\u4e0b\u671f\u7cbe\u7b97\u524d9\u540d</h2>
+      <table><thead><tr><th>\u865f\u78bc</th><th>\u6392\u540d</th><th>\u5206\u6578</th><th>\u4fe1\u5fc3</th><th>\u6a5f\u7387</th><th>\u907a\u6f0f</th><th>\u9a57\u7b97\u6578</th><th>\u4f86\u6e90\u6a21\u578b</th></tr></thead><tbody>{compact_candidate_rows(candidates, 9)}</tbody></table>
+    </div>
+    <div class="band">
+      <h2>\u5f37\u724c\u7d44\u7cbe\u7b97</h2>
+      <table><thead><tr><th>\u985e\u578b</th><th>\u865f\u78bc</th><th>\u72c0\u614b</th><th>\u56de\u6e2c\u671f</th><th>\u9054\u6a19\u7387</th><th>\u5e73\u5747\u547d\u4e2d</th><th>\u5224\u5b9a</th></tr></thead><tbody>{compact_pack_rows(packs)}</tbody></table>
+    </div>
+  </section>
+  <section id="review" class="panel">
+    <div class="band">
+      <h2>\u4e0a\u671f\u547d\u4e2d\u6aa2\u8a0e</h2>
+      {compact_review_html(history)}
+    </div>
+  </section>
+  <section id="models" class="panel">
+    <div class="band">
+      <h2>\u6a21\u578b\u56de\u6e2c\u6458\u8981</h2>
+      <table><thead><tr><th>\u6a21\u578b</th><th>\u56de\u6e2c\u671f</th><th>\u524d5\u5e73\u5747</th><th>\u524d10\u5e73\u5747</th><th>\u524d15\u5e73\u5747</th><th>\u524d10\u512a\u52e2</th></tr></thead><tbody>{compact_model_rows(analysis, health)}</tbody></table>
+    </div>
+    <div class="band">
+      <h2>\u5f37\u724c\u5be6\u6230\u7d71\u8a08</h2>
+      <table><thead><tr><th>\u985e\u578b</th><th>\u7d50\u7b97\u671f</th><th>\u9054\u6a19\u7387</th><th>\u5e73\u5747\u547d\u4e2d</th></tr></thead><tbody>{''.join(stats_rows)}</tbody></table>
+    </div>
+    <div class="band">
+      <h2>\u6a21\u578b\u6efe\u52d5\u8abf\u6574</h2>
+      <table><thead><tr><th>\u6a21\u578b</th><th>\u52d5\u4f5c</th><th>\u8fd1\u671f\u512a\u52e2</th><th>\u9577\u671f\u512a\u52e2</th><th>\u539f\u56e0</th></tr></thead><tbody>{compact_lifecycle_rows(analysis)}</tbody></table>
+    </div>
+  </section>
+  <section id="avoid" class="panel">
+    <div class="band warn">
+      <h2>\u4f4e\u6a5f\u7387\u7cbe\u6e96\u66ab\u907f</h2>
+      <p>\u4f4e\u6a5f\u7387\u5206\u6790\u5df2\u7368\u7acb\u958b\u9801\uff0c\u4e3b\u9801\u53ea\u4fdd\u7559 5\u4e0d\u4e2d\u300110\u4e0d\u4e2d\u300115\u4e0d\u4e2d\u6458\u8981\u3002</p>
+      <p><a href="{low_url}">\u958b\u555f 539\u4f4e\u6a5f\u7387\u7cbe\u6e96\u66ab\u907f.html</a></p>
+      <table><thead><tr><th>\u66ab\u907f\u5305</th><th>\u865f\u78bc</th><th>\u4fe1\u5fc3\u6307\u6a19</th><th>\u5e73\u5747\u66ab\u907f\u5206</th><th>\u660e\u7d30</th></tr></thead><tbody>{''.join(low_summary_rows)}</tbody></table>
+    </div>
+  </section>
+</main>
+<script>
+  document.querySelectorAll('.tabs button').forEach(btn=>btn.addEventListener('click',()=>{{
+    document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  }}));
+</script>
+</body>
+</html>"""
+
+
+def build_low_probability_html_report():
+    analysis = load_json(ANALYSIS_JSON)
+    health = load_json(HEALTH_JSON)
+    latest = analysis.get("latest_draw", {})
+    latest_date = latest.get("draw_date", "-")
+    target_date = next_draw_date(latest_date) if latest_date and latest_date != "-" else "-"
+    count, date_text, period_text = history_basis_text(health, latest_date)
+    industrial = analysis.get("industrial_engine") or {}
+    unlikely = industrial.get("unlikely_number_analysis") or {}
+    backtest = industrial.get("unlikely_backtest") or {}
+    avoid_packs = unlikely.get("avoid_packs") or {}
+    report_time = analysis.get("generated_at", taipei_now().isoformat(timespec="seconds")).replace("T", " ")
+    pack_rows = []
+    for key in ["five_miss", "ten_miss", "fifteen_miss"]:
+        pack = avoid_packs.get(key) or {}
+        stat = (backtest.get("packs") or {}).get(key) or {}
+        pack_rows.append(
+            "<tr>"
+            f"<td>{escape_html(pack.get('name', key))}</td>"
+            f"<td>{fmt_numbers(pack.get('numbers', []))}</td>"
+            f"<td>{fmt_decimal(pack.get('confidence_index'), 1)}</td>"
+            f"<td>{fmt_percent(pack.get('avg_avoid_score'))}</td>"
+            f"<td>{fmt_percent(pack.get('min_avoid_score'))}</td>"
+            f"<td>{stat.get('rounds', '-')}</td>"
+            f"<td>{fmt_decimal(stat.get('avg_accidental_hits'))}</td>"
+            f"<td>{fmt_percent(stat.get('zero_hit_rate'))}</td>"
+            "</tr>"
+        )
+    number_rows = []
+    for item in unlikely.get("numbers", []):
+        reasons = "\u3001".join(item.get("reasons") or [])
+        number_rows.append(
+            "<tr>"
+            f"<td class='num'>{int(item.get('number')):02d}</td>"
+            f"<td>{fmt_percent(item.get('avoid_score'))}</td>"
+            f"<td>{fmt_percent(item.get('appearance_score'))}</td>"
+            f"<td>{item.get('candidate_rank', '-')}</td>"
+            f"<td>{item.get('stability_count', '-')}</td>"
+            f"<td>{item.get('weak_signal_count', '-')}</td>"
+            f"<td>{escape_html(reasons)}</td>"
+            f"<td>{escape_html(item.get('warning', ''))}</td>"
+            "</tr>"
+        )
+    return f"""<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>539 \u4f4e\u6a5f\u7387\u7cbe\u6e96\u66ab\u907f</title>
+  <style>
+    body{{margin:0;background:#f8fafc;color:#172033;font-family:"Microsoft JhengHei",Arial,sans-serif;}}
+    header{{background:#7f1d1d;color:white;padding:22px 24px;}}
+    main{{max-width:1180px;margin:0 auto;padding:18px;}}
+    .band{{background:white;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:14px;overflow:auto;}}
+    table{{width:100%;border-collapse:collapse;min-width:840px;}}
+    th,td{{border-bottom:1px solid #e5e7eb;padding:9px;text-align:left;vertical-align:top;}}
+    th{{background:#fee2e2;}}
+    .num{{font-size:20px;font-weight:900;color:#b91c1c;}}
+    .note{{background:#fff7ed;border-color:#fed7aa;}}
+    a{{color:#0f766e;font-weight:800;}}
+    @media(max-width:680px){{main{{padding:10px}}header{{padding:16px}}table{{min-width:760px}}}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>539 \u4f4e\u6a5f\u7387\u7cbe\u6e96\u66ab\u907f</h1>
+  <p>\u7522\u751f\u6642\u9593 {report_time} / \u5168\u6b77\u53f2\u8cc7\u6599 {date_text} / \u5171 {count} \u671f / \u671f\u5225 {period_text}</p>
+  <p>\u6700\u65b0\u958b\u734e {latest.get('period', '-')} \u671f / {latest_date}\u3000\u9810\u6e2c\u76ee\u6a19 {target_date}</p>
+</header>
+<main>
+  <section class="band note">
+    <h2>\u4f4e\u6a5f\u7387\u8aaa\u660e</h2>
+    <p>\u672c\u9801\u53ea\u653e\u7d93\u904e\u904b\u7b97\u7684\u66ab\u907f\u865f\u78bc\uff0c\u7528\u65bc\u907f\u514d\u7d44\u5408\u6c61\u67d3\u8207\u98a8\u96aa\u63a7\u7ba1\uff1b\u4f4e\u6a5f\u7387\u4e0d\u7b49\u65bc\u7d55\u5c0d\u4e0d\u958b\u3002</p>
+    <p><a href="latest_battle_report.html">\u56de\u5230\u4e3b\u6230\u5831</a></p>
+  </section>
+  <section class="band">
+    <h2>5\u4e0d\u4e2d / 10\u4e0d\u4e2d / 15\u4e0d\u4e2d \u66ab\u907f\u5305</h2>
+    <table><thead><tr><th>\u66ab\u907f\u5305</th><th>\u865f\u78bc</th><th>\u4fe1\u5fc3\u6307\u6a19</th><th>\u5e73\u5747\u66ab\u907f\u5206</th><th>\u6700\u4f4e\u66ab\u907f\u5206</th><th>\u56de\u6e2c\u671f</th><th>\u5e73\u5747\u8aa4\u4e2d</th><th>\u5b8c\u5168\u907f\u958b\u7387</th></tr></thead><tbody>{''.join(pack_rows)}</tbody></table>
+  </section>
+  <section class="band">
+    <h2>\u9010\u865f\u66ab\u907f\u7d30\u9805</h2>
+    <table><thead><tr><th>\u865f\u78bc</th><th>\u66ab\u907f\u5206</th><th>\u51fa\u73fe\u8a55\u5206</th><th>\u5019\u9078\u6392\u540d</th><th>\u7a69\u5b9a\u6578</th><th>\u5f31\u8a0a\u865f</th><th>\u66ab\u907f\u539f\u56e0</th><th>\u98a8\u63a7</th></tr></thead><tbody>{''.join(number_rows) or '<tr><td colspan="8">\u672c\u671f\u7121\u66ab\u907f\u7d30\u9805</td></tr>'}</tbody></table>
+  </section>
+</main>
+</body>
+</html>"""
+
+
 def save_battle_reports(report=None):
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     report = report or build_report()
-    html = build_html_report(report)
+    html = build_compact_html_report()
+    low_probability_html = build_low_probability_html_report()
     html = localize_html_visible_text(html)
+    html = localize_html_global_tokens(html)
+    low_probability_html = localize_html_visible_text(low_probability_html)
+    low_probability_html = localize_html_global_tokens(low_probability_html)
     history = prediction_history()
     save_prediction_history(history)
     history_html = build_history_html(history)
     history_html = localize_html_visible_text(history_html)
+    history_html = localize_html_global_tokens(history_html)
     atomic_write_text(BATTLE_MD, report)
     atomic_write_text(BATTLE_TXT, report)
     atomic_write_text(BATTLE_HTML, html)
     atomic_write_text(ENHANCED_BATTLE_HTML, html)
+    atomic_write_text(LOW_PROBABILITY_HTML, low_probability_html)
     atomic_write_text(HISTORY_HTML, history_html)
     return ENHANCED_BATTLE_HTML
 
@@ -2547,4 +3355,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 

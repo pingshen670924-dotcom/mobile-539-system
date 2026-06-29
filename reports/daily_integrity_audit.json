@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-29T10:34:56",
+  "generated_at": "2026-06-29T14:57:12",
   "status": "passed",
   "failed_count": 0,
   "checks": [
@@ -85,8 +85,34 @@
           "top5_hits": 1,
           "top10_hits": 1,
           "top15_hits": 2
+        },
+        {
+          "target_period": 115000156,
+          "status": "settled",
+          "actual_period": 115000156,
+          "top5_hits": 0,
+          "top10_hits": 1,
+          "top15_hits": 2
         }
       ]
+    },
+    {
+      "name": "no_missing_recent_prediction_records",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "latest_draw_has_settled_prediction_record",
+      "passed": true,
+      "detail": {
+        "target_period": 115000156,
+        "status": "settled",
+        "actual_period": 115000156,
+        "actual_date": "2026-06-27",
+        "top5_hits": 0,
+        "top10_hits": 1,
+        "top15_hits": 2
+      }
     },
     {
       "name": "analysis_matches_database",
@@ -127,14 +153,44 @@
       "detail": "settled and pending labels"
     },
     {
-      "name": "battle_report_has_active_mode",
+      "name": "battle_report_is_compact_precision_report",
       "passed": true,
-      "detail": "current_precision_stability_v44_micro_confidence_short_packs"
+      "detail": "compact precision report labels"
     },
     {
       "name": "battle_report_has_explicit_dates",
       "passed": true,
       "detail": "date labels"
+    },
+    {
+      "name": "battle_report_has_low_probability_link",
+      "passed": true,
+      "detail": "low probability page link"
+    },
+    {
+      "name": "battle_report_has_super_single_section",
+      "passed": true,
+      "detail": "super single section"
+    },
+    {
+      "name": "battle_report_has_no_mojibake_question_marks",
+      "passed": true,
+      "detail": "battle report must not contain mojibake question marks"
+    },
+    {
+      "name": "low_probability_page_exists",
+      "passed": true,
+      "detail": "C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\reports\\539低機率精準暫避.html"
+    },
+    {
+      "name": "low_probability_page_has_no_mojibake_question_marks",
+      "passed": true,
+      "detail": "low probability page must not contain mojibake question marks"
+    },
+    {
+      "name": "low_probability_page_has_required_sections",
+      "passed": true,
+      "detail": "low probability section labels"
     }
   ],
   "latest": {

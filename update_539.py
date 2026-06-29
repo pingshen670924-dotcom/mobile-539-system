@@ -1,4 +1,4 @@
-import argparse
+﻿import argparse
 import base64
 import csv
 import io
@@ -21,10 +21,11 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from zoneinfo import ZoneInfo
 
-from analyze_539 import analyze, save_analysis
+from analyze_539 import analyze, build_sets, save_analysis
 from battle_report import ENHANCED_BATTLE_HTML, build_report, save_battle_reports
 from dashboard import DASHBOARD_HTML, save_dashboard
 from health_check import build_health, save_health
+from industrial_engine import score_numbers
 from model_competition import run_competition, save_competition
 from pages_build import build as build_mobile_site
 from research_kpi import evaluate_research_kpis
@@ -73,7 +74,7 @@ def roc_year_now():
 def expected_latest_draw_date(now=None):
     now = now or taipei_now()
     candidate = now.date()
-    if now.time() < clock_time(20, 35):
+    if now.time() < clock_time(20, 33):
         candidate -= timedelta(days=1)
     while candidate.weekday() == 6:
         candidate -= timedelta(days=1)
@@ -96,7 +97,7 @@ def data_freshness(latest_date, now=None):
 
 def update_attempt_window_is_open(now=None):
     now = now or taipei_now()
-    return now.time() >= clock_time(20, 35)
+    return now.time() >= clock_time(20, 33)
 
 
 def http_get_bytes(url, retries=3, retry_delay=2):
@@ -916,6 +917,282 @@ def settle_predictions(conn):
     return settled
 
 
+def build_repair_analysis_for_period(conn, target_period):
+    target = conn.execute(
+        """
+        SELECT period, draw_date
+        FROM draws_539
+        WHERE period=?
+        """,
+        (target_period,),
+    ).fetchone()
+    if not target:
+        return None
+    based = conn.execute(
+        """
+        SELECT period, draw_date
+        FROM draws_539
+        WHERE period < ?
+        ORDER BY period DESC
+        LIMIT 1
+        """,
+        (target_period,),
+    ).fetchone()
+    if not based:
+        return None
+
+    temp = NamedTemporaryFile(prefix="tw539_repair_", suffix=".sqlite", delete=False)
+    temp_path = Path(temp.name)
+    temp.close()
+    try:
+        with sqlite3.connect(temp_path) as repair_conn:
+            draw_schema = conn.execute(
+                "SELECT sql FROM sqlite_master WHERE type='table' AND name='draws_539'"
+            ).fetchone()[0]
+            prediction_schema = conn.execute(
+                "SELECT sql FROM sqlite_master WHERE type='table' AND name='predictions_539'"
+            ).fetchone()[0]
+            repair_conn.execute(draw_schema)
+            repair_conn.execute(prediction_schema)
+
+            draw_columns = [row[1] for row in conn.execute("PRAGMA table_info(draws_539)").fetchall()]
+            prediction_columns = [row[1] for row in conn.execute("PRAGMA table_info(predictions_539)").fetchall()]
+            draw_placeholder = ",".join("?" for _ in draw_columns)
+            prediction_placeholder = ",".join("?" for _ in prediction_columns)
+
+            draw_rows = conn.execute(
+                f"SELECT {','.join(draw_columns)} FROM draws_539 WHERE period <= ? ORDER BY period",
+                (based[0],),
+            ).fetchall()
+            repair_conn.executemany(
+                f"INSERT INTO draws_539 ({','.join(draw_columns)}) VALUES ({draw_placeholder})",
+                draw_rows,
+            )
+            prediction_rows = conn.execute(
+                f"""
+                SELECT {','.join(prediction_columns)}
+                FROM predictions_539
+                WHERE status='settled' AND target_period < ?
+                ORDER BY target_period
+                """,
+                (target_period,),
+            ).fetchall()
+            if prediction_rows:
+                repair_conn.executemany(
+                    f"INSERT INTO predictions_539 ({','.join(prediction_columns)}) VALUES ({prediction_placeholder})",
+                    prediction_rows,
+                )
+            repair_conn.commit()
+
+        repair_analysis = analyze(temp_path)
+        repair_analysis["auto_repair"] = {
+            "status": "reconstructed_missing_prediction",
+            "target_period": target_period,
+            "target_draw_date": target[1],
+            "based_on_period": based[0],
+            "based_on_date": based[1],
+            "repair_generated_at": datetime.now().isoformat(timespec="seconds"),
+            "rule": "rebuild_with_only_draws_available_before_target_period",
+        }
+        return repair_analysis
+    finally:
+        try:
+            temp_path.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+
+def fetch_repair_draws_until(conn, based_period):
+    rows = conn.execute(
+        """
+        SELECT period, draw_date, n1, n2, n3, n4, n5
+        FROM draws_539
+        WHERE period <= ?
+        ORDER BY period
+        """,
+        (based_period,),
+    ).fetchall()
+    return [
+        {
+            "period": row[0],
+            "draw_date": row[1],
+            "numbers": [row[2], row[3], row[4], row[5], row[6]],
+        }
+        for row in rows
+    ]
+
+
+def build_lightweight_repair_packs(candidates):
+    specs = {
+        "strong_single": ("最強單支", 1, 1),
+        "two_hit_one": ("最強2中1", 1, 2),
+        "three_hit_one": ("最強3中1", 1, 3),
+        "five_hit_two": ("最強5中2", 2, 5),
+        "nine_hit_three": ("最強9中3", 3, 9),
+    }
+    score_map = {item["number"]: float(item.get("score", 0.0) or 0.0) for item in candidates}
+    packs = {}
+    for key, (name, goal, size) in specs.items():
+        numbers = sorted(item["number"] for item in candidates[:size])
+        avg_score = sum(score_map.get(number, 0.0) for number in numbers) / len(numbers) if numbers else 0.0
+        packs[key] = {
+            "name": name,
+            "hit_goal": goal,
+            "numbers": numbers,
+            "score_sum": round(sum(score_map.get(number, 0.0) for number in numbers), 4),
+            "avg_score": round(avg_score, 4),
+            "status": "auto_repaired_from_pre_draw_data",
+            "official_release": False,
+            "release_note": "缺漏期自動補修，僅使用該期開獎前資料重建，供結算追蹤使用",
+        }
+    return packs
+
+
+def build_lightweight_repair_analysis_for_period(conn, target_period):
+    target = conn.execute(
+        """
+        SELECT period, draw_date
+        FROM draws_539
+        WHERE period=?
+        """,
+        (target_period,),
+    ).fetchone()
+    if not target:
+        return None
+    based = conn.execute(
+        """
+        SELECT period, draw_date
+        FROM draws_539
+        WHERE period < ?
+        ORDER BY period DESC
+        LIMIT 1
+        """,
+        (target_period,),
+    ).fetchone()
+    if not based:
+        return None
+    draws = fetch_repair_draws_until(conn, based[0])
+    if len(draws) < 100:
+        return None
+    candidates, weights = score_numbers(draws, None, include_dependency=False)
+    analysis = {
+        "generated_at": datetime.now().isoformat(timespec="seconds"),
+        "latest_draw": draws[-1],
+        "candidates": candidates,
+        "official_candidates": candidates,
+        "suggested_sets": build_sets(candidates) if len(candidates) >= 18 else [],
+        "strong_prediction_packs": build_lightweight_repair_packs(candidates),
+        "model_weights": weights,
+        "backtest": {
+            "rounds": 0,
+            "note": "缺漏期快速補修紀錄，不跑完整大型回測，避免一鍵更新卡死",
+        },
+        "auto_repair": {
+            "status": "reconstructed_missing_prediction",
+            "target_period": target_period,
+            "target_draw_date": target[1],
+            "based_on_period": based[0],
+            "based_on_date": based[1],
+            "repair_generated_at": datetime.now().isoformat(timespec="seconds"),
+            "rule": "rebuild_with_only_draws_available_before_target_period",
+            "engine": "lightweight_pre_draw_repair",
+        },
+    }
+    return analysis
+
+
+def repair_missing_prediction_records(conn, lookback=12):
+    latest = conn.execute(
+        """
+        SELECT period, draw_date
+        FROM draws_539
+        ORDER BY period DESC
+        LIMIT 1
+        """
+    ).fetchone()
+    if not latest:
+        return {"repaired": 0, "targets": []}
+    missing_targets = conn.execute(
+        """
+        SELECT d.period, d.draw_date
+        FROM draws_539 d
+        LEFT JOIN predictions_539 p ON p.target_period=d.period
+        WHERE d.period BETWEEN ? AND ?
+          AND p.target_period IS NULL
+        ORDER BY d.period
+        """,
+        (latest[0] - lookback, latest[0]),
+    ).fetchall()
+    repaired = []
+    for target_period, target_date in missing_targets:
+        analysis = build_lightweight_repair_analysis_for_period(conn, target_period)
+        if not analysis:
+            continue
+        based = analysis["latest_draw"]
+        candidates_json = json.dumps(analysis.get("official_candidates", analysis["candidates"]), ensure_ascii=False)
+        suggested_sets_json = json.dumps(analysis["suggested_sets"], ensure_ascii=False)
+        strong_packs_json = json.dumps(analysis["strong_prediction_packs"], ensure_ascii=False)
+        model_weights_json = json.dumps(analysis["model_weights"], ensure_ascii=False)
+        backtest_payload = dict(analysis["backtest"])
+        backtest_payload["auto_repair"] = analysis["auto_repair"]
+        backtest_json = json.dumps(backtest_payload, ensure_ascii=False)
+        created_at = datetime.now().isoformat(timespec="seconds")
+        try:
+            conn.execute(
+                """
+                INSERT INTO predictions_539 (
+                    based_on_period, based_on_date, target_period,
+                    candidates_json, suggested_sets_json, strong_packs_json,
+                    model_weights_json, backtest_json, created_at, status
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+                """,
+                (
+                    based["period"],
+                    based["draw_date"],
+                    target_period,
+                    candidates_json,
+                    suggested_sets_json,
+                    strong_packs_json,
+                    model_weights_json,
+                    backtest_json,
+                    created_at,
+                ),
+            )
+            conn.execute(
+                """
+                INSERT INTO prediction_snapshots_539 (
+                    based_on_period, based_on_date, target_period,
+                    candidates_json, suggested_sets_json, strong_packs_json,
+                    model_weights_json, backtest_json, created_at, snapshot_reason
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    based["period"],
+                    based["draw_date"],
+                    target_period,
+                    candidates_json,
+                    suggested_sets_json,
+                    strong_packs_json,
+                    model_weights_json,
+                    backtest_json,
+                    created_at,
+                    "auto_repaired_missing_prediction_record",
+                ),
+            )
+            repaired.append({
+                "target_period": target_period,
+                "target_date": target_date,
+                "based_on_period": based["period"],
+                "based_on_date": based["draw_date"],
+            })
+        except sqlite3.IntegrityError:
+            logging.warning("Missing prediction repair skipped because based period already exists: %s", based["period"])
+    conn.commit()
+    return {"repaired": len(repaired), "targets": repaired}
+
+
 def store_prediction_snapshot(conn, analysis, reason):
     latest = analysis["latest_draw"]
     conn.execute(
@@ -1100,9 +1377,30 @@ def store_prediction(conn, analysis):
             store_prediction_snapshot(conn, analysis, "official_prediction_recalculated_and_updated")
             conn.commit()
             return "updated_pending"
-        store_prediction_snapshot(conn, analysis, "rerun_preserved_official_prediction")
+        if exists[1] == "pending":
+            conn.execute(
+                """
+                UPDATE predictions_539
+                SET candidates_json=?, suggested_sets_json=?, strong_packs_json=?,
+                    model_weights_json=?, backtest_json=?, created_at=?
+                WHERE id=?
+                """,
+                (
+                    new_candidates_json,
+                    new_sets_json,
+                    new_packs_json,
+                    new_weights_json,
+                    new_backtest_json,
+                    datetime.now().isoformat(timespec="seconds"),
+                    exists[0],
+                ),
+            )
+            store_prediction_snapshot(conn, analysis, "official_prediction_recalculated_same_result_refreshed")
+            conn.commit()
+            return "recalculated_same_as_official_refreshed"
+        store_prediction_snapshot(conn, analysis, "rerun_preserved_settled_prediction")
         conn.commit()
-        return "recalculated_same_as_official" if exists[1] == "pending" else "preserved_settled"
+        return "preserved_settled"
     copy_reason = previous_copy_block_reason(conn, analysis)
     if copy_reason:
         store_prediction_snapshot(conn, analysis, copy_reason)
@@ -1272,6 +1570,12 @@ def run_main():
                 )
             if not current["count"]:
                 raise RuntimeError("\u8cc7\u6599\u5eab\u6c92\u6709\u4efb\u4f55\u958b\u734e\u8cc7\u6599，\u7121\u6cd5\u7522\u751f\u5206\u6790")
+            repaired_missing = repair_missing_prediction_records(conn)
+            if repaired_missing["repaired"]:
+                logging.warning(
+                    "已自動補修缺漏預測紀錄，補修後會立即進入結算：%s",
+                    json.dumps(repaired_missing, ensure_ascii=False),
+                )
             settled = settle_predictions(conn)
             if settled:
                 logging.info("\u5df2\u7d50\u7b97\u9810\u6e2c\u7d00\u9304：%s \u7b46", settled)
@@ -1375,3 +1679,4 @@ def run_main():
 
 if __name__ == "__main__":
     main()
+

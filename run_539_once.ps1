@@ -130,7 +130,7 @@ try {
   Run-Step "Rebuild battle report after audit" @(".\battle_report.py")
   Run-Step "Build phone site files" @(".\pages_build.py") $false
   Start-MobileReportServer
-  Run-PowerShell-Step "Publish phone cloud site" (Join-Path $ScriptDir "publish_free_github.ps1") @() $false
+  Run-PowerShell-Step "Publish phone cloud site" (Join-Path $ScriptDir "publish_free_github.ps1") @() $true
   Run-Step "Push LINE report" @(".\line_push.py") $false
   Run-Step "File encoding check" @(".\system_file_check.py") $false
   Remove-GeneratedCaches

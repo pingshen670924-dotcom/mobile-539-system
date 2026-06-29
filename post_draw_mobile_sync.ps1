@@ -178,10 +178,15 @@ function Start-CloudPublish {
     return $result
   }
   try {
-    $arguments = '-NoProfile -ExecutionPolicy Bypass -File "' + $publishScript + '"'
-    Start-Process -FilePath "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -ArgumentList $arguments -WorkingDirectory $ScriptDir -WindowStyle Hidden
-    $result.status = "started"
+    & "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -File $publishScript *> $null
     $result.started = $true
+    if ($LASTEXITCODE -eq 0) {
+      $result.status = "ok"
+      $result.message = "cloud_publish_finished"
+    } else {
+      $result.status = "failed"
+      $result.error = "cloud_publish_exit_code_$LASTEXITCODE"
+    }
   } catch {
     $result.status = "failed"
     $result.error = $_.Exception.Message
@@ -209,6 +214,9 @@ $State = [ordered]@{
   status = "starting"
   started_at = (Get-Date -Format s)
   updated_at = (Get-Date -Format s)
+  draw_time = "20:33"
+  completion_deadline = "20:45"
+  rule = "20:33開獎後立即追最新資料；20:45前完成開獎匯入、命中結算、重新運算、回測、戰報與手機版同步。"
   root = $ScriptDir
   max_minutes = $MaxMinutes
   interval_seconds = $IntervalSeconds
@@ -263,7 +271,11 @@ try {
 
     $State.status = "fresh_draw_not_available_yet_retrying"
     Save-Status $State
-    Start-Sleep -Seconds ([Math]::Max($IntervalSeconds, 30))
+    $remainingSeconds = [Math]::Max([int]($deadline - (Get-Date)).TotalSeconds, 0)
+    if ($remainingSeconds -le 0) {
+      break
+    }
+    Start-Sleep -Seconds ([Math]::Min([Math]::Max($IntervalSeconds, 30), $remainingSeconds))
   }
 
   $State.status = "timed_out_waiting_for_fresh_draw"

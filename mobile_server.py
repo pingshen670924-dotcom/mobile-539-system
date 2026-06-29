@@ -102,23 +102,27 @@ def write_mobile_entry_files():
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     urls = mobile_urls()
     version = latest_mobile_version()
+    independent_url_path = BASE_DIR / "\u624b\u6a5f\u7368\u7acb\u7248\u7db2\u5740.txt"
+    independent_url = ""
+    if independent_url_path.exists():
+        independent_url = independent_url_path.read_text(encoding="utf-8").strip()
+    entry_url = independent_url or urls["site_url"]
     payload = {
         "status": "ready",
         "written_at": datetime.now().isoformat(timespec="seconds"),
         "report_url": urls["report_url"],
         "control_url": urls["control_url"],
-        "site_url": urls["site_url"],
+        "site_url": entry_url,
+        "lan_site_url": urls["site_url"],
         "version": urls["version"],
         "latest_period": version.get("latest_period"),
         "latest_draw_date": version.get("latest_draw_date"),
         "mobile_built_at": version.get("mobile_built_at"),
-        "cache_policy": "no_store_lan_report",
+        "cache_policy": "independent_cloud_url_preserved_lan_report_no_store",
     }
-    url_name = "\u624b\u6a5f\u7368\u7acb\u7248\u7db2\u5740.txt"
     report_url_name = "\u624b\u6a5f\u6230\u5831\u5373\u6642\u7db2\u5740.txt"
     control_url_name = "\u624b\u6a5f\u63a7\u5236\u53f0\u7db2\u5740.txt"
     status_name = "\u624b\u6a5f\u6230\u5831\u66f4\u65b0\u72c0\u614b.json"
-    (BASE_DIR / url_name).write_text(urls["report_url"], encoding="utf-8")
     (BASE_DIR / report_url_name).write_text(urls["report_url"], encoding="utf-8")
     (BASE_DIR / control_url_name).write_text(urls["control_url"], encoding="utf-8")
     (BASE_DIR / status_name).write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -132,11 +136,11 @@ def write_mobile_entry_files():
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>&#25171;&#38283;&#26368;&#26032;&#25163;&#27231;&#25136;&#22577;</title>
-  <meta http-equiv="refresh" content="0; url={html.escape(urls["report_url"], quote=True)}">
+  <meta http-equiv="refresh" content="0; url={html.escape(entry_url, quote=True)}">
 </head>
 <body>
-  <p>&#27491;&#22312;&#25171;&#38283;&#33287;&#38651;&#33126;&#29256;&#30456;&#21516;&#30340;&#21363;&#26178;&#25136;&#22577;...</p>
-  <p><a href="{html.escape(urls["report_url"], quote=True)}">&#33509;&#27794;&#26377;&#33258;&#21205;&#36339;&#36681;&#65292;&#35531;&#40670;&#36889;&#35041;</a></p>
+  <p>&#27491;&#22312;&#25171;&#38283;&#26368;&#26032;&#25163;&#27231;&#29544;&#31435;&#29256;...</p>
+  <p><a href="{html.escape(entry_url, quote=True)}">&#33509;&#27794;&#26377;&#33258;&#21205;&#36339;&#36681;&#65292;&#35531;&#40670;&#36889;&#35041;</a></p>
 </body>
 </html>
 """,

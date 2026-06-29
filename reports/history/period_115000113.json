@@ -1,0 +1,28 @@
+{
+  "based_on_period": null,
+  "based_on_date": null,
+  "target_period": 115000113,
+  "target_expected_date": "2026-05-08",
+  "top5": [],
+  "top10": [],
+  "top15": [],
+  "actual_period": 115000113,
+  "actual_date": "2026-05-08",
+  "actual_numbers": [
+    18,
+    19,
+    23,
+    26,
+    28
+  ],
+  "top5_hits": null,
+  "top10_hits": null,
+  "top15_hits": null,
+  "top10_hit_numbers": [],
+  "strong_pack_hits": {},
+  "status": "missing_prediction",
+  "created_at": "",
+  "settled_at": "",
+  "snapshot_count": 0,
+  "integrity_issue": "缺正式預測紀錄，不能結算命中率"
+}
