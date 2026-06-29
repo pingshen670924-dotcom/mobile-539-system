@@ -1,4 +1,4 @@
-$ErrorActionPreference = "Stop"
+﻿$ErrorActionPreference = "Stop"
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
@@ -114,7 +114,7 @@ try {
   $Python = Find-Python
   Run-PowerShell-Step "Repair current scheduled tasks and phone service" (Join-Path $ScriptDir "repair_current_tasks.ps1") @() $false
   Run-PowerShell-Step "Cleanup obsolete runtime folders" (Join-Path $ScriptDir "cleanup_obsolete_runtime.ps1") @() $false
-  Run-PowerShell-Step "Network permission repair" (Join-Path $ScriptDir "repair_network_permission.ps1") @("-NoPause") $false
+  "$(Get-Date -Format s) Network permission repair skipped during one-click run." | Out-File -FilePath $RunLog -Encoding utf8 -Append
   Run-PowerShell-Step "Network permission diagnostic" (Join-Path $ScriptDir "network_permission_diagnostic.ps1") @() $false
   Run-Step "Compile check" @("-m", "py_compile", ".\update_539.py", ".\analyze_539.py", ".\battle_report.py", ".\health_check.py", ".\dashboard.py", ".\pages_build.py", ".\industrial_engine.py", ".\aerospace_engine.py", ".\research_kpi.py", ".\daily_integrity_audit.py", ".\line_push.py")
   "Update latest draw and rebuild all outputs" | Out-File -FilePath $RunLog -Encoding utf8 -Append
@@ -130,7 +130,15 @@ try {
   Run-Step "Rebuild battle report after audit" @(".\battle_report.py")
   Run-Step "Build phone site files" @(".\pages_build.py") $false
   Start-MobileReportServer
-  Run-PowerShell-Step "Publish phone cloud site" (Join-Path $ScriptDir "publish_free_github.ps1") @() $true
+    "$(Get-Date -Format s) Publish phone cloud site" | Out-File -FilePath $RunLog -Encoding utf8 -Append
+  $PublishScript = Join-Path $ScriptDir "publish_free_github.ps1"
+  $PublishOut = Join-Path $LogDir "publish_free_github.out.log"
+  $PublishErr = Join-Path $LogDir "publish_free_github.err.log"
+  Remove-Item -LiteralPath $PublishOut,$PublishErr -Force -ErrorAction SilentlyContinue
+  $PublishProcess = Start-Process -FilePath "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $PublishScript) -WorkingDirectory $ScriptDir -Wait -PassThru -NoNewWindow -RedirectStandardOutput $PublishOut -RedirectStandardError $PublishErr
+  if (Test-Path -LiteralPath $PublishOut) { Get-Content -LiteralPath $PublishOut -Encoding UTF8 | Out-File -FilePath $RunLog -Encoding utf8 -Append }
+  if (Test-Path -LiteralPath $PublishErr) { Get-Content -LiteralPath $PublishErr -Encoding UTF8 | Out-File -FilePath $RunLog -Encoding utf8 -Append }
+  if ($PublishProcess.ExitCode -ne 0) { throw "Publish phone cloud site failed." }
   Run-Step "Verify phone cloud sync" @(".\verify_mobile_sync.py")
   Run-Step "Push LINE report" @(".\line_push.py") $false
   Run-Step "File encoding check" @(".\system_file_check.py") $false
@@ -154,3 +162,5 @@ try {
   }
   $Mutex.Dispose()
 }
+
+

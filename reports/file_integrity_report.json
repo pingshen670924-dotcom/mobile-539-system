@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-06-29T15:43:48",
+  "generated_at": "2026-06-29T21:22:55",
   "status": "ok",
-  "checked_files": 192,
+  "checked_files": 193,
   "failed_count": 0,
   "warning_count": 0,
   "files": [
@@ -147,7 +147,7 @@
       "path": "main_one_click.ps1",
       "status": "ok",
       "warnings": [],
-      "size": 7417
+      "size": 7218
     },
     {
       "path": "mobile_server.py",
@@ -219,7 +219,7 @@
       "path": "run_539_once.ps1",
       "status": "ok",
       "warnings": [],
-      "size": 7004
+      "size": 6848
     },
     {
       "path": "setup_line_push.ps1",
@@ -333,7 +333,7 @@
       "path": "data\\539.csv",
       "status": "ok",
       "warnings": [],
-      "size": 712120
+      "size": 712230
     },
     {
       "path": "data\\mobile_access_token.txt",
@@ -357,19 +357,19 @@
       "path": "reports\\539低機率精準暫避.html",
       "status": "ok",
       "warnings": [],
-      "size": 5765
+      "size": 5884
     },
     {
       "path": "reports\\539最新強化戰報.html",
       "status": "ok",
       "warnings": [],
-      "size": 13683
+      "size": 13789
     },
     {
       "path": "reports\\539每期預測對比.html",
       "status": "ok",
       "warnings": [],
-      "size": 22238
+      "size": 22275
     },
     {
       "path": "reports\\cleanup_obsolete_runtime.json",
@@ -423,43 +423,43 @@
       "path": "reports\\health_status.json",
       "status": "ok",
       "warnings": [],
-      "size": 5888
+      "size": 5865
     },
     {
       "path": "reports\\health_status.md",
       "status": "ok",
       "warnings": [],
-      "size": 434
+      "size": 433
     },
     {
       "path": "reports\\latest_analysis.json",
       "status": "ok",
       "warnings": [],
-      "size": 1613253
+      "size": 1619087
     },
     {
       "path": "reports\\latest_analysis.md",
       "status": "ok",
       "warnings": [],
-      "size": 6765
+      "size": 6814
     },
     {
       "path": "reports\\latest_battle_report.html",
       "status": "ok",
       "warnings": [],
-      "size": 13683
+      "size": 13789
     },
     {
       "path": "reports\\latest_battle_report.md",
       "status": "ok",
       "warnings": [],
-      "size": 23071
+      "size": 25445
     },
     {
       "path": "reports\\latest_battle_report.txt",
       "status": "ok",
       "warnings": [],
-      "size": 23071
+      "size": 25445
     },
     {
       "path": "reports\\line_push_status.json",
@@ -471,7 +471,7 @@
       "path": "reports\\mobile_sync_verification.json",
       "status": "ok",
       "warnings": [],
-      "size": 1078
+      "size": 1080
     },
     {
       "path": "reports\\mobile_update_status.json",
@@ -483,19 +483,19 @@
       "path": "reports\\model_competition.json",
       "status": "ok",
       "warnings": [],
-      "size": 28703
+      "size": 28668
     },
     {
       "path": "reports\\model_competition.md",
       "status": "ok",
       "warnings": [],
-      "size": 3126
+      "size": 3117
     },
     {
       "path": "reports\\monthly_prediction_review.json",
       "status": "ok",
       "warnings": [],
-      "size": 24292
+      "size": 24790
     },
     {
       "path": "reports\\network_permission_diagnostic.json",
@@ -519,7 +519,7 @@
       "path": "reports\\prediction_history.json",
       "status": "ok",
       "warnings": [],
-      "size": 97575
+      "size": 99234
     },
     {
       "path": "reports\\startup_cleanup_status.json",
@@ -543,7 +543,7 @@
       "path": "site\\539低機率精準暫避.html",
       "status": "ok",
       "warnings": [],
-      "size": 5765
+      "size": 5884
     },
     {
       "path": "site\\clear-cache.html",
@@ -561,13 +561,13 @@
       "path": "site\\health_status.json",
       "status": "ok",
       "warnings": [],
-      "size": 5888
+      "size": 5865
     },
     {
       "path": "site\\index.html",
       "status": "ok",
       "warnings": [],
-      "size": 17209
+      "size": 17315
     },
     {
       "path": "site\\latest.html",
@@ -579,31 +579,31 @@
       "path": "site\\latest_analysis.json",
       "status": "ok",
       "warnings": [],
-      "size": 1613253
+      "size": 1619087
     },
     {
       "path": "site\\low-probability.html",
       "status": "ok",
       "warnings": [],
-      "size": 5765
+      "size": 5884
     },
     {
       "path": "site\\model_competition.json",
       "status": "ok",
       "warnings": [],
-      "size": 28703
+      "size": 28668
     },
     {
       "path": "site\\prediction-history.html",
       "status": "ok",
       "warnings": [],
-      "size": 22238
+      "size": 22275
     },
     {
       "path": "site\\prediction_history.json",
       "status": "ok",
       "warnings": [],
-      "size": 97575
+      "size": 99234
     },
     {
       "path": "site\\version.json",
@@ -1095,6 +1095,12 @@
       "path": "reports\\history\\period_115000157.json",
       "status": "ok",
       "warnings": [],
+      "size": 1881
+    },
+    {
+      "path": "reports\\history\\period_115000158.json",
+      "status": "ok",
+      "warnings": [],
       "size": 767
     },
     {
@@ -1161,14 +1167,14 @@
   "data_consistency": {
     "status": "ok",
     "csv_latest": {
-      "period": 115000156,
-      "draw_date": "2026-06-27",
+      "period": 115000157,
+      "draw_date": "2026-06-29",
       "numbers": [
-        4,
-        14,
-        21,
-        31,
-        32
+        11,
+        15,
+        30,
+        34,
+        36
       ]
     },
     "checks": [
@@ -1176,25 +1182,25 @@
         "name": "analysis_matches_csv_latest_draw",
         "status": "ok",
         "csv_latest": {
-          "period": 115000156,
-          "draw_date": "2026-06-27",
+          "period": 115000157,
+          "draw_date": "2026-06-29",
           "numbers": [
-            4,
-            14,
-            21,
-            31,
-            32
+            11,
+            15,
+            30,
+            34,
+            36
           ]
         },
         "analysis_latest": {
-          "period": 115000156,
-          "draw_date": "2026-06-27",
+          "period": 115000157,
+          "draw_date": "2026-06-29",
           "numbers": [
-            4,
-            14,
-            21,
-            31,
-            32
+            11,
+            15,
+            30,
+            34,
+            36
           ]
         }
       },
@@ -1202,19 +1208,19 @@
         "name": "health_matches_csv_latest_draw",
         "status": "ok",
         "csv_latest": {
-          "period": 115000156,
-          "draw_date": "2026-06-27",
+          "period": 115000157,
+          "draw_date": "2026-06-29",
           "numbers": [
-            4,
-            14,
-            21,
-            31,
-            32
+            11,
+            15,
+            30,
+            34,
+            36
           ]
         },
         "health_latest": {
-          "period": 115000156,
-          "draw_date": "2026-06-27",
+          "period": 115000157,
+          "draw_date": "2026-06-29",
           "freshness_status": "fresh"
         }
       }

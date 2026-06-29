@@ -1,5 +1,5 @@
 ﻿{
-    "repaired_at":  "2026-06-29T21:09:30",
+    "repaired_at":  "2026-06-29T21:30:08",
     "root":  "C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem",
     "runner":  "C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\run_539_once.ps1",
     "main_runner":  "C:\\Users\\MSI\\Documents\\Codex\\539PredictionSystem\\main_one_click.ps1",
@@ -27,7 +27,7 @@
     "mobile":  {
                    "status":  "ok",
                    "stopped_processes":  [
-                                             21964
+                                             22048
                                          ],
                    "started":  true,
                    "message":  "current_mobile_server_started"

@@ -1,5 +1,5 @@
 ﻿539 network permission diagnostic
-Run time: 2026-06-29T10:10:45
+Run time: 2026-06-29T21:30:43
 System user: MSI
 
 PASS TCP 443 api.taiwanlottery.com: DNS=True, TCP443=True
@@ -10,7 +10,7 @@ PASS Python HTTPS Taiwan Lottery: ok
 PASS PowerShell HTTPS Taiwan Lottery: HTTP 200
 PASS curl HTTPS Taiwan Lottery: HTTP/1.1 200 OK
 Server: HiNetCDN
-Date: Mon, 29 Jun 2026 02:10:51 GMT
+Date: Mon, 29 Jun 2026 13:30:46 GMT
 FAIL Codex sandbox outbound block rule: A Codex offline outbound block rule is visible. The installed Windows scheduled task can run outside this Codex sandbox, and the repair script can add normal firewall allow rules.
 
 Summary: pass=7 fail=1
