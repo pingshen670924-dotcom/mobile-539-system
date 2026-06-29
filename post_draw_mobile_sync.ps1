@@ -205,6 +205,7 @@ function Complete-FreshSync {
   $steps += Ensure-MobileServer
   $steps += Run-PythonStep "Refresh phone live URL" @(".\mobile_server.py", "--write-url") $false
   $steps += Start-CloudPublish
+  $steps += Run-PythonStep "Verify phone cloud sync" @(".\verify_mobile_sync.py") $true
   $steps += Run-PythonStep "Push LINE report" @(".\line_push.py") $false
   $steps += Run-PythonStep "File integrity and encoding check" @(".\system_file_check.py") $false
   return $steps

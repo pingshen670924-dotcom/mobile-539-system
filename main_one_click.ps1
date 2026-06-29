@@ -175,6 +175,7 @@ try {
   Run-Step "Build phone site files" @(".\pages_build.py") $false
   Start-MobileReportServer
   Run-PowerShell-Step "Publish phone cloud site" (Join-Path $ScriptDir "publish_free_github.ps1") @() $true
+  Run-Step "Verify phone cloud sync" @(".\verify_mobile_sync.py")
   Run-Step "Push LINE report" @(".\line_push.py") $false
   Run-Step "File encoding check" @(".\system_file_check.py") $false
   Remove-GeneratedCaches

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-29T15:28:22",
+  "generated_at": "2026-06-29T14:55:07",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000156,
@@ -17,7 +17,7 @@
     "latest_date": "2026-06-27",
     "expected_latest_date": "2026-06-27",
     "lag_days": 0,
-    "checked_at": "2026-06-29T15:26:45"
+    "checked_at": "2026-06-29T14:55:07"
   },
   "windows": [
     {
@@ -2592,13 +2592,13 @@
           "hit_rate": 1.0
         },
         {
-          "reason": "與上期號碼近100期共現6次",
+          "reason": "上期失敗號碼僅微降權",
           "hit": 1,
           "miss": 1,
           "hit_rate": 0.5
         },
         {
-          "reason": "上期失敗號碼僅微降權",
+          "reason": "與上期號碼近100期共現6次",
           "hit": 1,
           "miss": 1,
           "hit_rate": 0.5
@@ -3996,13 +3996,13 @@
             "hit_rate": 1.0
           },
           {
-            "reason": "與上期號碼近100期共現6次",
+            "reason": "上期失敗號碼僅微降權",
             "hit": 1,
             "miss": 1,
             "hit_rate": 0.5
           },
           {
-            "reason": "上期失敗號碼僅微降權",
+            "reason": "與上期號碼近100期共現6次",
             "hit": 1,
             "miss": 1,
             "hit_rate": 0.5
@@ -6760,7 +6760,7 @@
       "warning": "關聯不等於因果，只允許通過分段驗證的連動進入模型"
     },
     "release_gate": {
-      "status": "research_kpi_blocked",
+      "status": "watch_only",
       "precision_governor_release_light": "yellow",
       "precision_governor_allowed_pack_count": 3,
       "main_targets_required": [
@@ -6779,9 +6779,7 @@
         -0.0321,
         -0.0237
       ],
-      "recent_performance_passed": false,
-      "research_kpi_status": "insufficient_samples",
-      "research_kpi_release_allowed": false
+      "recent_performance_passed": false
     },
     "decisive_battle_decision": {
       "status": "decisive",
@@ -53409,101 +53407,5 @@
         "qualified": true
       }
     ]
-  },
-  "research_kpi": {
-    "status": "insufficient_samples",
-    "settled_samples": 24,
-    "minimum_settled_samples": 30,
-    "target_pass_rate": 1.0,
-    "all_observed_pass": false,
-    "release_allowed": false,
-    "warning": "Research targets are evaluation goals, not guaranteed lottery outcomes.",
-    "levels": {
-      "top15": {
-        "label": "15顆中3至5顆",
-        "minimum_hits": 3,
-        "maximum_hits": 5,
-        "settled_samples": 24,
-        "successes": 8,
-        "target_band_successes": 8,
-        "over_target_successes": 0,
-        "failures": 16,
-        "pass_rate": 0.3333,
-        "wilson_lower_95": 0.1797,
-        "average_hits": 1.9167,
-        "met_in_observed_samples": false
-      },
-      "nine_hit_three": {
-        "label": "9顆中3至5顆",
-        "minimum_hits": 3,
-        "maximum_hits": 5,
-        "settled_samples": 24,
-        "successes": 3,
-        "target_band_successes": 3,
-        "over_target_successes": 0,
-        "failures": 21,
-        "pass_rate": 0.125,
-        "wilson_lower_95": 0.0434,
-        "average_hits": 1.0417,
-        "met_in_observed_samples": false
-      },
-      "five_hit_two": {
-        "label": "5顆中2至5顆",
-        "minimum_hits": 2,
-        "maximum_hits": 5,
-        "settled_samples": 24,
-        "successes": 3,
-        "target_band_successes": 3,
-        "over_target_successes": 0,
-        "failures": 21,
-        "pass_rate": 0.125,
-        "wilson_lower_95": 0.0434,
-        "average_hits": 0.6667,
-        "met_in_observed_samples": false
-      },
-      "three_hit_one": {
-        "label": "3顆中1至3顆",
-        "minimum_hits": 1,
-        "maximum_hits": 3,
-        "settled_samples": 24,
-        "successes": 10,
-        "target_band_successes": 10,
-        "over_target_successes": 0,
-        "failures": 14,
-        "pass_rate": 0.4167,
-        "wilson_lower_95": 0.2447,
-        "average_hits": 0.5,
-        "met_in_observed_samples": false
-      },
-      "two_hit_one": {
-        "label": "2顆中1至2顆",
-        "minimum_hits": 1,
-        "maximum_hits": 2,
-        "settled_samples": 24,
-        "successes": 8,
-        "target_band_successes": 8,
-        "over_target_successes": 0,
-        "failures": 16,
-        "pass_rate": 0.3333,
-        "wilson_lower_95": 0.1797,
-        "average_hits": 0.3333,
-        "met_in_observed_samples": false
-      },
-      "strong_single": {
-        "label": "1顆中1顆",
-        "minimum_hits": 1,
-        "maximum_hits": 1,
-        "settled_samples": 24,
-        "successes": 3,
-        "target_band_successes": 3,
-        "over_target_successes": 0,
-        "failures": 21,
-        "pass_rate": 0.125,
-        "wilson_lower_95": 0.0434,
-        "average_hits": 0.125,
-        "met_in_observed_samples": false
-      }
-    }
-  },
-  "official_prediction_status": "observation_only_updated_pending"
+  }
 }

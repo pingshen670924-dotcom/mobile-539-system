@@ -116,6 +116,7 @@ try {
   $State.steps += Run-PythonStep "Phone site rebuild" @(".\pages_build.py")
   $State.steps += Run-PythonStep "Refresh phone live URL" @(".\mobile_server.py", "--write-url") $false
   $State.steps += Start-CloudPublish
+  $State.steps += Run-PythonStep "Verify phone cloud sync" @(".\verify_mobile_sync.py")
   $State.steps += Run-PythonStep "Push LINE report" @(".\line_push.py") $false
   $State.steps += Run-PythonStep "File integrity and encoding check" @(".\system_file_check.py") $false
 

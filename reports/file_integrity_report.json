@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-06-29T14:57:13",
+  "generated_at": "2026-06-29T15:34:11",
   "status": "ok",
-  "checked_files": 190,
+  "checked_files": 192,
   "failed_count": 0,
   "warning_count": 0,
   "files": [
@@ -75,7 +75,7 @@
       "path": "daily_midnight_recompute.ps1",
       "status": "ok",
       "warnings": [],
-      "size": 4801
+      "size": 5029
     },
     {
       "path": "dashboard.py",
@@ -147,7 +147,7 @@
       "path": "main_one_click.ps1",
       "status": "ok",
       "warnings": [],
-      "size": 7153
+      "size": 7417
     },
     {
       "path": "mobile_server.py",
@@ -171,19 +171,19 @@
       "path": "pages_build.py",
       "status": "ok",
       "warnings": [],
-      "size": 14408
+      "size": 15574
     },
     {
       "path": "post_draw_mobile_sync.ps1",
       "status": "ok",
       "warnings": [],
-      "size": 9327
+      "size": 9788
     },
     {
       "path": "publish_free_github.ps1",
       "status": "ok",
       "warnings": [],
-      "size": 8730
+      "size": 10001
     },
     {
       "path": "README.md",
@@ -219,7 +219,7 @@
       "path": "run_539_once.ps1",
       "status": "ok",
       "warnings": [],
-      "size": 6783
+      "size": 7004
     },
     {
       "path": "setup_line_push.ps1",
@@ -258,6 +258,12 @@
       "size": 64706
     },
     {
+      "path": "verify_mobile_sync.py",
+      "status": "ok",
+      "warnings": [],
+      "size": 3755
+    },
+    {
       "path": "修復手機版顯示.bat",
       "status": "ok",
       "warnings": [],
@@ -273,7 +279,7 @@
       "path": "手機戰報更新狀態.json",
       "status": "ok",
       "warnings": [],
-      "size": 711
+      "size": 742
     },
     {
       "path": "手機控制台網址.txt",
@@ -285,19 +291,19 @@
       "path": "手機獨立版網址.txt",
       "status": "ok",
       "warnings": [],
-      "size": 104
+      "size": 109
     },
     {
       "path": "手機雲端版網址.txt",
       "status": "ok",
       "warnings": [],
-      "size": 104
+      "size": 109
     },
     {
       "path": "手機雲端發布狀態.json",
       "status": "ok",
       "warnings": [],
-      "size": 711
+      "size": 366
     },
     {
       "path": "打開最新手機版.html",
@@ -399,7 +405,7 @@
       "path": "reports\\file_integrity_report.json",
       "status": "ok",
       "warnings": [],
-      "size": 26464
+      "size": 26465
     },
     {
       "path": "reports\\file_integrity_report.md",
@@ -460,6 +466,12 @@
       "status": "ok",
       "warnings": [],
       "size": 152
+    },
+    {
+      "path": "reports\\mobile_sync_verification.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 971
     },
     {
       "path": "reports\\mobile_update_status.json",
@@ -555,7 +567,7 @@
       "path": "site\\index.html",
       "status": "ok",
       "warnings": [],
-      "size": 17203
+      "size": 17209
     },
     {
       "path": "site\\latest.html",
@@ -597,7 +609,7 @@
       "path": "site\\version.json",
       "status": "ok",
       "warnings": [],
-      "size": 235
+      "size": 241
     },
     {
       "path": "reports\\history\\period_115000077.json",
