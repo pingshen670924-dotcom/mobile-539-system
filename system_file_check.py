@@ -21,6 +21,7 @@ TEXT_SUFFIXES = {
 }
 CODE_SUFFIXES = {".py", ".ps1", ".bat"}
 CJK_ALLOWED_CODE_FILES = {
+    "analyze_539.py",
     "battle_report.py",
     "daily_midnight_recompute.ps1",
     "industrial_engine.py",

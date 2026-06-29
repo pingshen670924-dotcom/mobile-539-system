@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T02:21:22",
+  "generated_at": "2026-06-30T07:15:31",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000157,
@@ -17,7 +17,7 @@
     "latest_date": "2026-06-29",
     "expected_latest_date": "2026-06-29",
     "lag_days": 0,
-    "checked_at": "2026-06-30T02:19:38"
+    "checked_at": "2026-06-30T07:13:10"
   },
   "windows": [
     {
@@ -2610,13 +2610,13 @@
           "hit_rate": 1.0
         },
         {
-          "reason": "尾數轉移加權",
+          "reason": "近100期偏熱(14次)",
           "hit": 1,
           "miss": 0,
           "hit_rate": 1.0
         },
         {
-          "reason": "近100期偏熱(14次)",
+          "reason": "尾數轉移加權",
           "hit": 1,
           "miss": 0,
           "hit_rate": 1.0
@@ -4044,13 +4044,13 @@
             "hit_rate": 1.0
           },
           {
-            "reason": "尾數轉移加權",
+            "reason": "近100期偏熱(14次)",
             "hit": 1,
             "miss": 0,
             "hit_rate": 1.0
           },
           {
-            "reason": "近100期偏熱(14次)",
+            "reason": "尾數轉移加權",
             "hit": 1,
             "miss": 0,
             "hit_rate": 1.0
@@ -24249,6 +24249,3824 @@
           "rate": 0.9881
         }
       }
+    },
+    "dual_track_model_comparison": {
+      "status": "evaluated",
+      "method": "raw_unadjusted_models_vs_saved_rolling_adjusted_predictions",
+      "policy": "同一個預測基準日比較原始未調整模型與當時已保存的滾動調整預測，不使用未來資料。",
+      "window_days": 31,
+      "sample_count": 25,
+      "date_range": [
+        "2026-06-01",
+        "2026-06-29"
+      ],
+      "random_expectation": {
+        "5": 0.641,
+        "10": 1.282,
+        "15": 1.923
+      },
+      "summary": {
+        "raw_unadjusted": {
+          "top5_avg_hits": 0.6,
+          "top10_avg_hits": 1.2,
+          "top15_avg_hits": 2.28
+        },
+        "rolling_adjusted": {
+          "top5_avg_hits": 0.72,
+          "top10_avg_hits": 1.32,
+          "top15_avg_hits": 1.96
+        },
+        "delta": {
+          "top5_avg_hit_delta": 0.12,
+          "top10_avg_hit_delta": 0.12,
+          "top15_avg_hit_delta": -0.32
+        },
+        "top10_win_loss": {
+          "tie": 10,
+          "rolling_win": 9,
+          "raw_win": 6
+        },
+        "top15_win_loss": {
+          "tie": 9,
+          "raw_win": 9,
+          "rolling_win": 7
+        },
+        "decision": "mixed_or_neutral",
+        "decision_label": "原始模型與滾動調整暫無明顯勝負"
+      },
+      "adjustment_error_audit": {
+        "rescued_hit_numbers": [
+          {
+            "number": 7,
+            "count": 2
+          },
+          {
+            "number": 31,
+            "count": 2
+          },
+          {
+            "number": 22,
+            "count": 1
+          },
+          {
+            "number": 35,
+            "count": 1
+          },
+          {
+            "number": 20,
+            "count": 1
+          },
+          {
+            "number": 15,
+            "count": 1
+          },
+          {
+            "number": 28,
+            "count": 1
+          },
+          {
+            "number": 17,
+            "count": 1
+          },
+          {
+            "number": 23,
+            "count": 1
+          },
+          {
+            "number": 16,
+            "count": 1
+          },
+          {
+            "number": 29,
+            "count": 1
+          },
+          {
+            "number": 14,
+            "count": 1
+          },
+          {
+            "number": 36,
+            "count": 1
+          },
+          {
+            "number": 30,
+            "count": 1
+          }
+        ],
+        "lost_hit_numbers": [
+          {
+            "number": 8,
+            "count": 3
+          },
+          {
+            "number": 4,
+            "count": 2
+          },
+          {
+            "number": 25,
+            "count": 2
+          },
+          {
+            "number": 12,
+            "count": 1
+          },
+          {
+            "number": 27,
+            "count": 1
+          },
+          {
+            "number": 18,
+            "count": 1
+          },
+          {
+            "number": 7,
+            "count": 1
+          },
+          {
+            "number": 2,
+            "count": 1
+          },
+          {
+            "number": 6,
+            "count": 1
+          }
+        ],
+        "false_promoted_miss_numbers": [
+          {
+            "number": 27,
+            "count": 9
+          },
+          {
+            "number": 24,
+            "count": 8
+          },
+          {
+            "number": 20,
+            "count": 7
+          },
+          {
+            "number": 9,
+            "count": 6
+          },
+          {
+            "number": 22,
+            "count": 6
+          },
+          {
+            "number": 3,
+            "count": 5
+          },
+          {
+            "number": 5,
+            "count": 5
+          },
+          {
+            "number": 26,
+            "count": 5
+          },
+          {
+            "number": 30,
+            "count": 5
+          },
+          {
+            "number": 23,
+            "count": 4
+          },
+          {
+            "number": 36,
+            "count": 4
+          },
+          {
+            "number": 14,
+            "count": 4
+          },
+          {
+            "number": 35,
+            "count": 4
+          },
+          {
+            "number": 38,
+            "count": 4
+          },
+          {
+            "number": 15,
+            "count": 3
+          }
+        ],
+        "raw_only_miss_numbers": [
+          {
+            "number": 12,
+            "count": 14
+          },
+          {
+            "number": 11,
+            "count": 13
+          },
+          {
+            "number": 6,
+            "count": 13
+          },
+          {
+            "number": 2,
+            "count": 12
+          },
+          {
+            "number": 7,
+            "count": 10
+          },
+          {
+            "number": 21,
+            "count": 9
+          },
+          {
+            "number": 4,
+            "count": 8
+          },
+          {
+            "number": 36,
+            "count": 7
+          },
+          {
+            "number": 15,
+            "count": 6
+          },
+          {
+            "number": 18,
+            "count": 5
+          },
+          {
+            "number": 25,
+            "count": 5
+          },
+          {
+            "number": 27,
+            "count": 5
+          },
+          {
+            "number": 8,
+            "count": 4
+          },
+          {
+            "number": 3,
+            "count": 4
+          },
+          {
+            "number": 17,
+            "count": 2
+          }
+        ]
+      },
+      "raw_model_scorecard": [
+        {
+          "model": "pair",
+          "label": "共現配對",
+          "rounds": 25,
+          "top5_avg_hits": 0.92,
+          "top5_edge_vs_random": 0.279,
+          "top10_avg_hits": 1.6,
+          "top10_edge_vs_random": 0.318,
+          "top15_avg_hits": 2.24,
+          "top15_edge_vs_random": 0.317
+        },
+        {
+          "model": "zone_coverage_recovery",
+          "label": "分區覆蓋回補",
+          "rounds": 25,
+          "top5_avg_hits": 0.76,
+          "top5_edge_vs_random": 0.119,
+          "top10_avg_hits": 1.6,
+          "top10_edge_vs_random": 0.318,
+          "top15_avg_hits": 2.08,
+          "top15_edge_vs_random": 0.157
+        },
+        {
+          "model": "markov_chain",
+          "label": "馬可夫",
+          "rounds": 25,
+          "top5_avg_hits": 0.64,
+          "top5_edge_vs_random": -0.001,
+          "top10_avg_hits": 1.52,
+          "top10_edge_vs_random": 0.238,
+          "top15_avg_hits": 2.56,
+          "top15_edge_vs_random": 0.637
+        },
+        {
+          "model": "freq_100",
+          "label": "近100期熱度",
+          "rounds": 25,
+          "top5_avg_hits": 0.84,
+          "top5_edge_vs_random": 0.199,
+          "top10_avg_hits": 1.48,
+          "top10_edge_vs_random": 0.198,
+          "top15_avg_hits": 2.24,
+          "top15_edge_vs_random": 0.317
+        },
+        {
+          "model": "tail_zone",
+          "label": "尾數區間",
+          "rounds": 25,
+          "top5_avg_hits": 0.72,
+          "top5_edge_vs_random": 0.079,
+          "top10_avg_hits": 1.44,
+          "top10_edge_vs_random": 0.158,
+          "top15_avg_hits": 1.92,
+          "top15_edge_vs_random": -0.003
+        },
+        {
+          "model": "cross_consensus",
+          "label": "多模型共識",
+          "rounds": 25,
+          "top5_avg_hits": 0.72,
+          "top5_edge_vs_random": 0.079,
+          "top10_avg_hits": 1.44,
+          "top10_edge_vs_random": 0.158,
+          "top15_avg_hits": 1.92,
+          "top15_edge_vs_random": -0.003
+        },
+        {
+          "model": "omission",
+          "label": "遺漏週期",
+          "rounds": 25,
+          "top5_avg_hits": 0.68,
+          "top5_edge_vs_random": 0.039,
+          "top10_avg_hits": 1.44,
+          "top10_edge_vs_random": 0.158,
+          "top15_avg_hits": 2.08,
+          "top15_edge_vs_random": 0.157
+        },
+        {
+          "model": "freq_300",
+          "label": "近300期穩定",
+          "rounds": 25,
+          "top5_avg_hits": 0.64,
+          "top5_edge_vs_random": -0.001,
+          "top10_avg_hits": 1.44,
+          "top10_edge_vs_random": 0.158,
+          "top15_avg_hits": 2.32,
+          "top15_edge_vs_random": 0.397
+        },
+        {
+          "model": "neural_network",
+          "label": "神經網路",
+          "rounds": 25,
+          "top5_avg_hits": 0.56,
+          "top5_edge_vs_random": -0.081,
+          "top10_avg_hits": 1.44,
+          "top10_edge_vs_random": 0.158,
+          "top15_avg_hits": 1.96,
+          "top15_edge_vs_random": 0.037
+        },
+        {
+          "model": "ewma_slow",
+          "label": "慢速加權趨勢",
+          "rounds": 25,
+          "top5_avg_hits": 0.84,
+          "top5_edge_vs_random": 0.199,
+          "top10_avg_hits": 1.4,
+          "top10_edge_vs_random": 0.118,
+          "top15_avg_hits": 2.04,
+          "top15_edge_vs_random": 0.117
+        },
+        {
+          "model": "cold_rebound_champion",
+          "label": "冷號反彈冠軍模型",
+          "rounds": 25,
+          "top5_avg_hits": 0.84,
+          "top5_edge_vs_random": 0.199,
+          "top10_avg_hits": 1.4,
+          "top10_edge_vs_random": 0.118,
+          "top15_avg_hits": 2.04,
+          "top15_edge_vs_random": 0.117
+        },
+        {
+          "model": "multi_window_bagging",
+          "label": "多窗口袋裝共識",
+          "rounds": 25,
+          "top5_avg_hits": 0.72,
+          "top5_edge_vs_random": 0.079,
+          "top10_avg_hits": 1.4,
+          "top10_edge_vs_random": 0.118,
+          "top15_avg_hits": 2.08,
+          "top15_edge_vs_random": 0.157
+        },
+        {
+          "model": "bayesian_posterior",
+          "label": "貝氏保守校準",
+          "rounds": 25,
+          "top5_avg_hits": 0.68,
+          "top5_edge_vs_random": 0.039,
+          "top10_avg_hits": 1.4,
+          "top10_edge_vs_random": 0.118,
+          "top15_avg_hits": 2.04,
+          "top15_edge_vs_random": 0.117
+        },
+        {
+          "model": "zone_quota_pressure",
+          "label": "區間配額壓力",
+          "rounds": 25,
+          "top5_avg_hits": 0.6,
+          "top5_edge_vs_random": -0.041,
+          "top10_avg_hits": 1.4,
+          "top10_edge_vs_random": 0.118,
+          "top15_avg_hits": 2.0,
+          "top15_edge_vs_random": 0.077
+        },
+        {
+          "model": "cycle_timing",
+          "label": "週期位置",
+          "rounds": 25,
+          "top5_avg_hits": 0.96,
+          "top5_edge_vs_random": 0.319,
+          "top10_avg_hits": 1.36,
+          "top10_edge_vs_random": 0.078,
+          "top15_avg_hits": 2.04,
+          "top15_edge_vs_random": 0.117
+        },
+        {
+          "model": "ewma_fast",
+          "label": "快速加權趨勢",
+          "rounds": 25,
+          "top5_avg_hits": 0.72,
+          "top5_edge_vs_random": 0.079,
+          "top10_avg_hits": 1.36,
+          "top10_edge_vs_random": 0.078,
+          "top15_avg_hits": 1.96,
+          "top15_edge_vs_random": 0.037
+        },
+        {
+          "model": "freq_20",
+          "label": "近20期熱度",
+          "rounds": 25,
+          "top5_avg_hits": 0.64,
+          "top5_edge_vs_random": -0.001,
+          "top10_avg_hits": 1.36,
+          "top10_edge_vs_random": 0.078,
+          "top15_avg_hits": 1.72,
+          "top15_edge_vs_random": -0.203
+        },
+        {
+          "model": "freq_50",
+          "label": "近50期熱度",
+          "rounds": 25,
+          "top5_avg_hits": 0.88,
+          "top5_edge_vs_random": 0.239,
+          "top10_avg_hits": 1.32,
+          "top10_edge_vs_random": 0.038,
+          "top15_avg_hits": 2.04,
+          "top15_edge_vs_random": 0.117
+        },
+        {
+          "model": "tail_transition_bridge",
+          "label": "尾數轉移橋接",
+          "rounds": 25,
+          "top5_avg_hits": 0.88,
+          "top5_edge_vs_random": 0.239,
+          "top10_avg_hits": 1.32,
+          "top10_edge_vs_random": 0.038,
+          "top15_avg_hits": 1.92,
+          "top15_edge_vs_random": -0.003
+        },
+        {
+          "model": "validated_dependency",
+          "label": "樣本外連動",
+          "rounds": 25,
+          "top5_avg_hits": 0.6,
+          "top5_edge_vs_random": -0.041,
+          "top10_avg_hits": 1.32,
+          "top10_edge_vs_random": 0.038,
+          "top15_avg_hits": 1.92,
+          "top15_edge_vs_random": -0.003
+        },
+        {
+          "model": "missed_hit_recovery",
+          "label": "漏命中回收",
+          "rounds": 25,
+          "top5_avg_hits": 0.6,
+          "top5_edge_vs_random": -0.041,
+          "top10_avg_hits": 1.32,
+          "top10_edge_vs_random": 0.038,
+          "top15_avg_hits": 1.92,
+          "top15_edge_vs_random": -0.003
+        },
+        {
+          "model": "rank_error_correction",
+          "label": "排名錯位修正",
+          "rounds": 25,
+          "top5_avg_hits": 0.6,
+          "top5_edge_vs_random": -0.041,
+          "top10_avg_hits": 1.32,
+          "top10_edge_vs_random": 0.038,
+          "top15_avg_hits": 1.92,
+          "top15_edge_vs_random": -0.003
+        },
+        {
+          "model": "monthly_recall_pressure",
+          "label": "月度漏抓壓力回拉",
+          "rounds": 25,
+          "top5_avg_hits": 0.6,
+          "top5_edge_vs_random": -0.041,
+          "top10_avg_hits": 1.32,
+          "top10_edge_vs_random": 0.038,
+          "top15_avg_hits": 1.92,
+          "top15_edge_vs_random": -0.003
+        },
+        {
+          "model": "distribution_balance",
+          "label": "分布平衡",
+          "rounds": 25,
+          "top5_avg_hits": 0.52,
+          "top5_edge_vs_random": -0.121,
+          "top10_avg_hits": 1.32,
+          "top10_edge_vs_random": 0.038,
+          "top15_avg_hits": 1.96,
+          "top15_edge_vs_random": 0.037
+        }
+      ],
+      "period_rows": [
+        {
+          "based_on_period": 115000132,
+          "based_on_date": "2026-05-30",
+          "target_period": 115000133,
+          "actual_period": 115000133,
+          "actual_date": "2026-06-01",
+          "actual_numbers": [
+            5,
+            14,
+            19,
+            20,
+            28
+          ],
+          "raw_top10": [
+            6,
+            8,
+            12,
+            21,
+            36,
+            11,
+            25,
+            27,
+            1,
+            18
+          ],
+          "rolling_top10": [
+            2,
+            12,
+            6,
+            8,
+            4,
+            21,
+            36,
+            3,
+            1,
+            15
+          ],
+          "raw_top10_hits": 0,
+          "rolling_top10_hits": 0,
+          "raw_top15_hits": 1,
+          "rolling_top15_hits": 1,
+          "top10_gain": 0,
+          "rescued_hit_numbers": [],
+          "lost_hit_numbers": [],
+          "false_promoted_miss_numbers": [
+            2,
+            3,
+            4,
+            15
+          ]
+        },
+        {
+          "based_on_period": 115000133,
+          "based_on_date": "2026-06-01",
+          "target_period": 115000134,
+          "actual_period": 115000134,
+          "actual_date": "2026-06-02",
+          "actual_numbers": [
+            7,
+            12,
+            22,
+            26,
+            30
+          ],
+          "raw_top10": [
+            8,
+            2,
+            6,
+            25,
+            12,
+            21,
+            15,
+            27,
+            11,
+            4
+          ],
+          "rolling_top10": [
+            7,
+            18,
+            22,
+            27,
+            20,
+            16,
+            23,
+            29,
+            28,
+            9
+          ],
+          "raw_top10_hits": 1,
+          "rolling_top10_hits": 2,
+          "raw_top15_hits": 3,
+          "rolling_top15_hits": 2,
+          "top10_gain": 1,
+          "rescued_hit_numbers": [
+            7,
+            22
+          ],
+          "lost_hit_numbers": [
+            12
+          ],
+          "false_promoted_miss_numbers": [
+            9,
+            16,
+            18,
+            20,
+            23,
+            28,
+            29
+          ]
+        },
+        {
+          "based_on_period": 115000134,
+          "based_on_date": "2026-06-02",
+          "target_period": 115000135,
+          "actual_period": 115000135,
+          "actual_date": "2026-06-03",
+          "actual_numbers": [
+            2,
+            8,
+            17,
+            25,
+            38
+          ],
+          "raw_top10": [
+            6,
+            8,
+            21,
+            2,
+            11,
+            27,
+            1,
+            4,
+            25,
+            9
+          ],
+          "rolling_top10": [
+            8,
+            6,
+            2,
+            4,
+            21,
+            11,
+            12,
+            25,
+            36,
+            7
+          ],
+          "raw_top10_hits": 3,
+          "rolling_top10_hits": 3,
+          "raw_top15_hits": 3,
+          "rolling_top15_hits": 3,
+          "top10_gain": 0,
+          "rescued_hit_numbers": [],
+          "lost_hit_numbers": [],
+          "false_promoted_miss_numbers": [
+            7,
+            12,
+            36
+          ]
+        },
+        {
+          "based_on_period": 115000135,
+          "based_on_date": "2026-06-03",
+          "target_period": 115000136,
+          "actual_period": 115000136,
+          "actual_date": "2026-06-04",
+          "actual_numbers": [
+            2,
+            8,
+            24,
+            29,
+            35
+          ],
+          "raw_top10": [
+            6,
+            12,
+            15,
+            11,
+            27,
+            21,
+            7,
+            36,
+            4,
+            37
+          ],
+          "rolling_top10": [
+            20,
+            18,
+            16,
+            9,
+            35,
+            3,
+            22,
+            32,
+            5,
+            23
+          ],
+          "raw_top10_hits": 0,
+          "rolling_top10_hits": 1,
+          "raw_top15_hits": 1,
+          "rolling_top15_hits": 3,
+          "top10_gain": 1,
+          "rescued_hit_numbers": [
+            35
+          ],
+          "lost_hit_numbers": [],
+          "false_promoted_miss_numbers": [
+            3,
+            5,
+            9,
+            16,
+            18,
+            20,
+            22,
+            23,
+            32
+          ]
+        },
+        {
+          "based_on_period": 115000136,
+          "based_on_date": "2026-06-04",
+          "target_period": 115000137,
+          "actual_period": 115000137,
+          "actual_date": "2026-06-05",
+          "actual_numbers": [
+            7,
+            21,
+            26,
+            27,
+            31
+          ],
+          "raw_top10": [
+            6,
+            12,
+            25,
+            11,
+            4,
+            21,
+            7,
+            27,
+            15,
+            2
+          ],
+          "rolling_top10": [
+            6,
+            4,
+            25,
+            36,
+            21,
+            11,
+            7,
+            31,
+            12,
+            37
+          ],
+          "raw_top10_hits": 3,
+          "rolling_top10_hits": 3,
+          "raw_top15_hits": 3,
+          "rolling_top15_hits": 4,
+          "top10_gain": 0,
+          "rescued_hit_numbers": [
+            31
+          ],
+          "lost_hit_numbers": [
+            27
+          ],
+          "false_promoted_miss_numbers": [
+            36,
+            37
+          ]
+        },
+        {
+          "based_on_period": 115000137,
+          "based_on_date": "2026-06-05",
+          "target_period": 115000138,
+          "actual_period": 115000138,
+          "actual_date": "2026-06-06",
+          "actual_numbers": [
+            13,
+            27,
+            30,
+            37,
+            38
+          ],
+          "raw_top10": [
+            8,
+            6,
+            2,
+            12,
+            11,
+            4,
+            18,
+            36,
+            9,
+            25
+          ],
+          "rolling_top10": [
+            8,
+            2,
+            20,
+            18,
+            9,
+            28,
+            5,
+            23,
+            22,
+            32
+          ],
+          "raw_top10_hits": 0,
+          "rolling_top10_hits": 0,
+          "raw_top15_hits": 1,
+          "rolling_top15_hits": 0,
+          "top10_gain": 0,
+          "rescued_hit_numbers": [],
+          "lost_hit_numbers": [],
+          "false_promoted_miss_numbers": [
+            5,
+            20,
+            22,
+            23,
+            28,
+            32
+          ]
+        },
+        {
+          "based_on_period": 115000138,
+          "based_on_date": "2026-06-06",
+          "target_period": 115000139,
+          "actual_period": 115000139,
+          "actual_date": "2026-06-08",
+          "actual_numbers": [
+            8,
+            14,
+            17,
+            18,
+            28
+          ],
+          "raw_top10": [
+            8,
+            2,
+            6,
+            7,
+            11,
+            12,
+            4,
+            15,
+            3,
+            18
+          ],
+          "rolling_top10": [
+            6,
+            8,
+            2,
+            12,
+            4,
+            25,
+            7,
+            11,
+            36,
+            21
+          ],
+          "raw_top10_hits": 2,
+          "rolling_top10_hits": 1,
+          "raw_top15_hits": 2,
+          "rolling_top15_hits": 1,
+          "top10_gain": -1,
+          "rescued_hit_numbers": [],
+          "lost_hit_numbers": [
+            18
+          ],
+          "false_promoted_miss_numbers": [
+            21,
+            25,
+            36
+          ]
+        },
+        {
+          "based_on_period": 115000139,
+          "based_on_date": "2026-06-08",
+          "target_period": 115000140,
+          "actual_period": 115000140,
+          "actual_date": "2026-06-09",
+          "actual_numbers": [
+            10,
+            17,
+            20,
+            25,
+            28
+          ],
+          "raw_top10": [
+            2,
+            6,
+            7,
+            11,
+            15,
+            12,
+            25,
+            36,
+            8,
+            21
+          ],
+          "rolling_top10": [
+            2,
+            8,
+            6,
+            25,
+            20,
+            7,
+            12
+          ],
+          "raw_top10_hits": 1,
+          "rolling_top10_hits": 2,
+          "raw_top15_hits": 1,
+          "rolling_top15_hits": 2,
+          "top10_gain": 1,
+          "rescued_hit_numbers": [
+            20
+          ],
+          "lost_hit_numbers": [],
+          "false_promoted_miss_numbers": []
+        },
+        {
+          "based_on_period": 115000140,
+          "based_on_date": "2026-06-09",
+          "target_period": 115000141,
+          "actual_period": 115000141,
+          "actual_date": "2026-06-10",
+          "actual_numbers": [
+            1,
+            4,
+            32,
+            35,
+            39
+          ],
+          "raw_top10": [
+            8,
+            2,
+            6,
+            7,
+            36,
+            11,
+            12,
+            4,
+            21,
+            3
+          ],
+          "rolling_top10": [
+            8,
+            2,
+            21,
+            36,
+            6
+          ],
+          "raw_top10_hits": 1,
+          "rolling_top10_hits": 0,
+          "raw_top15_hits": 2,
+          "rolling_top15_hits": 0,
+          "top10_gain": -1,
+          "rescued_hit_numbers": [],
+          "lost_hit_numbers": [
+            4
+          ],
+          "false_promoted_miss_numbers": []
+        },
+        {
+          "based_on_period": 115000141,
+          "based_on_date": "2026-06-10",
+          "target_period": 115000142,
+          "actual_period": 115000142,
+          "actual_date": "2026-06-11",
+          "actual_numbers": [
+            8,
+            15,
+            20,
+            29,
+            31
+          ],
+          "raw_top10": [
+            2,
+            8,
+            6,
+            12,
+            11,
+            7,
+            36,
+            25,
+            17,
+            21
+          ],
+          "rolling_top10": [
+            12,
+            7,
+            25,
+            11,
+            15,
+            9,
+            31,
+            5,
+            22,
+            27
+          ],
+          "raw_top10_hits": 1,
+          "rolling_top10_hits": 2,
+          "raw_top15_hits": 2,
+          "rolling_top15_hits": 3,
+          "top10_gain": 1,
+          "rescued_hit_numbers": [
+            15,
+            31
+          ],
+          "lost_hit_numbers": [
+            8
+          ],
+          "false_promoted_miss_numbers": [
+            5,
+            9,
+            22,
+            27
+          ]
+        },
+        {
+          "based_on_period": 115000142,
+          "based_on_date": "2026-06-11",
+          "target_period": 115000143,
+          "actual_period": 115000143,
+          "actual_date": "2026-06-12",
+          "actual_numbers": [
+            6,
+            8,
+            18,
+            29,
+            31
+          ],
+          "raw_top10": [
+            6,
+            2,
+            12,
+            11,
+            7,
+            8,
+            25,
+            21,
+            27,
+            4
+          ],
+          "rolling_top10": [
+            2,
+            6,
+            21,
+            38,
+            36,
+            4,
+            16,
+            24,
+            35,
+            14
+          ],
+          "raw_top10_hits": 2,
+          "rolling_top10_hits": 1,
+          "raw_top15_hits": 3,
+          "rolling_top15_hits": 1,
+          "top10_gain": -1,
+          "rescued_hit_numbers": [],
+          "lost_hit_numbers": [
+            8
+          ],
+          "false_promoted_miss_numbers": [
+            14,
+            16,
+            24,
+            35,
+            36,
+            38
+          ]
+        },
+        {
+          "based_on_period": 115000143,
+          "based_on_date": "2026-06-12",
+          "target_period": 115000144,
+          "actual_period": 115000144,
+          "actual_date": "2026-06-13",
+          "actual_numbers": [
+            4,
+            5,
+            6,
+            34,
+            36
+          ],
+          "raw_top10": [
+            11,
+            2,
+            12,
+            7,
+            8,
+            21,
+            25,
+            28,
+            15,
+            27
+          ],
+          "rolling_top10": [
+            11,
+            2,
+            12,
+            7,
+            8,
+            21,
+            25,
+            28,
+            15,
+            27
+          ],
+          "raw_top10_hits": 0,
+          "rolling_top10_hits": 0,
+          "raw_top15_hits": 2,
+          "rolling_top15_hits": 2,
+          "top10_gain": 0,
+          "rescued_hit_numbers": [],
+          "lost_hit_numbers": [],
+          "false_promoted_miss_numbers": []
+        },
+        {
+          "based_on_period": 115000144,
+          "based_on_date": "2026-06-13",
+          "target_period": 115000145,
+          "actual_period": 115000145,
+          "actual_date": "2026-06-15",
+          "actual_numbers": [
+            12,
+            16,
+            24,
+            28,
+            36
+          ],
+          "raw_top10": [
+            8,
+            2,
+            7,
+            11,
+            12,
+            25,
+            15,
+            3,
+            23,
+            21
+          ],
+          "rolling_top10": [
+            8,
+            37,
+            25,
+            27,
+            20,
+            12,
+            22,
+            28,
+            26,
+            15
+          ],
+          "raw_top10_hits": 1,
+          "rolling_top10_hits": 2,
+          "raw_top15_hits": 2,
+          "rolling_top15_hits": 2,
+          "top10_gain": 1,
+          "rescued_hit_numbers": [
+            28
+          ],
+          "lost_hit_numbers": [],
+          "false_promoted_miss_numbers": [
+            20,
+            22,
+            26,
+            27,
+            37
+          ]
+        },
+        {
+          "based_on_period": 115000145,
+          "based_on_date": "2026-06-15",
+          "target_period": 115000146,
+          "actual_period": 115000146,
+          "actual_date": "2026-06-16",
+          "actual_numbers": [
+            5,
+            17,
+            23,
+            25,
+            29
+          ],
+          "raw_top10": [
+            8,
+            6,
+            2,
+            7,
+            11,
+            25,
+            4,
+            27,
+            31,
+            18
+          ],
+          "rolling_top10": [
+            11,
+            35,
+            3,
+            2,
+            4,
+            38,
+            14,
+            17,
+            23,
+            34
+          ],
+          "raw_top10_hits": 1,
+          "rolling_top10_hits": 2,
+          "raw_top15_hits": 3,
+          "rolling_top15_hits": 3,
+          "top10_gain": 1,
+          "rescued_hit_numbers": [
+            17,
+            23
+          ],
+          "lost_hit_numbers": [
+            25
+          ],
+          "false_promoted_miss_numbers": [
+            3,
+            14,
+            34,
+            35,
+            38
+          ]
+        },
+        {
+          "based_on_period": 115000146,
+          "based_on_date": "2026-06-16",
+          "target_period": 115000147,
+          "actual_period": 115000147,
+          "actual_date": "2026-06-17",
+          "actual_numbers": [
+            8,
+            10,
+            15,
+            16,
+            37
+          ],
+          "raw_top10": [
+            8,
+            6,
+            2,
+            4,
+            7,
+            12,
+            36,
+            11,
+            28,
+            18
+          ],
+          "rolling_top10": [
+            27,
+            20,
+            28,
+            7,
+            24,
+            26,
+            21,
+            31,
+            9,
+            16
+          ],
+          "raw_top10_hits": 1,
+          "rolling_top10_hits": 1,
+          "raw_top15_hits": 2,
+          "rolling_top15_hits": 2,
+          "top10_gain": 0,
+          "rescued_hit_numbers": [
+            16
+          ],
+          "lost_hit_numbers": [
+            8
+          ],
+          "false_promoted_miss_numbers": [
+            9,
+            20,
+            21,
+            24,
+            26,
+            27,
+            31
+          ]
+        },
+        {
+          "based_on_period": 115000147,
+          "based_on_date": "2026-06-17",
+          "target_period": 115000148,
+          "actual_period": 115000148,
+          "actual_date": "2026-06-18",
+          "actual_numbers": [
+            9,
+            20,
+            27,
+            28,
+            30
+          ],
+          "raw_top10": [
+            6,
+            2,
+            11,
+            8,
+            25,
+            4,
+            12,
+            21,
+            7,
+            29
+          ],
+          "rolling_top10": [
+            38,
+            17,
+            29,
+            5,
+            35,
+            14,
+            25,
+            19,
+            1,
+            3
+          ],
+          "raw_top10_hits": 0,
+          "rolling_top10_hits": 0,
+          "raw_top15_hits": 3,
+          "rolling_top15_hits": 1,
+          "top10_gain": 0,
+          "rescued_hit_numbers": [],
+          "lost_hit_numbers": [],
+          "false_promoted_miss_numbers": [
+            1,
+            3,
+            5,
+            14,
+            17,
+            19,
+            35,
+            38
+          ]
+        },
+        {
+          "based_on_period": 115000148,
+          "based_on_date": "2026-06-18",
+          "target_period": 115000149,
+          "actual_period": 115000149,
+          "actual_date": "2026-06-19",
+          "actual_numbers": [
+            1,
+            5,
+            7,
+            13,
+            25
+          ],
+          "raw_top10": [
+            8,
+            6,
+            4,
+            2,
+            7,
+            25,
+            11,
+            12,
+            21,
+            18
+          ],
+          "rolling_top10": [
+            8,
+            28,
+            24,
+            4,
+            26,
+            10,
+            22,
+            37,
+            15,
+            31
+          ],
+          "raw_top10_hits": 2,
+          "rolling_top10_hits": 0,
+          "raw_top15_hits": 4,
+          "rolling_top15_hits": 0,
+          "top10_gain": -2,
+          "rescued_hit_numbers": [],
+          "lost_hit_numbers": [
+            7,
+            25
+          ],
+          "false_promoted_miss_numbers": [
+            10,
+            15,
+            22,
+            24,
+            26,
+            28,
+            31,
+            37
+          ]
+        },
+        {
+          "based_on_period": 115000149,
+          "based_on_date": "2026-06-19",
+          "target_period": 115000150,
+          "actual_period": 115000150,
+          "actual_date": "2026-06-20",
+          "actual_numbers": [
+            4,
+            11,
+            24,
+            25,
+            31
+          ],
+          "raw_top10": [
+            8,
+            2,
+            6,
+            4,
+            12,
+            28,
+            36,
+            11,
+            21,
+            20
+          ],
+          "rolling_top10": [
+            11,
+            3,
+            23,
+            17,
+            21,
+            14,
+            35,
+            38,
+            19,
+            9
+          ],
+          "raw_top10_hits": 2,
+          "rolling_top10_hits": 1,
+          "raw_top15_hits": 3,
+          "rolling_top15_hits": 1,
+          "top10_gain": -1,
+          "rescued_hit_numbers": [],
+          "lost_hit_numbers": [
+            4
+          ],
+          "false_promoted_miss_numbers": [
+            3,
+            9,
+            14,
+            17,
+            19,
+            23,
+            35,
+            38
+          ]
+        },
+        {
+          "based_on_period": 115000150,
+          "based_on_date": "2026-06-20",
+          "target_period": 115000151,
+          "actual_period": 115000151,
+          "actual_date": "2026-06-22",
+          "actual_numbers": [
+            1,
+            7,
+            28,
+            29,
+            34
+          ],
+          "raw_top10": [
+            8,
+            2,
+            6,
+            12,
+            21,
+            17,
+            3,
+            28,
+            5,
+            36
+          ],
+          "rolling_top10": [
+            8,
+            29,
+            27,
+            5,
+            28,
+            26,
+            30,
+            24,
+            10,
+            7
+          ],
+          "raw_top10_hits": 1,
+          "rolling_top10_hits": 3,
+          "raw_top15_hits": 3,
+          "rolling_top15_hits": 4,
+          "top10_gain": 2,
+          "rescued_hit_numbers": [
+            7,
+            29
+          ],
+          "lost_hit_numbers": [],
+          "false_promoted_miss_numbers": [
+            10,
+            24,
+            26,
+            27,
+            30
+          ]
+        },
+        {
+          "based_on_period": 115000151,
+          "based_on_date": "2026-06-22",
+          "target_period": 115000152,
+          "actual_period": 115000152,
+          "actual_date": "2026-06-23",
+          "actual_numbers": [
+            2,
+            14,
+            25,
+            29,
+            36
+          ],
+          "raw_top10": [
+            8,
+            25,
+            2,
+            6,
+            12,
+            4,
+            21,
+            5,
+            15,
+            11
+          ],
+          "rolling_top10": [
+            8,
+            30,
+            27,
+            20,
+            24,
+            36,
+            5,
+            25,
+            14,
+            31
+          ],
+          "raw_top10_hits": 2,
+          "rolling_top10_hits": 3,
+          "raw_top15_hits": 3,
+          "rolling_top15_hits": 3,
+          "top10_gain": 1,
+          "rescued_hit_numbers": [
+            14,
+            36
+          ],
+          "lost_hit_numbers": [
+            2
+          ],
+          "false_promoted_miss_numbers": [
+            20,
+            24,
+            27,
+            30,
+            31
+          ]
+        },
+        {
+          "based_on_period": 115000152,
+          "based_on_date": "2026-06-23",
+          "target_period": 115000153,
+          "actual_period": 115000153,
+          "actual_date": "2026-06-24",
+          "actual_numbers": [
+            3,
+            17,
+            21,
+            32,
+            33
+          ],
+          "raw_top10": [
+            8,
+            28,
+            7,
+            12,
+            6,
+            4,
+            17,
+            5,
+            20,
+            1
+          ],
+          "rolling_top10": [
+            8,
+            30,
+            27,
+            24,
+            17,
+            1,
+            2,
+            4,
+            28,
+            9
+          ],
+          "raw_top10_hits": 1,
+          "rolling_top10_hits": 1,
+          "raw_top15_hits": 2,
+          "rolling_top15_hits": 3,
+          "top10_gain": 0,
+          "rescued_hit_numbers": [],
+          "lost_hit_numbers": [],
+          "false_promoted_miss_numbers": [
+            2,
+            9,
+            24,
+            27,
+            30
+          ]
+        },
+        {
+          "based_on_period": 115000153,
+          "based_on_date": "2026-06-24",
+          "target_period": 115000154,
+          "actual_period": 115000154,
+          "actual_date": "2026-06-25",
+          "actual_numbers": [
+            6,
+            13,
+            21,
+            29,
+            34
+          ],
+          "raw_top10": [
+            8,
+            25,
+            6,
+            2,
+            7,
+            4,
+            28,
+            29,
+            12,
+            31
+          ],
+          "rolling_top10": [
+            8,
+            29,
+            30,
+            31,
+            20,
+            25,
+            5,
+            28,
+            27,
+            22
+          ],
+          "raw_top10_hits": 2,
+          "rolling_top10_hits": 1,
+          "raw_top15_hits": 2,
+          "rolling_top15_hits": 1,
+          "top10_gain": -1,
+          "rescued_hit_numbers": [],
+          "lost_hit_numbers": [
+            6
+          ],
+          "false_promoted_miss_numbers": [
+            5,
+            20,
+            22,
+            27,
+            30
+          ]
+        },
+        {
+          "based_on_period": 115000154,
+          "based_on_date": "2026-06-25",
+          "target_period": 115000155,
+          "actual_period": 115000155,
+          "actual_date": "2026-06-26",
+          "actual_numbers": [
+            8,
+            10,
+            14,
+            26,
+            36
+          ],
+          "raw_top10": [
+            8,
+            25,
+            7,
+            12,
+            28,
+            4,
+            2,
+            5,
+            11,
+            18
+          ],
+          "rolling_top10": [
+            8,
+            24,
+            1,
+            25,
+            17,
+            5,
+            28,
+            30,
+            27,
+            15
+          ],
+          "raw_top10_hits": 1,
+          "rolling_top10_hits": 1,
+          "raw_top15_hits": 2,
+          "rolling_top15_hits": 2,
+          "top10_gain": 0,
+          "rescued_hit_numbers": [],
+          "lost_hit_numbers": [],
+          "false_promoted_miss_numbers": [
+            1,
+            15,
+            17,
+            24,
+            27,
+            30
+          ]
+        },
+        {
+          "based_on_period": 115000155,
+          "based_on_date": "2026-06-26",
+          "target_period": 115000156,
+          "actual_period": 115000156,
+          "actual_date": "2026-06-27",
+          "actual_numbers": [
+            4,
+            14,
+            21,
+            31,
+            32
+          ],
+          "raw_top10": [
+            25,
+            29,
+            7,
+            6,
+            5,
+            28,
+            1,
+            8,
+            11,
+            4
+          ],
+          "rolling_top10": [
+            25,
+            29,
+            7,
+            6,
+            5,
+            28,
+            1,
+            8,
+            11,
+            4
+          ],
+          "raw_top10_hits": 1,
+          "rolling_top10_hits": 1,
+          "raw_top15_hits": 2,
+          "rolling_top15_hits": 2,
+          "top10_gain": 0,
+          "rescued_hit_numbers": [],
+          "lost_hit_numbers": [],
+          "false_promoted_miss_numbers": []
+        },
+        {
+          "based_on_period": 115000156,
+          "based_on_date": "2026-06-27",
+          "target_period": 115000157,
+          "actual_period": 115000157,
+          "actual_date": "2026-06-29",
+          "actual_numbers": [
+            11,
+            15,
+            30,
+            34,
+            36
+          ],
+          "raw_top10": [
+            8,
+            29,
+            25,
+            6,
+            36,
+            12,
+            7,
+            2,
+            5,
+            28
+          ],
+          "rolling_top10": [
+            8,
+            29,
+            36,
+            1,
+            5,
+            30,
+            24,
+            26,
+            27,
+            13
+          ],
+          "raw_top10_hits": 1,
+          "rolling_top10_hits": 2,
+          "raw_top15_hits": 2,
+          "rolling_top15_hits": 3,
+          "top10_gain": 1,
+          "rescued_hit_numbers": [
+            30
+          ],
+          "lost_hit_numbers": [],
+          "false_promoted_miss_numbers": [
+            1,
+            13,
+            24,
+            26,
+            27
+          ]
+        }
+      ]
+    }
+  },
+  "dual_track_model_comparison": {
+    "status": "evaluated",
+    "method": "raw_unadjusted_models_vs_saved_rolling_adjusted_predictions",
+    "policy": "同一個預測基準日比較原始未調整模型與當時已保存的滾動調整預測，不使用未來資料。",
+    "window_days": 31,
+    "sample_count": 25,
+    "date_range": [
+      "2026-06-01",
+      "2026-06-29"
+    ],
+    "random_expectation": {
+      "5": 0.641,
+      "10": 1.282,
+      "15": 1.923
+    },
+    "summary": {
+      "raw_unadjusted": {
+        "top5_avg_hits": 0.6,
+        "top10_avg_hits": 1.2,
+        "top15_avg_hits": 2.28
+      },
+      "rolling_adjusted": {
+        "top5_avg_hits": 0.72,
+        "top10_avg_hits": 1.32,
+        "top15_avg_hits": 1.96
+      },
+      "delta": {
+        "top5_avg_hit_delta": 0.12,
+        "top10_avg_hit_delta": 0.12,
+        "top15_avg_hit_delta": -0.32
+      },
+      "top10_win_loss": {
+        "tie": 10,
+        "rolling_win": 9,
+        "raw_win": 6
+      },
+      "top15_win_loss": {
+        "tie": 9,
+        "raw_win": 9,
+        "rolling_win": 7
+      },
+      "decision": "mixed_or_neutral",
+      "decision_label": "原始模型與滾動調整暫無明顯勝負"
+    },
+    "adjustment_error_audit": {
+      "rescued_hit_numbers": [
+        {
+          "number": 7,
+          "count": 2
+        },
+        {
+          "number": 31,
+          "count": 2
+        },
+        {
+          "number": 22,
+          "count": 1
+        },
+        {
+          "number": 35,
+          "count": 1
+        },
+        {
+          "number": 20,
+          "count": 1
+        },
+        {
+          "number": 15,
+          "count": 1
+        },
+        {
+          "number": 28,
+          "count": 1
+        },
+        {
+          "number": 17,
+          "count": 1
+        },
+        {
+          "number": 23,
+          "count": 1
+        },
+        {
+          "number": 16,
+          "count": 1
+        },
+        {
+          "number": 29,
+          "count": 1
+        },
+        {
+          "number": 14,
+          "count": 1
+        },
+        {
+          "number": 36,
+          "count": 1
+        },
+        {
+          "number": 30,
+          "count": 1
+        }
+      ],
+      "lost_hit_numbers": [
+        {
+          "number": 8,
+          "count": 3
+        },
+        {
+          "number": 4,
+          "count": 2
+        },
+        {
+          "number": 25,
+          "count": 2
+        },
+        {
+          "number": 12,
+          "count": 1
+        },
+        {
+          "number": 27,
+          "count": 1
+        },
+        {
+          "number": 18,
+          "count": 1
+        },
+        {
+          "number": 7,
+          "count": 1
+        },
+        {
+          "number": 2,
+          "count": 1
+        },
+        {
+          "number": 6,
+          "count": 1
+        }
+      ],
+      "false_promoted_miss_numbers": [
+        {
+          "number": 27,
+          "count": 9
+        },
+        {
+          "number": 24,
+          "count": 8
+        },
+        {
+          "number": 20,
+          "count": 7
+        },
+        {
+          "number": 9,
+          "count": 6
+        },
+        {
+          "number": 22,
+          "count": 6
+        },
+        {
+          "number": 3,
+          "count": 5
+        },
+        {
+          "number": 5,
+          "count": 5
+        },
+        {
+          "number": 26,
+          "count": 5
+        },
+        {
+          "number": 30,
+          "count": 5
+        },
+        {
+          "number": 23,
+          "count": 4
+        },
+        {
+          "number": 36,
+          "count": 4
+        },
+        {
+          "number": 14,
+          "count": 4
+        },
+        {
+          "number": 35,
+          "count": 4
+        },
+        {
+          "number": 38,
+          "count": 4
+        },
+        {
+          "number": 15,
+          "count": 3
+        }
+      ],
+      "raw_only_miss_numbers": [
+        {
+          "number": 12,
+          "count": 14
+        },
+        {
+          "number": 11,
+          "count": 13
+        },
+        {
+          "number": 6,
+          "count": 13
+        },
+        {
+          "number": 2,
+          "count": 12
+        },
+        {
+          "number": 7,
+          "count": 10
+        },
+        {
+          "number": 21,
+          "count": 9
+        },
+        {
+          "number": 4,
+          "count": 8
+        },
+        {
+          "number": 36,
+          "count": 7
+        },
+        {
+          "number": 15,
+          "count": 6
+        },
+        {
+          "number": 18,
+          "count": 5
+        },
+        {
+          "number": 25,
+          "count": 5
+        },
+        {
+          "number": 27,
+          "count": 5
+        },
+        {
+          "number": 8,
+          "count": 4
+        },
+        {
+          "number": 3,
+          "count": 4
+        },
+        {
+          "number": 17,
+          "count": 2
+        }
+      ]
+    },
+    "raw_model_scorecard": [
+      {
+        "model": "pair",
+        "label": "共現配對",
+        "rounds": 25,
+        "top5_avg_hits": 0.92,
+        "top5_edge_vs_random": 0.279,
+        "top10_avg_hits": 1.6,
+        "top10_edge_vs_random": 0.318,
+        "top15_avg_hits": 2.24,
+        "top15_edge_vs_random": 0.317
+      },
+      {
+        "model": "zone_coverage_recovery",
+        "label": "分區覆蓋回補",
+        "rounds": 25,
+        "top5_avg_hits": 0.76,
+        "top5_edge_vs_random": 0.119,
+        "top10_avg_hits": 1.6,
+        "top10_edge_vs_random": 0.318,
+        "top15_avg_hits": 2.08,
+        "top15_edge_vs_random": 0.157
+      },
+      {
+        "model": "markov_chain",
+        "label": "馬可夫",
+        "rounds": 25,
+        "top5_avg_hits": 0.64,
+        "top5_edge_vs_random": -0.001,
+        "top10_avg_hits": 1.52,
+        "top10_edge_vs_random": 0.238,
+        "top15_avg_hits": 2.56,
+        "top15_edge_vs_random": 0.637
+      },
+      {
+        "model": "freq_100",
+        "label": "近100期熱度",
+        "rounds": 25,
+        "top5_avg_hits": 0.84,
+        "top5_edge_vs_random": 0.199,
+        "top10_avg_hits": 1.48,
+        "top10_edge_vs_random": 0.198,
+        "top15_avg_hits": 2.24,
+        "top15_edge_vs_random": 0.317
+      },
+      {
+        "model": "tail_zone",
+        "label": "尾數區間",
+        "rounds": 25,
+        "top5_avg_hits": 0.72,
+        "top5_edge_vs_random": 0.079,
+        "top10_avg_hits": 1.44,
+        "top10_edge_vs_random": 0.158,
+        "top15_avg_hits": 1.92,
+        "top15_edge_vs_random": -0.003
+      },
+      {
+        "model": "cross_consensus",
+        "label": "多模型共識",
+        "rounds": 25,
+        "top5_avg_hits": 0.72,
+        "top5_edge_vs_random": 0.079,
+        "top10_avg_hits": 1.44,
+        "top10_edge_vs_random": 0.158,
+        "top15_avg_hits": 1.92,
+        "top15_edge_vs_random": -0.003
+      },
+      {
+        "model": "omission",
+        "label": "遺漏週期",
+        "rounds": 25,
+        "top5_avg_hits": 0.68,
+        "top5_edge_vs_random": 0.039,
+        "top10_avg_hits": 1.44,
+        "top10_edge_vs_random": 0.158,
+        "top15_avg_hits": 2.08,
+        "top15_edge_vs_random": 0.157
+      },
+      {
+        "model": "freq_300",
+        "label": "近300期穩定",
+        "rounds": 25,
+        "top5_avg_hits": 0.64,
+        "top5_edge_vs_random": -0.001,
+        "top10_avg_hits": 1.44,
+        "top10_edge_vs_random": 0.158,
+        "top15_avg_hits": 2.32,
+        "top15_edge_vs_random": 0.397
+      },
+      {
+        "model": "neural_network",
+        "label": "神經網路",
+        "rounds": 25,
+        "top5_avg_hits": 0.56,
+        "top5_edge_vs_random": -0.081,
+        "top10_avg_hits": 1.44,
+        "top10_edge_vs_random": 0.158,
+        "top15_avg_hits": 1.96,
+        "top15_edge_vs_random": 0.037
+      },
+      {
+        "model": "ewma_slow",
+        "label": "慢速加權趨勢",
+        "rounds": 25,
+        "top5_avg_hits": 0.84,
+        "top5_edge_vs_random": 0.199,
+        "top10_avg_hits": 1.4,
+        "top10_edge_vs_random": 0.118,
+        "top15_avg_hits": 2.04,
+        "top15_edge_vs_random": 0.117
+      },
+      {
+        "model": "cold_rebound_champion",
+        "label": "冷號反彈冠軍模型",
+        "rounds": 25,
+        "top5_avg_hits": 0.84,
+        "top5_edge_vs_random": 0.199,
+        "top10_avg_hits": 1.4,
+        "top10_edge_vs_random": 0.118,
+        "top15_avg_hits": 2.04,
+        "top15_edge_vs_random": 0.117
+      },
+      {
+        "model": "multi_window_bagging",
+        "label": "多窗口袋裝共識",
+        "rounds": 25,
+        "top5_avg_hits": 0.72,
+        "top5_edge_vs_random": 0.079,
+        "top10_avg_hits": 1.4,
+        "top10_edge_vs_random": 0.118,
+        "top15_avg_hits": 2.08,
+        "top15_edge_vs_random": 0.157
+      },
+      {
+        "model": "bayesian_posterior",
+        "label": "貝氏保守校準",
+        "rounds": 25,
+        "top5_avg_hits": 0.68,
+        "top5_edge_vs_random": 0.039,
+        "top10_avg_hits": 1.4,
+        "top10_edge_vs_random": 0.118,
+        "top15_avg_hits": 2.04,
+        "top15_edge_vs_random": 0.117
+      },
+      {
+        "model": "zone_quota_pressure",
+        "label": "區間配額壓力",
+        "rounds": 25,
+        "top5_avg_hits": 0.6,
+        "top5_edge_vs_random": -0.041,
+        "top10_avg_hits": 1.4,
+        "top10_edge_vs_random": 0.118,
+        "top15_avg_hits": 2.0,
+        "top15_edge_vs_random": 0.077
+      },
+      {
+        "model": "cycle_timing",
+        "label": "週期位置",
+        "rounds": 25,
+        "top5_avg_hits": 0.96,
+        "top5_edge_vs_random": 0.319,
+        "top10_avg_hits": 1.36,
+        "top10_edge_vs_random": 0.078,
+        "top15_avg_hits": 2.04,
+        "top15_edge_vs_random": 0.117
+      },
+      {
+        "model": "ewma_fast",
+        "label": "快速加權趨勢",
+        "rounds": 25,
+        "top5_avg_hits": 0.72,
+        "top5_edge_vs_random": 0.079,
+        "top10_avg_hits": 1.36,
+        "top10_edge_vs_random": 0.078,
+        "top15_avg_hits": 1.96,
+        "top15_edge_vs_random": 0.037
+      },
+      {
+        "model": "freq_20",
+        "label": "近20期熱度",
+        "rounds": 25,
+        "top5_avg_hits": 0.64,
+        "top5_edge_vs_random": -0.001,
+        "top10_avg_hits": 1.36,
+        "top10_edge_vs_random": 0.078,
+        "top15_avg_hits": 1.72,
+        "top15_edge_vs_random": -0.203
+      },
+      {
+        "model": "freq_50",
+        "label": "近50期熱度",
+        "rounds": 25,
+        "top5_avg_hits": 0.88,
+        "top5_edge_vs_random": 0.239,
+        "top10_avg_hits": 1.32,
+        "top10_edge_vs_random": 0.038,
+        "top15_avg_hits": 2.04,
+        "top15_edge_vs_random": 0.117
+      },
+      {
+        "model": "tail_transition_bridge",
+        "label": "尾數轉移橋接",
+        "rounds": 25,
+        "top5_avg_hits": 0.88,
+        "top5_edge_vs_random": 0.239,
+        "top10_avg_hits": 1.32,
+        "top10_edge_vs_random": 0.038,
+        "top15_avg_hits": 1.92,
+        "top15_edge_vs_random": -0.003
+      },
+      {
+        "model": "validated_dependency",
+        "label": "樣本外連動",
+        "rounds": 25,
+        "top5_avg_hits": 0.6,
+        "top5_edge_vs_random": -0.041,
+        "top10_avg_hits": 1.32,
+        "top10_edge_vs_random": 0.038,
+        "top15_avg_hits": 1.92,
+        "top15_edge_vs_random": -0.003
+      },
+      {
+        "model": "missed_hit_recovery",
+        "label": "漏命中回收",
+        "rounds": 25,
+        "top5_avg_hits": 0.6,
+        "top5_edge_vs_random": -0.041,
+        "top10_avg_hits": 1.32,
+        "top10_edge_vs_random": 0.038,
+        "top15_avg_hits": 1.92,
+        "top15_edge_vs_random": -0.003
+      },
+      {
+        "model": "rank_error_correction",
+        "label": "排名錯位修正",
+        "rounds": 25,
+        "top5_avg_hits": 0.6,
+        "top5_edge_vs_random": -0.041,
+        "top10_avg_hits": 1.32,
+        "top10_edge_vs_random": 0.038,
+        "top15_avg_hits": 1.92,
+        "top15_edge_vs_random": -0.003
+      },
+      {
+        "model": "monthly_recall_pressure",
+        "label": "月度漏抓壓力回拉",
+        "rounds": 25,
+        "top5_avg_hits": 0.6,
+        "top5_edge_vs_random": -0.041,
+        "top10_avg_hits": 1.32,
+        "top10_edge_vs_random": 0.038,
+        "top15_avg_hits": 1.92,
+        "top15_edge_vs_random": -0.003
+      },
+      {
+        "model": "distribution_balance",
+        "label": "分布平衡",
+        "rounds": 25,
+        "top5_avg_hits": 0.52,
+        "top5_edge_vs_random": -0.121,
+        "top10_avg_hits": 1.32,
+        "top10_edge_vs_random": 0.038,
+        "top15_avg_hits": 1.96,
+        "top15_edge_vs_random": 0.037
+      }
+    ],
+    "period_rows": [
+      {
+        "based_on_period": 115000132,
+        "based_on_date": "2026-05-30",
+        "target_period": 115000133,
+        "actual_period": 115000133,
+        "actual_date": "2026-06-01",
+        "actual_numbers": [
+          5,
+          14,
+          19,
+          20,
+          28
+        ],
+        "raw_top10": [
+          6,
+          8,
+          12,
+          21,
+          36,
+          11,
+          25,
+          27,
+          1,
+          18
+        ],
+        "rolling_top10": [
+          2,
+          12,
+          6,
+          8,
+          4,
+          21,
+          36,
+          3,
+          1,
+          15
+        ],
+        "raw_top10_hits": 0,
+        "rolling_top10_hits": 0,
+        "raw_top15_hits": 1,
+        "rolling_top15_hits": 1,
+        "top10_gain": 0,
+        "rescued_hit_numbers": [],
+        "lost_hit_numbers": [],
+        "false_promoted_miss_numbers": [
+          2,
+          3,
+          4,
+          15
+        ]
+      },
+      {
+        "based_on_period": 115000133,
+        "based_on_date": "2026-06-01",
+        "target_period": 115000134,
+        "actual_period": 115000134,
+        "actual_date": "2026-06-02",
+        "actual_numbers": [
+          7,
+          12,
+          22,
+          26,
+          30
+        ],
+        "raw_top10": [
+          8,
+          2,
+          6,
+          25,
+          12,
+          21,
+          15,
+          27,
+          11,
+          4
+        ],
+        "rolling_top10": [
+          7,
+          18,
+          22,
+          27,
+          20,
+          16,
+          23,
+          29,
+          28,
+          9
+        ],
+        "raw_top10_hits": 1,
+        "rolling_top10_hits": 2,
+        "raw_top15_hits": 3,
+        "rolling_top15_hits": 2,
+        "top10_gain": 1,
+        "rescued_hit_numbers": [
+          7,
+          22
+        ],
+        "lost_hit_numbers": [
+          12
+        ],
+        "false_promoted_miss_numbers": [
+          9,
+          16,
+          18,
+          20,
+          23,
+          28,
+          29
+        ]
+      },
+      {
+        "based_on_period": 115000134,
+        "based_on_date": "2026-06-02",
+        "target_period": 115000135,
+        "actual_period": 115000135,
+        "actual_date": "2026-06-03",
+        "actual_numbers": [
+          2,
+          8,
+          17,
+          25,
+          38
+        ],
+        "raw_top10": [
+          6,
+          8,
+          21,
+          2,
+          11,
+          27,
+          1,
+          4,
+          25,
+          9
+        ],
+        "rolling_top10": [
+          8,
+          6,
+          2,
+          4,
+          21,
+          11,
+          12,
+          25,
+          36,
+          7
+        ],
+        "raw_top10_hits": 3,
+        "rolling_top10_hits": 3,
+        "raw_top15_hits": 3,
+        "rolling_top15_hits": 3,
+        "top10_gain": 0,
+        "rescued_hit_numbers": [],
+        "lost_hit_numbers": [],
+        "false_promoted_miss_numbers": [
+          7,
+          12,
+          36
+        ]
+      },
+      {
+        "based_on_period": 115000135,
+        "based_on_date": "2026-06-03",
+        "target_period": 115000136,
+        "actual_period": 115000136,
+        "actual_date": "2026-06-04",
+        "actual_numbers": [
+          2,
+          8,
+          24,
+          29,
+          35
+        ],
+        "raw_top10": [
+          6,
+          12,
+          15,
+          11,
+          27,
+          21,
+          7,
+          36,
+          4,
+          37
+        ],
+        "rolling_top10": [
+          20,
+          18,
+          16,
+          9,
+          35,
+          3,
+          22,
+          32,
+          5,
+          23
+        ],
+        "raw_top10_hits": 0,
+        "rolling_top10_hits": 1,
+        "raw_top15_hits": 1,
+        "rolling_top15_hits": 3,
+        "top10_gain": 1,
+        "rescued_hit_numbers": [
+          35
+        ],
+        "lost_hit_numbers": [],
+        "false_promoted_miss_numbers": [
+          3,
+          5,
+          9,
+          16,
+          18,
+          20,
+          22,
+          23,
+          32
+        ]
+      },
+      {
+        "based_on_period": 115000136,
+        "based_on_date": "2026-06-04",
+        "target_period": 115000137,
+        "actual_period": 115000137,
+        "actual_date": "2026-06-05",
+        "actual_numbers": [
+          7,
+          21,
+          26,
+          27,
+          31
+        ],
+        "raw_top10": [
+          6,
+          12,
+          25,
+          11,
+          4,
+          21,
+          7,
+          27,
+          15,
+          2
+        ],
+        "rolling_top10": [
+          6,
+          4,
+          25,
+          36,
+          21,
+          11,
+          7,
+          31,
+          12,
+          37
+        ],
+        "raw_top10_hits": 3,
+        "rolling_top10_hits": 3,
+        "raw_top15_hits": 3,
+        "rolling_top15_hits": 4,
+        "top10_gain": 0,
+        "rescued_hit_numbers": [
+          31
+        ],
+        "lost_hit_numbers": [
+          27
+        ],
+        "false_promoted_miss_numbers": [
+          36,
+          37
+        ]
+      },
+      {
+        "based_on_period": 115000137,
+        "based_on_date": "2026-06-05",
+        "target_period": 115000138,
+        "actual_period": 115000138,
+        "actual_date": "2026-06-06",
+        "actual_numbers": [
+          13,
+          27,
+          30,
+          37,
+          38
+        ],
+        "raw_top10": [
+          8,
+          6,
+          2,
+          12,
+          11,
+          4,
+          18,
+          36,
+          9,
+          25
+        ],
+        "rolling_top10": [
+          8,
+          2,
+          20,
+          18,
+          9,
+          28,
+          5,
+          23,
+          22,
+          32
+        ],
+        "raw_top10_hits": 0,
+        "rolling_top10_hits": 0,
+        "raw_top15_hits": 1,
+        "rolling_top15_hits": 0,
+        "top10_gain": 0,
+        "rescued_hit_numbers": [],
+        "lost_hit_numbers": [],
+        "false_promoted_miss_numbers": [
+          5,
+          20,
+          22,
+          23,
+          28,
+          32
+        ]
+      },
+      {
+        "based_on_period": 115000138,
+        "based_on_date": "2026-06-06",
+        "target_period": 115000139,
+        "actual_period": 115000139,
+        "actual_date": "2026-06-08",
+        "actual_numbers": [
+          8,
+          14,
+          17,
+          18,
+          28
+        ],
+        "raw_top10": [
+          8,
+          2,
+          6,
+          7,
+          11,
+          12,
+          4,
+          15,
+          3,
+          18
+        ],
+        "rolling_top10": [
+          6,
+          8,
+          2,
+          12,
+          4,
+          25,
+          7,
+          11,
+          36,
+          21
+        ],
+        "raw_top10_hits": 2,
+        "rolling_top10_hits": 1,
+        "raw_top15_hits": 2,
+        "rolling_top15_hits": 1,
+        "top10_gain": -1,
+        "rescued_hit_numbers": [],
+        "lost_hit_numbers": [
+          18
+        ],
+        "false_promoted_miss_numbers": [
+          21,
+          25,
+          36
+        ]
+      },
+      {
+        "based_on_period": 115000139,
+        "based_on_date": "2026-06-08",
+        "target_period": 115000140,
+        "actual_period": 115000140,
+        "actual_date": "2026-06-09",
+        "actual_numbers": [
+          10,
+          17,
+          20,
+          25,
+          28
+        ],
+        "raw_top10": [
+          2,
+          6,
+          7,
+          11,
+          15,
+          12,
+          25,
+          36,
+          8,
+          21
+        ],
+        "rolling_top10": [
+          2,
+          8,
+          6,
+          25,
+          20,
+          7,
+          12
+        ],
+        "raw_top10_hits": 1,
+        "rolling_top10_hits": 2,
+        "raw_top15_hits": 1,
+        "rolling_top15_hits": 2,
+        "top10_gain": 1,
+        "rescued_hit_numbers": [
+          20
+        ],
+        "lost_hit_numbers": [],
+        "false_promoted_miss_numbers": []
+      },
+      {
+        "based_on_period": 115000140,
+        "based_on_date": "2026-06-09",
+        "target_period": 115000141,
+        "actual_period": 115000141,
+        "actual_date": "2026-06-10",
+        "actual_numbers": [
+          1,
+          4,
+          32,
+          35,
+          39
+        ],
+        "raw_top10": [
+          8,
+          2,
+          6,
+          7,
+          36,
+          11,
+          12,
+          4,
+          21,
+          3
+        ],
+        "rolling_top10": [
+          8,
+          2,
+          21,
+          36,
+          6
+        ],
+        "raw_top10_hits": 1,
+        "rolling_top10_hits": 0,
+        "raw_top15_hits": 2,
+        "rolling_top15_hits": 0,
+        "top10_gain": -1,
+        "rescued_hit_numbers": [],
+        "lost_hit_numbers": [
+          4
+        ],
+        "false_promoted_miss_numbers": []
+      },
+      {
+        "based_on_period": 115000141,
+        "based_on_date": "2026-06-10",
+        "target_period": 115000142,
+        "actual_period": 115000142,
+        "actual_date": "2026-06-11",
+        "actual_numbers": [
+          8,
+          15,
+          20,
+          29,
+          31
+        ],
+        "raw_top10": [
+          2,
+          8,
+          6,
+          12,
+          11,
+          7,
+          36,
+          25,
+          17,
+          21
+        ],
+        "rolling_top10": [
+          12,
+          7,
+          25,
+          11,
+          15,
+          9,
+          31,
+          5,
+          22,
+          27
+        ],
+        "raw_top10_hits": 1,
+        "rolling_top10_hits": 2,
+        "raw_top15_hits": 2,
+        "rolling_top15_hits": 3,
+        "top10_gain": 1,
+        "rescued_hit_numbers": [
+          15,
+          31
+        ],
+        "lost_hit_numbers": [
+          8
+        ],
+        "false_promoted_miss_numbers": [
+          5,
+          9,
+          22,
+          27
+        ]
+      },
+      {
+        "based_on_period": 115000142,
+        "based_on_date": "2026-06-11",
+        "target_period": 115000143,
+        "actual_period": 115000143,
+        "actual_date": "2026-06-12",
+        "actual_numbers": [
+          6,
+          8,
+          18,
+          29,
+          31
+        ],
+        "raw_top10": [
+          6,
+          2,
+          12,
+          11,
+          7,
+          8,
+          25,
+          21,
+          27,
+          4
+        ],
+        "rolling_top10": [
+          2,
+          6,
+          21,
+          38,
+          36,
+          4,
+          16,
+          24,
+          35,
+          14
+        ],
+        "raw_top10_hits": 2,
+        "rolling_top10_hits": 1,
+        "raw_top15_hits": 3,
+        "rolling_top15_hits": 1,
+        "top10_gain": -1,
+        "rescued_hit_numbers": [],
+        "lost_hit_numbers": [
+          8
+        ],
+        "false_promoted_miss_numbers": [
+          14,
+          16,
+          24,
+          35,
+          36,
+          38
+        ]
+      },
+      {
+        "based_on_period": 115000143,
+        "based_on_date": "2026-06-12",
+        "target_period": 115000144,
+        "actual_period": 115000144,
+        "actual_date": "2026-06-13",
+        "actual_numbers": [
+          4,
+          5,
+          6,
+          34,
+          36
+        ],
+        "raw_top10": [
+          11,
+          2,
+          12,
+          7,
+          8,
+          21,
+          25,
+          28,
+          15,
+          27
+        ],
+        "rolling_top10": [
+          11,
+          2,
+          12,
+          7,
+          8,
+          21,
+          25,
+          28,
+          15,
+          27
+        ],
+        "raw_top10_hits": 0,
+        "rolling_top10_hits": 0,
+        "raw_top15_hits": 2,
+        "rolling_top15_hits": 2,
+        "top10_gain": 0,
+        "rescued_hit_numbers": [],
+        "lost_hit_numbers": [],
+        "false_promoted_miss_numbers": []
+      },
+      {
+        "based_on_period": 115000144,
+        "based_on_date": "2026-06-13",
+        "target_period": 115000145,
+        "actual_period": 115000145,
+        "actual_date": "2026-06-15",
+        "actual_numbers": [
+          12,
+          16,
+          24,
+          28,
+          36
+        ],
+        "raw_top10": [
+          8,
+          2,
+          7,
+          11,
+          12,
+          25,
+          15,
+          3,
+          23,
+          21
+        ],
+        "rolling_top10": [
+          8,
+          37,
+          25,
+          27,
+          20,
+          12,
+          22,
+          28,
+          26,
+          15
+        ],
+        "raw_top10_hits": 1,
+        "rolling_top10_hits": 2,
+        "raw_top15_hits": 2,
+        "rolling_top15_hits": 2,
+        "top10_gain": 1,
+        "rescued_hit_numbers": [
+          28
+        ],
+        "lost_hit_numbers": [],
+        "false_promoted_miss_numbers": [
+          20,
+          22,
+          26,
+          27,
+          37
+        ]
+      },
+      {
+        "based_on_period": 115000145,
+        "based_on_date": "2026-06-15",
+        "target_period": 115000146,
+        "actual_period": 115000146,
+        "actual_date": "2026-06-16",
+        "actual_numbers": [
+          5,
+          17,
+          23,
+          25,
+          29
+        ],
+        "raw_top10": [
+          8,
+          6,
+          2,
+          7,
+          11,
+          25,
+          4,
+          27,
+          31,
+          18
+        ],
+        "rolling_top10": [
+          11,
+          35,
+          3,
+          2,
+          4,
+          38,
+          14,
+          17,
+          23,
+          34
+        ],
+        "raw_top10_hits": 1,
+        "rolling_top10_hits": 2,
+        "raw_top15_hits": 3,
+        "rolling_top15_hits": 3,
+        "top10_gain": 1,
+        "rescued_hit_numbers": [
+          17,
+          23
+        ],
+        "lost_hit_numbers": [
+          25
+        ],
+        "false_promoted_miss_numbers": [
+          3,
+          14,
+          34,
+          35,
+          38
+        ]
+      },
+      {
+        "based_on_period": 115000146,
+        "based_on_date": "2026-06-16",
+        "target_period": 115000147,
+        "actual_period": 115000147,
+        "actual_date": "2026-06-17",
+        "actual_numbers": [
+          8,
+          10,
+          15,
+          16,
+          37
+        ],
+        "raw_top10": [
+          8,
+          6,
+          2,
+          4,
+          7,
+          12,
+          36,
+          11,
+          28,
+          18
+        ],
+        "rolling_top10": [
+          27,
+          20,
+          28,
+          7,
+          24,
+          26,
+          21,
+          31,
+          9,
+          16
+        ],
+        "raw_top10_hits": 1,
+        "rolling_top10_hits": 1,
+        "raw_top15_hits": 2,
+        "rolling_top15_hits": 2,
+        "top10_gain": 0,
+        "rescued_hit_numbers": [
+          16
+        ],
+        "lost_hit_numbers": [
+          8
+        ],
+        "false_promoted_miss_numbers": [
+          9,
+          20,
+          21,
+          24,
+          26,
+          27,
+          31
+        ]
+      },
+      {
+        "based_on_period": 115000147,
+        "based_on_date": "2026-06-17",
+        "target_period": 115000148,
+        "actual_period": 115000148,
+        "actual_date": "2026-06-18",
+        "actual_numbers": [
+          9,
+          20,
+          27,
+          28,
+          30
+        ],
+        "raw_top10": [
+          6,
+          2,
+          11,
+          8,
+          25,
+          4,
+          12,
+          21,
+          7,
+          29
+        ],
+        "rolling_top10": [
+          38,
+          17,
+          29,
+          5,
+          35,
+          14,
+          25,
+          19,
+          1,
+          3
+        ],
+        "raw_top10_hits": 0,
+        "rolling_top10_hits": 0,
+        "raw_top15_hits": 3,
+        "rolling_top15_hits": 1,
+        "top10_gain": 0,
+        "rescued_hit_numbers": [],
+        "lost_hit_numbers": [],
+        "false_promoted_miss_numbers": [
+          1,
+          3,
+          5,
+          14,
+          17,
+          19,
+          35,
+          38
+        ]
+      },
+      {
+        "based_on_period": 115000148,
+        "based_on_date": "2026-06-18",
+        "target_period": 115000149,
+        "actual_period": 115000149,
+        "actual_date": "2026-06-19",
+        "actual_numbers": [
+          1,
+          5,
+          7,
+          13,
+          25
+        ],
+        "raw_top10": [
+          8,
+          6,
+          4,
+          2,
+          7,
+          25,
+          11,
+          12,
+          21,
+          18
+        ],
+        "rolling_top10": [
+          8,
+          28,
+          24,
+          4,
+          26,
+          10,
+          22,
+          37,
+          15,
+          31
+        ],
+        "raw_top10_hits": 2,
+        "rolling_top10_hits": 0,
+        "raw_top15_hits": 4,
+        "rolling_top15_hits": 0,
+        "top10_gain": -2,
+        "rescued_hit_numbers": [],
+        "lost_hit_numbers": [
+          7,
+          25
+        ],
+        "false_promoted_miss_numbers": [
+          10,
+          15,
+          22,
+          24,
+          26,
+          28,
+          31,
+          37
+        ]
+      },
+      {
+        "based_on_period": 115000149,
+        "based_on_date": "2026-06-19",
+        "target_period": 115000150,
+        "actual_period": 115000150,
+        "actual_date": "2026-06-20",
+        "actual_numbers": [
+          4,
+          11,
+          24,
+          25,
+          31
+        ],
+        "raw_top10": [
+          8,
+          2,
+          6,
+          4,
+          12,
+          28,
+          36,
+          11,
+          21,
+          20
+        ],
+        "rolling_top10": [
+          11,
+          3,
+          23,
+          17,
+          21,
+          14,
+          35,
+          38,
+          19,
+          9
+        ],
+        "raw_top10_hits": 2,
+        "rolling_top10_hits": 1,
+        "raw_top15_hits": 3,
+        "rolling_top15_hits": 1,
+        "top10_gain": -1,
+        "rescued_hit_numbers": [],
+        "lost_hit_numbers": [
+          4
+        ],
+        "false_promoted_miss_numbers": [
+          3,
+          9,
+          14,
+          17,
+          19,
+          23,
+          35,
+          38
+        ]
+      },
+      {
+        "based_on_period": 115000150,
+        "based_on_date": "2026-06-20",
+        "target_period": 115000151,
+        "actual_period": 115000151,
+        "actual_date": "2026-06-22",
+        "actual_numbers": [
+          1,
+          7,
+          28,
+          29,
+          34
+        ],
+        "raw_top10": [
+          8,
+          2,
+          6,
+          12,
+          21,
+          17,
+          3,
+          28,
+          5,
+          36
+        ],
+        "rolling_top10": [
+          8,
+          29,
+          27,
+          5,
+          28,
+          26,
+          30,
+          24,
+          10,
+          7
+        ],
+        "raw_top10_hits": 1,
+        "rolling_top10_hits": 3,
+        "raw_top15_hits": 3,
+        "rolling_top15_hits": 4,
+        "top10_gain": 2,
+        "rescued_hit_numbers": [
+          7,
+          29
+        ],
+        "lost_hit_numbers": [],
+        "false_promoted_miss_numbers": [
+          10,
+          24,
+          26,
+          27,
+          30
+        ]
+      },
+      {
+        "based_on_period": 115000151,
+        "based_on_date": "2026-06-22",
+        "target_period": 115000152,
+        "actual_period": 115000152,
+        "actual_date": "2026-06-23",
+        "actual_numbers": [
+          2,
+          14,
+          25,
+          29,
+          36
+        ],
+        "raw_top10": [
+          8,
+          25,
+          2,
+          6,
+          12,
+          4,
+          21,
+          5,
+          15,
+          11
+        ],
+        "rolling_top10": [
+          8,
+          30,
+          27,
+          20,
+          24,
+          36,
+          5,
+          25,
+          14,
+          31
+        ],
+        "raw_top10_hits": 2,
+        "rolling_top10_hits": 3,
+        "raw_top15_hits": 3,
+        "rolling_top15_hits": 3,
+        "top10_gain": 1,
+        "rescued_hit_numbers": [
+          14,
+          36
+        ],
+        "lost_hit_numbers": [
+          2
+        ],
+        "false_promoted_miss_numbers": [
+          20,
+          24,
+          27,
+          30,
+          31
+        ]
+      },
+      {
+        "based_on_period": 115000152,
+        "based_on_date": "2026-06-23",
+        "target_period": 115000153,
+        "actual_period": 115000153,
+        "actual_date": "2026-06-24",
+        "actual_numbers": [
+          3,
+          17,
+          21,
+          32,
+          33
+        ],
+        "raw_top10": [
+          8,
+          28,
+          7,
+          12,
+          6,
+          4,
+          17,
+          5,
+          20,
+          1
+        ],
+        "rolling_top10": [
+          8,
+          30,
+          27,
+          24,
+          17,
+          1,
+          2,
+          4,
+          28,
+          9
+        ],
+        "raw_top10_hits": 1,
+        "rolling_top10_hits": 1,
+        "raw_top15_hits": 2,
+        "rolling_top15_hits": 3,
+        "top10_gain": 0,
+        "rescued_hit_numbers": [],
+        "lost_hit_numbers": [],
+        "false_promoted_miss_numbers": [
+          2,
+          9,
+          24,
+          27,
+          30
+        ]
+      },
+      {
+        "based_on_period": 115000153,
+        "based_on_date": "2026-06-24",
+        "target_period": 115000154,
+        "actual_period": 115000154,
+        "actual_date": "2026-06-25",
+        "actual_numbers": [
+          6,
+          13,
+          21,
+          29,
+          34
+        ],
+        "raw_top10": [
+          8,
+          25,
+          6,
+          2,
+          7,
+          4,
+          28,
+          29,
+          12,
+          31
+        ],
+        "rolling_top10": [
+          8,
+          29,
+          30,
+          31,
+          20,
+          25,
+          5,
+          28,
+          27,
+          22
+        ],
+        "raw_top10_hits": 2,
+        "rolling_top10_hits": 1,
+        "raw_top15_hits": 2,
+        "rolling_top15_hits": 1,
+        "top10_gain": -1,
+        "rescued_hit_numbers": [],
+        "lost_hit_numbers": [
+          6
+        ],
+        "false_promoted_miss_numbers": [
+          5,
+          20,
+          22,
+          27,
+          30
+        ]
+      },
+      {
+        "based_on_period": 115000154,
+        "based_on_date": "2026-06-25",
+        "target_period": 115000155,
+        "actual_period": 115000155,
+        "actual_date": "2026-06-26",
+        "actual_numbers": [
+          8,
+          10,
+          14,
+          26,
+          36
+        ],
+        "raw_top10": [
+          8,
+          25,
+          7,
+          12,
+          28,
+          4,
+          2,
+          5,
+          11,
+          18
+        ],
+        "rolling_top10": [
+          8,
+          24,
+          1,
+          25,
+          17,
+          5,
+          28,
+          30,
+          27,
+          15
+        ],
+        "raw_top10_hits": 1,
+        "rolling_top10_hits": 1,
+        "raw_top15_hits": 2,
+        "rolling_top15_hits": 2,
+        "top10_gain": 0,
+        "rescued_hit_numbers": [],
+        "lost_hit_numbers": [],
+        "false_promoted_miss_numbers": [
+          1,
+          15,
+          17,
+          24,
+          27,
+          30
+        ]
+      },
+      {
+        "based_on_period": 115000155,
+        "based_on_date": "2026-06-26",
+        "target_period": 115000156,
+        "actual_period": 115000156,
+        "actual_date": "2026-06-27",
+        "actual_numbers": [
+          4,
+          14,
+          21,
+          31,
+          32
+        ],
+        "raw_top10": [
+          25,
+          29,
+          7,
+          6,
+          5,
+          28,
+          1,
+          8,
+          11,
+          4
+        ],
+        "rolling_top10": [
+          25,
+          29,
+          7,
+          6,
+          5,
+          28,
+          1,
+          8,
+          11,
+          4
+        ],
+        "raw_top10_hits": 1,
+        "rolling_top10_hits": 1,
+        "raw_top15_hits": 2,
+        "rolling_top15_hits": 2,
+        "top10_gain": 0,
+        "rescued_hit_numbers": [],
+        "lost_hit_numbers": [],
+        "false_promoted_miss_numbers": []
+      },
+      {
+        "based_on_period": 115000156,
+        "based_on_date": "2026-06-27",
+        "target_period": 115000157,
+        "actual_period": 115000157,
+        "actual_date": "2026-06-29",
+        "actual_numbers": [
+          11,
+          15,
+          30,
+          34,
+          36
+        ],
+        "raw_top10": [
+          8,
+          29,
+          25,
+          6,
+          36,
+          12,
+          7,
+          2,
+          5,
+          28
+        ],
+        "rolling_top10": [
+          8,
+          29,
+          36,
+          1,
+          5,
+          30,
+          24,
+          26,
+          27,
+          13
+        ],
+        "raw_top10_hits": 1,
+        "rolling_top10_hits": 2,
+        "raw_top15_hits": 2,
+        "rolling_top15_hits": 3,
+        "top10_gain": 1,
+        "rescued_hit_numbers": [
+          30
+        ],
+        "lost_hit_numbers": [],
+        "false_promoted_miss_numbers": [
+          1,
+          13,
+          24,
+          26,
+          27
+        ]
+      }
+    ]
+  },
+  "probability_track_separation": {
+    "status": "separated",
+    "high_probability_track": {
+      "purpose": "下期高機率候選、獨隻與強牌組推薦",
+      "inputs": [
+        "全歷史開獎資料",
+        "原始模型分數",
+        "滾動命中檢討",
+        "交叉驗證",
+        "強牌回測"
+      ],
+      "outputs": {
+        "primary_single": [
+          36
+        ],
+        "attack_core_top9": [
+          36,
+          14,
+          21,
+          6,
+          20,
+          31,
+          4,
+          37,
+          17
+        ],
+        "strong_pack_keys": [
+          "strong_single",
+          "two_hit_one",
+          "three_hit_one",
+          "five_hit_two",
+          "nine_hit_three"
+        ]
+      },
+      "dual_track_status": "evaluated",
+      "dual_track_decision": "原始模型與滾動調整暫無明顯勝負"
+    },
+    "low_probability_track": {
+      "purpose": "5不中、10不中、15不中暫避與誤中檢討",
+      "inputs": [
+        "弱訊號",
+        "候選排名落點",
+        "暫避分數",
+        "低機率回測"
+      ],
+      "outputs": {
+        "five_miss": [
+          27,
+          26,
+          24,
+          18,
+          15
+        ],
+        "ten_miss": [
+          27,
+          26,
+          24,
+          18,
+          15,
+          13,
+          9,
+          8,
+          5,
+          1
+        ],
+        "fifteen_miss": [
+          27,
+          26,
+          24,
+          18,
+          15,
+          13,
+          9,
+          8,
+          5,
+          1,
+          29,
+          22,
+          30,
+          11,
+          7
+        ]
+      },
+      "rule": "低機率只做暫避研究，不參與高機率推薦排序。"
     }
   },
   "aerospace_assurance": {

@@ -9,7 +9,11 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from aerospace_engine import compute_aerospace_assurance
-from industrial_engine import compute_industrial_analysis
+from industrial_engine import (
+    MODEL_SOURCE_LABELS,
+    compute_industrial_analysis,
+    score_numbers as industrial_score_numbers,
+)
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -1335,6 +1339,289 @@ def render_markdown(analysis):
     return "\n".join(lines)
 
 
+def _candidate_number_list(candidates, limit=None):
+    numbers = []
+    rows = candidates[:limit] if limit else candidates
+    for item in rows:
+        try:
+            number = int(item.get("number"))
+        except (TypeError, ValueError):
+            continue
+        if 1 <= number <= 39 and number not in numbers:
+            numbers.append(number)
+    return numbers
+
+
+def _counter_rows(counter, limit=15, key_name="number"):
+    return [
+        {key_name: key, "count": count}
+        for key, count in counter.most_common(limit)
+    ]
+
+
+def _avg(values):
+    return round(sum(values) / len(values), 3) if values else 0.0
+
+
+def dual_track_model_comparison(db_path, draws, window_days=31):
+    """Compare raw unadjusted model output with saved rolling-adjusted predictions."""
+    if not draws:
+        return {
+            "status": "not_available",
+            "reason": "no_draw_data",
+            "sample_count": 0,
+        }
+    latest_date = datetime.strptime(draws[-1]["draw_date"], "%Y-%m-%d").date()
+    start_date = latest_date - timedelta(days=window_days)
+    try:
+        with sqlite3.connect(db_path) as conn:
+            rows = conn.execute(
+                """
+                SELECT based_on_period, based_on_date, target_period, actual_period, actual_date,
+                       actual_numbers_json, candidates_json
+                FROM predictions_539
+                WHERE status='settled' AND actual_date >= ?
+                ORDER BY actual_period
+                """,
+                (start_date.isoformat(),),
+            ).fetchall()
+            if not rows:
+                rows = conn.execute(
+                    """
+                    SELECT based_on_period, based_on_date, target_period, actual_period, actual_date,
+                           actual_numbers_json, candidates_json
+                    FROM predictions_539
+                    WHERE status='settled'
+                    ORDER BY actual_period DESC
+                    LIMIT 31
+                    """
+                ).fetchall()
+                rows = list(reversed(rows))
+    except sqlite3.OperationalError as exc:
+        return {
+            "status": "not_available",
+            "reason": f"prediction_table_unavailable: {exc}",
+            "sample_count": 0,
+        }
+
+    if not rows:
+        return {
+            "status": "not_available",
+            "reason": "no_settled_predictions",
+            "sample_count": 0,
+        }
+
+    period_index = {int(draw["period"]): idx for idx, draw in enumerate(draws)}
+    top_sizes = (5, 10, 15)
+    raw_hits = {size: [] for size in top_sizes}
+    rolling_hits = {size: [] for size in top_sizes}
+    raw_model_stats = defaultdict(lambda: {f"top{size}_hits": 0 for size in top_sizes} | {"rounds": 0})
+    rescued_numbers = Counter()
+    lost_numbers = Counter()
+    false_promoted_numbers = Counter()
+    raw_only_miss_numbers = Counter()
+    period_rows = []
+    top10_outcome = Counter()
+    top15_outcome = Counter()
+
+    for row in rows:
+        based_on_period = int(row[0])
+        based_index = period_index.get(based_on_period)
+        if based_index is None or based_index < 100:
+            continue
+        actual_numbers = [int(number) for number in json.loads(row[5] or "[]")]
+        if not actual_numbers:
+            continue
+        actual_set = set(actual_numbers)
+        train = draws[: based_index + 1]
+        raw_candidates, _ = industrial_score_numbers(train, review=None, include_dependency=True)
+        rolling_candidates = json.loads(row[6] or "[]")
+        raw_numbers = _candidate_number_list(raw_candidates)
+        rolling_numbers = _candidate_number_list(rolling_candidates)
+
+        if not raw_numbers or not rolling_numbers:
+            continue
+
+        raw_top10 = raw_numbers[:10]
+        rolling_top10 = rolling_numbers[:10]
+        raw_top15 = raw_numbers[:15]
+        rolling_top15 = rolling_numbers[:15]
+
+        raw_top10_hit_set = set(raw_top10) & actual_set
+        rolling_top10_hit_set = set(rolling_top10) & actual_set
+        raw_top15_hit_set = set(raw_top15) & actual_set
+        rolling_top15_hit_set = set(rolling_top15) & actual_set
+
+        for size in top_sizes:
+            raw_count = len(set(raw_numbers[:size]) & actual_set)
+            rolling_count = len(set(rolling_numbers[:size]) & actual_set)
+            raw_hits[size].append(raw_count)
+            rolling_hits[size].append(rolling_count)
+
+        top10_gain = len(rolling_top10_hit_set) - len(raw_top10_hit_set)
+        top15_gain = len(rolling_top15_hit_set) - len(raw_top15_hit_set)
+        top10_outcome["rolling_win" if top10_gain > 0 else "raw_win" if top10_gain < 0 else "tie"] += 1
+        top15_outcome["rolling_win" if top15_gain > 0 else "raw_win" if top15_gain < 0 else "tie"] += 1
+
+        raw_only_top10 = set(raw_top10) - set(rolling_top10)
+        rolling_only_top10 = set(rolling_top10) - set(raw_top10)
+        rescued = sorted(rolling_only_top10 & actual_set)
+        lost = sorted(raw_only_top10 & actual_set)
+        false_promoted = sorted(rolling_only_top10 - actual_set)
+        raw_only_miss = sorted(raw_only_top10 - actual_set)
+        rescued_numbers.update(rescued)
+        lost_numbers.update(lost)
+        false_promoted_numbers.update(false_promoted)
+        raw_only_miss_numbers.update(raw_only_miss)
+
+        for model_name, label in MODEL_SOURCE_LABELS.items():
+            ranked = sorted(
+                raw_candidates,
+                key=lambda item: (
+                    float((item.get("feature_scores") or {}).get(model_name, 0.0) or 0.0),
+                    -int(item.get("number", 0) or 0),
+                ),
+                reverse=True,
+            )
+            model_numbers = _candidate_number_list(ranked)
+            if not model_numbers:
+                continue
+            raw_model_stats[model_name]["rounds"] += 1
+            raw_model_stats[model_name]["label"] = label
+            for size in top_sizes:
+                raw_model_stats[model_name][f"top{size}_hits"] += len(set(model_numbers[:size]) & actual_set)
+
+        period_rows.append({
+            "based_on_period": based_on_period,
+            "based_on_date": row[1],
+            "target_period": int(row[2]) if row[2] is not None else None,
+            "actual_period": int(row[3]) if row[3] is not None else None,
+            "actual_date": row[4],
+            "actual_numbers": actual_numbers,
+            "raw_top10": raw_top10,
+            "rolling_top10": rolling_top10,
+            "raw_top10_hits": len(raw_top10_hit_set),
+            "rolling_top10_hits": len(rolling_top10_hit_set),
+            "raw_top15_hits": len(raw_top15_hit_set),
+            "rolling_top15_hits": len(rolling_top15_hit_set),
+            "top10_gain": top10_gain,
+            "rescued_hit_numbers": rescued,
+            "lost_hit_numbers": lost,
+            "false_promoted_miss_numbers": false_promoted,
+        })
+
+    sample_count = len(period_rows)
+    if not sample_count:
+        return {
+            "status": "not_available",
+            "reason": "no_eligible_comparison_rows",
+            "sample_count": 0,
+        }
+
+    random_expectation = {size: round(5 * size / 39, 3) for size in top_sizes}
+    raw_summary = {
+        f"top{size}_avg_hits": _avg(raw_hits[size])
+        for size in top_sizes
+    }
+    rolling_summary = {
+        f"top{size}_avg_hits": _avg(rolling_hits[size])
+        for size in top_sizes
+    }
+    delta_summary = {
+        f"top{size}_avg_hit_delta": round(rolling_summary[f"top{size}_avg_hits"] - raw_summary[f"top{size}_avg_hits"], 3)
+        for size in top_sizes
+    }
+    top10_delta = delta_summary["top10_avg_hit_delta"]
+    if top10_delta >= 0.15 and top10_outcome["rolling_win"] >= top10_outcome["raw_win"]:
+        decision = "rolling_adjustment_helpful"
+        decision_label = "滾動調整目前有幫助"
+    elif top10_delta <= -0.15 and top10_outcome["raw_win"] > top10_outcome["rolling_win"]:
+        decision = "rolling_adjustment_harmful"
+        decision_label = "滾動調整目前傷害命中"
+    else:
+        decision = "mixed_or_neutral"
+        decision_label = "原始模型與滾動調整暫無明顯勝負"
+
+    raw_model_scorecard = []
+    for model_name, stats in raw_model_stats.items():
+        rounds = stats["rounds"] or 1
+        row = {
+            "model": model_name,
+            "label": stats.get("label") or MODEL_SOURCE_LABELS.get(model_name, model_name),
+            "rounds": stats["rounds"],
+        }
+        for size in top_sizes:
+            avg_hits = round(stats[f"top{size}_hits"] / rounds, 3)
+            row[f"top{size}_avg_hits"] = avg_hits
+            row[f"top{size}_edge_vs_random"] = round(avg_hits - random_expectation[size], 3)
+        raw_model_scorecard.append(row)
+    raw_model_scorecard.sort(
+        key=lambda item: (
+            item.get("top10_edge_vs_random", -99),
+            item.get("top5_edge_vs_random", -99),
+            item.get("top10_avg_hits", 0),
+        ),
+        reverse=True,
+    )
+
+    return {
+        "status": "evaluated",
+        "method": "raw_unadjusted_models_vs_saved_rolling_adjusted_predictions",
+        "policy": "同一個預測基準日比較原始未調整模型與當時已保存的滾動調整預測，不使用未來資料。",
+        "window_days": window_days,
+        "sample_count": sample_count,
+        "date_range": [period_rows[0]["actual_date"], period_rows[-1]["actual_date"]],
+        "random_expectation": random_expectation,
+        "summary": {
+            "raw_unadjusted": raw_summary,
+            "rolling_adjusted": rolling_summary,
+            "delta": delta_summary,
+            "top10_win_loss": dict(top10_outcome),
+            "top15_win_loss": dict(top15_outcome),
+            "decision": decision,
+            "decision_label": decision_label,
+        },
+        "adjustment_error_audit": {
+            "rescued_hit_numbers": _counter_rows(rescued_numbers, 15),
+            "lost_hit_numbers": _counter_rows(lost_numbers, 15),
+            "false_promoted_miss_numbers": _counter_rows(false_promoted_numbers, 15),
+            "raw_only_miss_numbers": _counter_rows(raw_only_miss_numbers, 15),
+        },
+        "raw_model_scorecard": raw_model_scorecard[:24],
+        "period_rows": period_rows[-31:],
+    }
+
+
+def probability_track_separation(industrial, dual_track):
+    unlikely = industrial.get("unlikely_number_analysis") or {}
+    avoid_packs = unlikely.get("avoid_packs") or {}
+    strong_packs = industrial.get("strong_prediction_packs") or {}
+    decision = industrial.get("decisive_battle_decision") or {}
+    return {
+        "status": "separated",
+        "high_probability_track": {
+            "purpose": "下期高機率候選、獨隻與強牌組推薦",
+            "inputs": ["全歷史開獎資料", "原始模型分數", "滾動命中檢討", "交叉驗證", "強牌回測"],
+            "outputs": {
+                "primary_single": decision.get("primary_single") or (strong_packs.get("strong_single") or {}).get("numbers", []),
+                "attack_core_top9": decision.get("attack_core_top9", []),
+                "strong_pack_keys": list(strong_packs.keys()),
+            },
+            "dual_track_status": dual_track.get("status"),
+            "dual_track_decision": (dual_track.get("summary") or {}).get("decision_label"),
+        },
+        "low_probability_track": {
+            "purpose": "5不中、10不中、15不中暫避與誤中檢討",
+            "inputs": ["弱訊號", "候選排名落點", "暫避分數", "低機率回測"],
+            "outputs": {
+                key: (avoid_packs.get(key) or {}).get("numbers", [])
+                for key in ["five_miss", "ten_miss", "fifteen_miss"]
+            },
+            "rule": "低機率只做暫避研究，不參與高機率推薦排序。",
+        },
+    }
+
+
 def analyze(db_path=DB_PATH):
     draws = fetch_draws(db_path)
     if len(draws) < 100:
@@ -1344,6 +1631,8 @@ def analyze(db_path=DB_PATH):
     review = failure_review(db_path)
     weights = apply_failure_adjustment(calibrated_weights(bt), review)
     industrial = compute_industrial_analysis(draws, review)
+    dual_track = dual_track_model_comparison(db_path, draws)
+    industrial["dual_track_model_comparison"] = dual_track
     aerospace = compute_aerospace_assurance(draws, industrial)
     if aerospace["release_assurance"]["status"] == "blocked":
         industrial.setdefault("release_gate", {})["status"] = "aerospace_blocked"
@@ -1358,6 +1647,8 @@ def analyze(db_path=DB_PATH):
         "relationships": relationship_analysis(draws),
         "failure_review": review,
         "industrial_engine": industrial,
+        "dual_track_model_comparison": dual_track,
+        "probability_track_separation": probability_track_separation(industrial, dual_track),
         "aerospace_assurance": aerospace,
         "backtest": bt,
         "model_weights": weights,

@@ -332,7 +332,7 @@ def latest_settled_prediction(target_period=None):
             f"""
             SELECT based_on_period, based_on_date, target_period, actual_period, actual_date,
                    actual_numbers_json, candidates_json, suggested_sets_json,
-                   strong_packs_json, set_hits_json, strong_pack_hits_json,
+                   strong_packs_json, unlikely_packs_json, set_hits_json, strong_pack_hits_json, unlikely_pack_hits_json,
                    top5_hits, top10_hits, top15_hits, created_at, settled_at,
                    model_weights_json
             FROM predictions_539
@@ -355,14 +355,16 @@ def latest_settled_prediction(target_period=None):
         "candidates": json.loads(row[6] or "[]"),
         "suggested_sets": json.loads(row[7] or "[]"),
         "strong_packs": json.loads(row[8] or "{}"),
-        "set_hits": json.loads(row[9] or "[]"),
-        "strong_pack_hits": json.loads(row[10] or "{}"),
-        "top5_hits": row[11],
-        "top10_hits": row[12],
-        "top15_hits": row[13],
-        "created_at": row[14],
-        "settled_at": row[15],
-        "model_weights": json.loads(row[16] or "{}"),
+        "unlikely_packs": json.loads(row[9] or "{}"),
+        "set_hits": json.loads(row[10] or "[]"),
+        "strong_pack_hits": json.loads(row[11] or "{}"),
+        "unlikely_pack_hits": json.loads(row[12] or "{}"),
+        "top5_hits": row[13],
+        "top10_hits": row[14],
+        "top15_hits": row[15],
+        "created_at": row[16],
+        "settled_at": row[17],
+        "model_weights": json.loads(row[18] or "{}"),
     }
 
 
@@ -399,7 +401,7 @@ def latest_pending_prediction():
             """
             SELECT id, based_on_period, based_on_date, target_period,
                    candidates_json, suggested_sets_json, strong_packs_json,
-                   model_weights_json, backtest_json, created_at
+                   unlikely_packs_json, model_weights_json, backtest_json, created_at
             FROM predictions_539
             WHERE status='pending'
             ORDER BY based_on_period DESC, id DESC
@@ -416,9 +418,10 @@ def latest_pending_prediction():
         "candidates": json.loads(row[4] or "[]"),
         "suggested_sets": json.loads(row[5] or "[]"),
         "strong_packs": json.loads(row[6] or "{}"),
-        "model_weights": json.loads(row[7] or "{}"),
-        "backtest": json.loads(row[8] or "{}"),
-        "created_at": row[9],
+        "unlikely_packs": json.loads(row[7] or "{}"),
+        "model_weights": json.loads(row[8] or "{}"),
+        "backtest": json.loads(row[9] or "{}"),
+        "created_at": row[10],
     }
 
 
@@ -430,8 +433,8 @@ def prediction_history():
         rows = conn.execute(
             """
             SELECT based_on_period, based_on_date, target_period, candidates_json,
-                   strong_packs_json, actual_period, actual_date, actual_numbers_json,
-                   top5_hits, top10_hits, top15_hits, strong_pack_hits_json,
+                   strong_packs_json, unlikely_packs_json, actual_period, actual_date, actual_numbers_json,
+                    top5_hits, top10_hits, top15_hits, strong_pack_hits_json, unlikely_pack_hits_json,
                    status, created_at, settled_at,
                    (
                      SELECT COUNT(*)
@@ -454,12 +457,13 @@ def prediction_history():
     recorded_targets = set()
     for row in rows:
         candidates = json.loads(row[3] or "[]")
-        actual_numbers = json.loads(row[7] or "[]")
+        actual_numbers = json.loads(row[8] or "[]")
         actual_set = set(actual_numbers)
         top5 = [item.get("number") for item in candidates[:5]]
         top10 = [item.get("number") for item in candidates[:10]]
         top15 = [item.get("number") for item in candidates[:15]]
-        strong_hits = json.loads(row[11] or "{}")
+        strong_hits = json.loads(row[12] or "{}")
+        unlikely_hits = json.loads(row[13] or "{}")
         history.append(
             {
                 "based_on_period": row[0],
@@ -469,18 +473,20 @@ def prediction_history():
                 "top5": top5,
                 "top10": top10,
                 "top15": top15,
-                "actual_period": row[5],
-                "actual_date": row[6],
+                "unlikely_packs": json.loads(row[5] or "{}"),
+                "actual_period": row[6],
+                "actual_date": row[7],
                 "actual_numbers": actual_numbers,
-                "top5_hits": row[8],
-                "top10_hits": row[9],
-                "top15_hits": row[10],
+                "top5_hits": row[9],
+                "top10_hits": row[10],
+                "top15_hits": row[11],
                 "top10_hit_numbers": sorted(actual_set & set(top10)),
                 "strong_pack_hits": strong_hits,
-                "status": row[12],
-                "created_at": row[13],
-                "settled_at": row[14],
-                "snapshot_count": row[15],
+                "unlikely_pack_hits": unlikely_hits,
+                "status": row[14],
+                "created_at": row[15],
+                "settled_at": row[16],
+                "snapshot_count": row[17],
             }
         )
         if row[2] is not None:
@@ -506,6 +512,8 @@ def prediction_history():
                 "top15_hits": None,
                 "top10_hit_numbers": [],
                 "strong_pack_hits": {},
+                "unlikely_packs": {},
+                "unlikely_pack_hits": {},
                 "status": "missing_prediction",
                 "created_at": "",
                 "settled_at": "",
@@ -993,6 +1001,23 @@ def build_report():
                 f"| {item.get('name', pack_label(key))} | {fmt_numbers(numbers)} | {item.get('hit_goal')} | {item.get('hits')} | "
                 f"{result} | {fmt_hit_numbers(hit_numbers, actual_numbers)} | {fmt_numbers(miss_numbers)} |"
             )
+        lines.extend([
+            "",
+            "## \u6628\u65e5\u4f4e\u6a5f\u7387\u66ab\u907f\u9054\u6a19\u6aa2\u8a0e",
+            "| \u66ab\u907f\u5305 | \u539f\u66ab\u907f\u865f | \u76ee\u6a19\u8aa4\u4e2d | \u5be6\u969b\u8aa4\u4e2d | \u7d50\u679c | \u8aa4\u4e2d\u865f | \u6210\u529f\u907f\u958b\u865f |",
+            "| --- | --- | ---: | ---: | --- | --- | --- |",
+        ])
+        unlikely_hits = settled_prediction.get("unlikely_pack_hits", {}) or {}
+        if unlikely_hits:
+            for key, item in unlikely_hits.items():
+                result = "\u9054\u6a19" if item.get("passed") else "\u672a\u9054\u6a19"
+                lines.append(
+                    f"| {item.get('name', key)} | {fmt_numbers(item.get('numbers', []))} | 0 | "
+                    f"{item.get('accidental_hits', 0)} | {result} | "
+                    f"{fmt_hit_numbers(item.get('hit_numbers', []), actual_numbers)} | {fmt_numbers(item.get('avoided_numbers', []))} |"
+                )
+        else:
+            lines.append("|\u7121\u4fdd\u5b58\u8cc7\u6599| - | - | - | - | - | - |")
         lines.extend([
             "",
             "## \u6628\u65e5\u4f86\u6e90\u7406\u7531\u6210\u6557\u7d71\u8a08",
@@ -1881,6 +1906,22 @@ def build_html_report(markdown_text):
             "</tr>"
         )
 
+    unlikely_review_html = ""
+    for key, item in settled_prediction.get("unlikely_pack_hits", {}).items():
+        numbers = item.get("numbers", [])
+        hit_numbers = item.get("hit_numbers", [])
+        avoided_numbers = item.get("avoided_numbers", [])
+        result = "\u9054\u6a19" if item.get("passed") else "\u672a\u9054\u6a19"
+        unlikely_review_html += (
+            "<tr>"
+            f"<td>{item.get('name', key)}</td><td>{fmt_numbers(numbers)}</td>"
+            f"<td>0</td><td>{item.get('accidental_hits', 0)}</td><td>{result}</td>"
+            f"<td>{fmt_hit_numbers(hit_numbers, actual_numbers)}</td><td>{fmt_numbers(avoided_numbers)}</td>"
+            "</tr>"
+        )
+    if not unlikely_review_html:
+        unlikely_review_html = "<tr><td colspan=\"7\">\u672c\u671f\u6c92\u6709\u4fdd\u5b58\u4f4e\u6a5f\u7387\u9054\u6a19\u6aa2\u8a0e</td></tr>"
+
     reason_review_html = ""
     for reason, stats in sorted(audit_detail.get("reason_stats", {}).items(), key=lambda item: (item[1]["miss"], -item[1]["hit"]), reverse=True):
         if stats["hit"] == 0 and stats["miss"] >= 2:
@@ -2647,6 +2688,8 @@ def build_html_report(markdown_text):
       <table><thead><tr><th>\u7d44\u5225</th><th>\u539f\u9810\u6e2c</th><th>\u547d\u4e2d\u6578</th><th>\u547d\u4e2d\u865f</th><th>\u672a\u547d\u4e2d\u865f</th></tr></thead><tbody>{set_review_html}</tbody></table>
       <h3>\u5f37\u724c\u7d44</h3>
       <table><thead><tr><th>\u5f37\u724c</th><th>\u539f\u9810\u6e2c</th><th>\u76ee\u6a19</th><th>\u5be6\u969b</th><th>\u7d50\u679c</th><th>\u547d\u4e2d\u865f</th><th>\u672a\u547d\u4e2d\u865f</th></tr></thead><tbody>{pack_review_html}</tbody></table>
+      <h3>\u4f4e\u6a5f\u7387\u66ab\u907f\u9054\u6a19\u6aa2\u8a0e</h3>
+      <table><thead><tr><th>\u66ab\u907f\u5305</th><th>\u539f\u66ab\u907f\u865f</th><th>\u76ee\u6a19\u8aa4\u4e2d</th><th>\u5be6\u969b\u8aa4\u4e2d</th><th>\u7d50\u679c</th><th>\u8aa4\u4e2d\u865f</th><th>\u6210\u529f\u907f\u958b\u865f</th></tr></thead><tbody>{unlikely_review_html}</tbody></table>
     </section>
     <section class="band">
       <h2>\u4e0a\u671f\u547d\u4e2d\u6aa2\u8a0e\u5c08\u5340\uff1a{settled_prediction.get('based_on_date', '')} \u9810\u6e2c\u4f86\u6e90\u7406\u7531\u6210\u6557\u7d71\u8a08</h2>
@@ -3024,6 +3067,109 @@ def compact_review_html(history):
     """
 
 
+def compact_low_probability_review_html(history):
+    settled = next((item for item in history if item.get("status") == "settled"), None)
+    if not settled:
+        return "<p>\u76ee\u524d\u6c92\u6709\u5df2\u7d50\u7b97\u7684\u4f4e\u6a5f\u7387\u6aa2\u8a0e\u8cc7\u6599</p>"
+    actual = settled.get("actual_numbers") or []
+    rows = []
+    for key, value in (settled.get("unlikely_pack_hits") or {}).items():
+        passed_text = "\u9054\u6a19" if value.get("passed") else "\u672a\u9054\u6a19"
+        rows.append(
+            "<tr>"
+            f"<td>{escape_html(value.get('name') or key)}</td>"
+            f"<td>{fmt_numbers(value.get('numbers', []))}</td>"
+            f"<td>0</td>"
+            f"<td>{value.get('accidental_hits', 0)}</td>"
+            f"<td>{passed_text}</td>"
+            f"<td>{fmt_hit_numbers(value.get('hit_numbers', []), actual)}</td>"
+            f"<td>{fmt_numbers(value.get('avoided_numbers', []))}</td>"
+            "</tr>"
+        )
+    table = "".join(rows) or "<tr><td colspan='7'>\u672c\u671f\u6c92\u6709\u4f4e\u6a5f\u7387\u9054\u6a19\u6aa2\u8a0e</td></tr>"
+    return f"""
+      <p><strong>\u4f4e\u6a5f\u7387\u6aa2\u8a0e\uff1a{settled.get('based_on_date')} \u9810\u6e2c \u5230 {settled.get('actual_date')} \u958b\u734e</strong></p>
+      <table><thead><tr><th>\u66ab\u907f\u5305</th><th>\u539f\u66ab\u907f\u865f</th><th>\u76ee\u6a19\u8aa4\u4e2d</th><th>\u5be6\u969b\u8aa4\u4e2d</th><th>\u7d50\u679c</th><th>\u8aa4\u4e2d\u865f</th><th>\u6210\u529f\u907f\u958b\u865f</th></tr></thead><tbody>{table}</tbody></table>
+    """
+
+
+def compact_dual_track_html(analysis):
+    comparison = analysis.get("dual_track_model_comparison") or (
+        (analysis.get("industrial_engine") or {}).get("dual_track_model_comparison") or {}
+    )
+    if comparison.get("status") != "evaluated":
+        reason = comparison.get("reason", "\u5c1a\u7121\u8db3\u5920\u5df2\u7d50\u7b97\u8cc7\u6599")
+        return f"""
+        <div class="band">
+          <h2>\u96d9\u8ecc\u6a21\u578b\u5c0d\u7167</h2>
+          <p>\u72c0\u614b\uff1a{escape_html(reason)}</p>
+        </div>
+        """
+    summary = comparison.get("summary") or {}
+    raw = summary.get("raw_unadjusted") or {}
+    rolling = summary.get("rolling_adjusted") or {}
+    delta = summary.get("delta") or {}
+    audit = comparison.get("adjustment_error_audit") or {}
+
+    def counter_text(key):
+        rows = audit.get(key) or []
+        return "\u3001".join(f"{int(item.get('number')):02d}({item.get('count')})" for item in rows[:8]) or "-"
+
+    model_rows = []
+    for item in (comparison.get("raw_model_scorecard") or [])[:10]:
+        model_rows.append(
+            "<tr>"
+            f"<td>{escape_html(item.get('label') or item.get('model'))}</td>"
+            f"<td>{item.get('rounds', '-')}</td>"
+            f"<td>{fmt_decimal(item.get('top5_avg_hits'))}</td>"
+            f"<td>{fmt_decimal(item.get('top10_avg_hits'))}</td>"
+            f"<td>{fmt_decimal(item.get('top15_avg_hits'))}</td>"
+            f"<td>{fmt_decimal(item.get('top10_edge_vs_random'))}</td>"
+            "</tr>"
+        )
+    period_rows = []
+    for item in (comparison.get("period_rows") or [])[-10:]:
+        period_rows.append(
+            "<tr>"
+            f"<td>{escape_html(item.get('actual_date'))}</td>"
+            f"<td>{fmt_numbers(item.get('actual_numbers', []))}</td>"
+            f"<td>{fmt_numbers(item.get('raw_top10', []))}</td>"
+            f"<td>{item.get('raw_top10_hits', '-')}</td>"
+            f"<td>{fmt_numbers(item.get('rolling_top10', []))}</td>"
+            f"<td>{item.get('rolling_top10_hits', '-')}</td>"
+            f"<td>{item.get('top10_gain', '-')}</td>"
+            f"<td>{fmt_numbers(item.get('rescued_hit_numbers', []))}</td>"
+            f"<td>{fmt_numbers(item.get('lost_hit_numbers', []))}</td>"
+            "</tr>"
+        )
+    return f"""
+      <div class="band">
+        <h2>\u96d9\u8ecc\u6a21\u578b\u5c0d\u7167\uff08\u539f\u59cb\u672a\u8abf\u6574 vs \u6efe\u52d5\u8abf\u6574\uff09</h2>
+        <div class="grid">
+          <div class="card"><div class="label">\u5c0d\u7167\u671f\u6578</div><div class="value">{comparison.get('sample_count')}</div></div>
+          <div class="card"><div class="label">\u539f\u59cb Top10</div><div class="value">{fmt_decimal(raw.get('top10_avg_hits'))}</div></div>
+          <div class="card"><div class="label">\u6efe\u52d5 Top10</div><div class="value">{fmt_decimal(rolling.get('top10_avg_hits'))}</div></div>
+          <div class="card"><div class="label">Top10 \u5dee\u503c</div><div class="value">{fmt_decimal(delta.get('top10_avg_hit_delta'))}</div></div>
+          <div class="card"><div class="label">\u5224\u5b9a</div><div class="value">{escape_html(summary.get('decision_label'))}</div></div>
+        </div>
+        <p>\u539f\u5247\uff1a{escape_html(comparison.get('policy'))}</p>
+        <table><tbody>
+          <tr><th>\u6efe\u52d5\u6551\u56de\u547d\u4e2d\u865f</th><td>{escape_html(counter_text('rescued_hit_numbers'))}</td></tr>
+          <tr><th>\u6efe\u52d5\u932f\u6bba\u547d\u4e2d\u865f</th><td>{escape_html(counter_text('lost_hit_numbers'))}</td></tr>
+          <tr><th>\u6efe\u52d5\u8aa4\u63d0\u672a\u4e2d\u865f</th><td>{escape_html(counter_text('false_promoted_miss_numbers'))}</td></tr>
+        </tbody></table>
+      </div>
+      <div class="band">
+        <h2>\u539f\u59cb\u6a21\u578b\u672a\u8abf\u6574\u6392\u540d</h2>
+        <table><thead><tr><th>\u6a21\u578b</th><th>\u5c0d\u7167\u671f</th><th>\u524d5\u5e73\u5747</th><th>\u524d10\u5e73\u5747</th><th>\u524d15\u5e73\u5747</th><th>\u524d10\u512a\u52e2</th></tr></thead><tbody>{''.join(model_rows) or '<tr><td colspan="6">\u6c92\u6709\u539f\u59cb\u6a21\u578b\u5c0d\u7167\u8cc7\u6599</td></tr>'}</tbody></table>
+      </div>
+      <div class="band">
+        <h2>\u8fd1\u671f\u9010\u671f\u5c0d\u7167</h2>
+        <table><thead><tr><th>\u958b\u734e\u65e5</th><th>\u5be6\u969b\u865f</th><th>\u539f\u59cbTop10</th><th>\u539f\u59cb\u4e2d</th><th>\u6efe\u52d5Top10</th><th>\u6efe\u52d5\u4e2d</th><th>\u5dee\u503c</th><th>\u6551\u56de</th><th>\u932f\u6bba</th></tr></thead><tbody>{''.join(period_rows) or '<tr><td colspan="9">\u6c92\u6709\u9010\u671f\u5c0d\u7167</td></tr>'}</tbody></table>
+      </div>
+    """
+
+
 def compact_super_single_html(packs, candidates):
     single_pack = (packs or {}).get("strong_single") or {}
     decision = single_pack.get("super_single_decision") or {}
@@ -3106,6 +3252,8 @@ def build_compact_html_report():
     report_time = analysis.get("generated_at", taipei_now().isoformat(timespec="seconds")).replace("T", " ")
     audit_status = daily_audit.get("status", "\u672a\u6aa2\u67e5")
     low_url = LOW_PROBABILITY_HTML.name
+    dual_track_html = compact_dual_track_html(analysis)
+    low_review_html = compact_low_probability_review_html(history)
     stats_rows = []
     for key, label in [("strong_single", "\u7368\u96bb1\u4e2d1"), ("two_hit_one", "2\u4e2d1"), ("three_hit_one", "3\u4e2d1"), ("five_hit_two", "5\u4e2d2"), ("nine_hit_three", "9\u4e2d3")]:
         stat = strong_stats.get(key) or {}
@@ -3203,6 +3351,7 @@ def build_compact_html_report():
     </div>
   </section>
   <section id="models" class="panel">
+    {dual_track_html}
     <div class="band">
       <h2>\u6a21\u578b\u56de\u6e2c\u6458\u8981</h2>
       <table><thead><tr><th>\u6a21\u578b</th><th>\u56de\u6e2c\u671f</th><th>\u524d5\u5e73\u5747</th><th>\u524d10\u5e73\u5747</th><th>\u524d15\u5e73\u5747</th><th>\u524d10\u512a\u52e2</th></tr></thead><tbody>{compact_model_rows(analysis, health)}</tbody></table>
@@ -3217,6 +3366,10 @@ def build_compact_html_report():
     </div>
   </section>
   <section id="avoid" class="panel">
+    <div class="band">
+      <h2>\u4f4e\u6a5f\u7387\u9054\u6a19\u6aa2\u8a0e</h2>
+      {low_review_html}
+    </div>
     <div class="band warn">
       <h2>\u4f4e\u6a5f\u7387\u7cbe\u6e96\u66ab\u907f</h2>
       <p>\u4f4e\u6a5f\u7387\u5206\u6790\u5df2\u7368\u7acb\u958b\u9801\uff0c\u4e3b\u9801\u53ea\u4fdd\u7559 5\u4e0d\u4e2d\u300110\u4e0d\u4e2d\u300115\u4e0d\u4e2d\u6458\u8981\u3002</p>
@@ -3249,6 +3402,23 @@ def build_low_probability_html_report():
     backtest = industrial.get("unlikely_backtest") or {}
     avoid_packs = unlikely.get("avoid_packs") or {}
     report_time = analysis.get("generated_at", taipei_now().isoformat(timespec="seconds")).replace("T", " ")
+    history = prediction_history()
+    settled = next((item for item in history if item.get("status") == "settled"), {})
+    low_review_rows = []
+    actual_numbers = settled.get("actual_numbers") or []
+    for key, value in (settled.get("unlikely_pack_hits") or {}).items():
+        passed_text = "\u9054\u6a19" if value.get("passed") else "\u672a\u9054\u6a19"
+        low_review_rows.append(
+            "<tr>"
+            f"<td>{escape_html(value.get('name') or key)}</td>"
+            f"<td>{fmt_numbers(value.get('numbers', []))}</td>"
+            f"<td>0</td>"
+            f"<td>{value.get('accidental_hits', 0)}</td>"
+            f"<td>{passed_text}</td>"
+            f"<td>{fmt_hit_numbers(value.get('hit_numbers', []), actual_numbers)}</td>"
+            f"<td>{fmt_numbers(value.get('avoided_numbers', []))}</td>"
+            "</tr>"
+        )
     pack_rows = []
     for key in ["five_miss", "ten_miss", "fifteen_miss"]:
         pack = avoid_packs.get(key) or {}
@@ -3311,6 +3481,10 @@ def build_low_probability_html_report():
     <h2>\u4f4e\u6a5f\u7387\u8aaa\u660e</h2>
     <p>\u672c\u9801\u53ea\u653e\u7d93\u904e\u904b\u7b97\u7684\u66ab\u907f\u865f\u78bc\uff0c\u7528\u65bc\u907f\u514d\u7d44\u5408\u6c61\u67d3\u8207\u98a8\u96aa\u63a7\u7ba1\uff1b\u4f4e\u6a5f\u7387\u4e0d\u7b49\u65bc\u7d55\u5c0d\u4e0d\u958b\u3002</p>
     <p><a href="latest_battle_report.html">\u56de\u5230\u4e3b\u6230\u5831</a></p>
+  </section>
+  <section class="band">
+    <h2>\u4e0a\u671f\u4f4e\u6a5f\u7387\u9054\u6a19\u6aa2\u8a0e\uff08{settled.get('based_on_date', '-')} \u9810\u6e2c -> {settled.get('actual_date', '-')} \u958b\u734e\uff09</h2>
+    <table><thead><tr><th>\u66ab\u907f\u5305</th><th>\u539f\u66ab\u907f\u865f</th><th>\u76ee\u6a19\u8aa4\u4e2d</th><th>\u5be6\u969b\u8aa4\u4e2d</th><th>\u7d50\u679c</th><th>\u8aa4\u4e2d\u865f</th><th>\u6210\u529f\u907f\u958b\u865f</th></tr></thead><tbody>{''.join(low_review_rows) or '<tr><td colspan="7">\u672c\u671f\u6c92\u6709\u4f4e\u6a5f\u7387\u9054\u6a19\u6aa2\u8a0e</td></tr>'}</tbody></table>
   </section>
   <section class="band">
     <h2>5\u4e0d\u4e2d / 10\u4e0d\u4e2d / 15\u4e0d\u4e2d \u66ab\u907f\u5305</h2>

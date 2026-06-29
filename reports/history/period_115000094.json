@@ -20,6 +20,8 @@
   "top15_hits": null,
   "top10_hit_numbers": [],
   "strong_pack_hits": {},
+  "unlikely_packs": {},
+  "unlikely_pack_hits": {},
   "status": "missing_prediction",
   "created_at": "",
   "settled_at": "",

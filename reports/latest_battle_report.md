@@ -1,6 +1,6 @@
 # 539 開獎預測戰報
 
-- 產生時間：2026-06-30T02:21:44
+- 產生時間：2026-06-30T07:15:58
 - 系統狀態：ok
 - 資料新鮮度：fresh / 應有最新日期 2026-06-29
 - 最新期別：115000157 (2026-06-29)
@@ -8,7 +8,7 @@
 - 全歷史資料庫運算：2007-01-01 至 2026-06-29 / 共 5901 期 / 期別 96000001 至 115000157
 - 預測目標期：115000158
 - 正式預測狀態：未達正式發布門檻，但已重新運算，觀察預測時間與回測已刷新
-- 目前待結算追蹤記錄：全歷史運算至最新切點期 115000157 / 目標期 115000158 / 建立 2026-06-29T18:21:43
+- 目前待結算追蹤記錄：全歷史運算至最新切點期 115000157 / 目標期 115000158 / 建立 2026-06-30T07:15:58
 - 運算模式：目前正式模式
 - 重號政策：最新開獎號不再硬性排除，僅依連莊回測軟性降權
 - 工業引擎：industrial_v21_bagging_tail_zone_pressure
@@ -107,6 +107,13 @@
 | 最強3中1 | 05 08 29 | 1 | 0 | 未達標 |  | 05 08 29 |
 | 最強5中2 | 01 08 13 29 36 | 2 | 1 | 未達標 | <span style="color:#dc2626;border:2px solid #dc2626;border-radius:999px;padding:1px 6px;font-weight:700;">36</span> | 01 08 13 29 |
 | 最強9中3 | 01 05 08 24 26 27 29 30 36 | 3 | 2 | 未達標 | <span style="color:#dc2626;border:2px solid #dc2626;border-radius:999px;padding:1px 6px;font-weight:700;">30</span> <span style="color:#dc2626;border:2px solid #dc2626;border-radius:999px;padding:1px 6px;font-weight:700;">36</span> | 01 05 08 24 26 27 29 |
+
+## 昨日低機率暫避達標檢討
+| 暫避包 | 原暫避號 | 目標誤中 | 實際誤中 | 結果 | 誤中號 | 成功避開號 |
+| --- | --- | ---: | ---: | --- | --- | --- |
+| 5不中暫避 | 02 06 07 11 15 | 0 | 2 | 未達標 | <span style="color:#dc2626;border:2px solid #dc2626;border-radius:999px;padding:1px 6px;font-weight:700;">11</span> <span style="color:#dc2626;border:2px solid #dc2626;border-radius:999px;padding:1px 6px;font-weight:700;">15</span> | 02 06 07 |
+| 10不中暫避 | 02 04 06 07 11 12 15 17 25 33 | 0 | 2 | 未達標 | <span style="color:#dc2626;border:2px solid #dc2626;border-radius:999px;padding:1px 6px;font-weight:700;">11</span> <span style="color:#dc2626;border:2px solid #dc2626;border-radius:999px;padding:1px 6px;font-weight:700;">15</span> | 02 04 06 07 12 17 25 33 |
+| 15不中暫避 | 02 04 06 07 11 12 15 17 23 25 33 35 37 38 39 | 0 | 2 | 未達標 | <span style="color:#dc2626;border:2px solid #dc2626;border-radius:999px;padding:1px 6px;font-weight:700;">11</span> <span style="color:#dc2626;border:2px solid #dc2626;border-radius:999px;padding:1px 6px;font-weight:700;">15</span> | 02 04 06 07 12 17 23 25 33 35 37 38 39 |
 
 ## 昨日來源理由成敗統計
 | 來源理由 | 命中 | 未命中 | 涉及號碼 | 修正方向 |
@@ -307,7 +314,7 @@
 ## 真實追蹤
 - 待結算預測：1
 - 已結算預測：25
-- 預測快照：193
+- 預測快照：194
 - 保留原則：正式預測不被同期重跑覆蓋，重跑結果只進快照表供比對。
 - 實際 Top10 平均命中：1.32
 

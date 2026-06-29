@@ -56,16 +56,16 @@
 <body>
 <header>
   <h1>539 精算預測戰報</h1>
-  <p>產生時間 2026-06-30 02:21:22 / 全歷史資料 2007-01-01 到 2026-06-29 / 共 5901 期 / 期別 96000001 到 115000157</p>
+  <p>產生時間 2026-06-30 07:15:31 / 全歷史資料 2007-01-01 到 2026-06-29 / 共 5901 期 / 期別 96000001 到 115000157</p>
   <p>最新開獎 115000157 期 / 2026-06-29 / 11 15 30 34 36　預測目標 2026-06-30</p>
 </header>
 <main>
     <section class="band">
       <h2>手機獨立操作</h2>
-      <p><strong>手機版最後建立：2026-06-30T02:21:44+08:00</strong></p>
-      <p>最新資料：115000157期 / 2026-06-29 / 版本 20260630022144</p>
-      <p><a class="mobile-action refresh" href="clear-cache.html?v=20260630022144">清除舊版快取並打開最新手機版</a></p>
-      <p><a class="mobile-action history" href="prediction-history.html?v=20260630022144">查看每期預測對比</a></p>
+      <p><strong>手機版最後建立：2026-06-30T07:15:59+08:00</strong></p>
+      <p>最新資料：115000157期 / 2026-06-29 / 版本 20260630071559</p>
+      <p><a class="mobile-action refresh" href="clear-cache.html?v=20260630071559">清除舊版快取並打開最新手機版</a></p>
+      <p><a class="mobile-action history" href="prediction-history.html?v=20260630071559">查看每期預測對比</a></p>
       <p><a class="mobile-action" href="https://github.com/pingshen670924-dotcom/mobile-539-system/actions/workflows/daily-update.yml">登入雲端平台後立即更新</a></p>
       <p><button class="mobile-action refresh" type="button" onclick="forceRefresh()">強制重新載入最新手機成果</button></p>
       <p>手機版開獎後即時同步：台北時間 20:35 起進入密集追蹤，每45秒追台彩最新資料，抓到後立刻重算、重建電腦戰報與手機版。</p>
@@ -132,6 +132,32 @@
     </div>
   </section>
   <section id="models" class="panel">
+    
+      <div class="band">
+        <h2>雙軌模型對照（原始未調整 vs 滾動調整）</h2>
+        <div class="grid">
+          <div class="card"><div class="label">對照期數</div><div class="value">25</div></div>
+          <div class="card"><div class="label">原始 前10名</div><div class="value">1.200</div></div>
+          <div class="card"><div class="label">滾動 前10名</div><div class="value">1.320</div></div>
+          <div class="card"><div class="label">前10名 差值</div><div class="value">0.120</div></div>
+          <div class="card"><div class="label">判定</div><div class="value">原始模型與滾動調整暫無明顯勝負</div></div>
+        </div>
+        <p>原則：同一個預測基準日比較原始未調整模型與當時已保存的滾動調整預測，不使用未來資料。</p>
+        <table><tbody>
+          <tr><th>滾動救回命中號</th><td>07(2)、31(2)、22(1)、35(1)、20(1)、15(1)、28(1)、17(1)</td></tr>
+          <tr><th>滾動錯殺命中號</th><td>08(3)、04(2)、25(2)、12(1)、27(1)、18(1)、07(1)、02(1)</td></tr>
+          <tr><th>滾動誤提未中號</th><td>27(9)、24(8)、20(7)、09(6)、22(6)、03(5)、05(5)、26(5)</td></tr>
+        </tbody></table>
+      </div>
+      <div class="band">
+        <h2>原始模型未調整排名</h2>
+        <table><thead><tr><th>模型</th><th>對照期</th><th>前5平均</th><th>前10平均</th><th>前15平均</th><th>前10優勢</th></tr></thead><tbody><tr><td>共現配對</td><td>25</td><td>0.920</td><td>1.600</td><td>2.240</td><td>0.318</td></tr><tr><td>分區覆蓋回補</td><td>25</td><td>0.760</td><td>1.600</td><td>2.080</td><td>0.318</td></tr><tr><td>馬可夫</td><td>25</td><td>0.640</td><td>1.520</td><td>2.560</td><td>0.238</td></tr><tr><td>近100期熱度</td><td>25</td><td>0.840</td><td>1.480</td><td>2.240</td><td>0.198</td></tr><tr><td>尾數區間</td><td>25</td><td>0.720</td><td>1.440</td><td>1.920</td><td>0.158</td></tr><tr><td>多模型共識</td><td>25</td><td>0.720</td><td>1.440</td><td>1.920</td><td>0.158</td></tr><tr><td>遺漏週期</td><td>25</td><td>0.680</td><td>1.440</td><td>2.080</td><td>0.158</td></tr><tr><td>近300期穩定</td><td>25</td><td>0.640</td><td>1.440</td><td>2.320</td><td>0.158</td></tr><tr><td>神經網路</td><td>25</td><td>0.560</td><td>1.440</td><td>1.960</td><td>0.158</td></tr><tr><td>慢速加權趨勢</td><td>25</td><td>0.840</td><td>1.400</td><td>2.040</td><td>0.118</td></tr></tbody></table>
+      </div>
+      <div class="band">
+        <h2>近期逐期對照</h2>
+        <table><thead><tr><th>開獎日</th><th>實際號</th><th>原始前10名</th><th>原始中</th><th>滾動前10名</th><th>滾動中</th><th>差值</th><th>救回</th><th>錯殺</th></tr></thead><tbody><tr><td>2026-06-18</td><td>09 20 27 28 30</td><td>06 02 11 08 25 04 12 21 07 29</td><td>0</td><td>38 17 29 05 35 14 25 19 01 03</td><td>0</td><td>0</td><td></td><td></td></tr><tr><td>2026-06-19</td><td>01 05 07 13 25</td><td>08 06 04 02 07 25 11 12 21 18</td><td>2</td><td>08 28 24 04 26 10 22 37 15 31</td><td>0</td><td>-2</td><td></td><td>07 25</td></tr><tr><td>2026-06-20</td><td>04 11 24 25 31</td><td>08 02 06 04 12 28 36 11 21 20</td><td>2</td><td>11 03 23 17 21 14 35 38 19 09</td><td>1</td><td>-1</td><td></td><td>04</td></tr><tr><td>2026-06-22</td><td>01 07 28 29 34</td><td>08 02 06 12 21 17 03 28 05 36</td><td>1</td><td>08 29 27 05 28 26 30 24 10 07</td><td>3</td><td>2</td><td>07 29</td><td></td></tr><tr><td>2026-06-23</td><td>02 14 25 29 36</td><td>08 25 02 06 12 04 21 05 15 11</td><td>2</td><td>08 30 27 20 24 36 05 25 14 31</td><td>3</td><td>1</td><td>14 36</td><td>02</td></tr><tr><td>2026-06-24</td><td>03 17 21 32 33</td><td>08 28 07 12 06 04 17 05 20 01</td><td>1</td><td>08 30 27 24 17 01 02 04 28 09</td><td>1</td><td>0</td><td></td><td></td></tr><tr><td>2026-06-25</td><td>06 13 21 29 34</td><td>08 25 06 02 07 04 28 29 12 31</td><td>2</td><td>08 29 30 31 20 25 05 28 27 22</td><td>1</td><td>-1</td><td></td><td>06</td></tr><tr><td>2026-06-26</td><td>08 10 14 26 36</td><td>08 25 07 12 28 04 02 05 11 18</td><td>1</td><td>08 24 01 25 17 05 28 30 27 15</td><td>1</td><td>0</td><td></td><td></td></tr><tr><td>2026-06-27</td><td>04 14 21 31 32</td><td>25 29 07 06 05 28 01 08 11 04</td><td>1</td><td>25 29 07 06 05 28 01 08 11 04</td><td>1</td><td>0</td><td></td><td></td></tr><tr><td>2026-06-29</td><td>11 15 30 34 36</td><td>08 29 25 06 36 12 07 02 05 28</td><td>1</td><td>08 29 36 01 05 30 24 26 27 13</td><td>2</td><td>1</td><td>30</td><td></td></tr></tbody></table>
+      </div>
+    
     <div class="band">
       <h2>模型回測摘要</h2>
       <table><thead><tr><th>模型</th><th>回測期</th><th>前5平均</th><th>前10平均</th><th>前15平均</th><th>前10優勢</th></tr></thead><tbody><tr><td>similar</td><td>240</td><td>0.671</td><td>1.337</td><td>1.958</td><td>0.055</td></tr><tr><td>尾數區間</td><td>240</td><td>0.675</td><td>1.321</td><td>1.946</td><td>0.039</td></tr><tr><td>repeat_neighbor</td><td>240</td><td>0.688</td><td>1.321</td><td>1.942</td><td>0.039</td></tr><tr><td>date</td><td>240</td><td>0.646</td><td>1.292</td><td>2.013</td><td>0.010</td></tr><tr><td>twin</td><td>240</td><td>0.625</td><td>1.275</td><td>1.904</td><td>-0.007</td></tr><tr><td>omission</td><td>240</td><td>0.654</td><td>1.271</td><td>2.017</td><td>-0.011</td></tr><tr><td>heat_mid</td><td>240</td><td>0.683</td><td>1.271</td><td>1.904</td><td>-0.011</td></tr><tr><td>ensemble</td><td>240</td><td>0.608</td><td>1.254</td><td>1.871</td><td>-0.028</td></tr></tbody></table>
@@ -146,6 +172,13 @@
     </div>
   </section>
   <section id="avoid" class="panel">
+    <div class="band">
+      <h2>低機率達標檢討</h2>
+      
+      <p><strong>低機率檢討：2026-06-27 預測 到 2026-06-29 開獎</strong></p>
+      <table><thead><tr><th>暫避包</th><th>原暫避號</th><th>目標誤中</th><th>實際誤中</th><th>結果</th><th>誤中號</th><th>成功避開號</th></tr></thead><tbody><tr><td>5不中暫避</td><td>02 06 07 11 15</td><td>0</td><td>2</td><td>未達標</td><td><span style="color:#dc2626;border:2px solid #dc2626;border-radius:999px;padding:1px 6px;font-weight:700;">11</span> <span style="color:#dc2626;border:2px solid #dc2626;border-radius:999px;padding:1px 6px;font-weight:700;">15</span></td><td>02 06 07</td></tr><tr><td>10不中暫避</td><td>02 04 06 07 11 12 15 17 25 33</td><td>0</td><td>2</td><td>未達標</td><td><span style="color:#dc2626;border:2px solid #dc2626;border-radius:999px;padding:1px 6px;font-weight:700;">11</span> <span style="color:#dc2626;border:2px solid #dc2626;border-radius:999px;padding:1px 6px;font-weight:700;">15</span></td><td>02 04 06 07 12 17 25 33</td></tr><tr><td>15不中暫避</td><td>02 04 06 07 11 12 15 17 23 25 33 35 37 38 39</td><td>0</td><td>2</td><td>未達標</td><td><span style="color:#dc2626;border:2px solid #dc2626;border-radius:999px;padding:1px 6px;font-weight:700;">11</span> <span style="color:#dc2626;border:2px solid #dc2626;border-radius:999px;padding:1px 6px;font-weight:700;">15</span></td><td>02 04 06 07 12 17 23 25 33 35 37 38 39</td></tr></tbody></table>
+    
+    </div>
     <div class="band warn">
       <h2>低機率精準暫避</h2>
       <p>低機率分析已獨立開頁，主頁只保留 5不中、10不中、15不中摘要。</p>
@@ -164,7 +197,7 @@
 </script>
 
     <script>
-      window.MOBILE_BUILD_VERSION="20260630022144";
+      window.MOBILE_BUILD_VERSION="20260630071559";
       async function forceRefresh(){
         try{
           if("serviceWorker" in navigator){
@@ -187,7 +220,7 @@
           }
         }catch(e){}
       }
-      if("serviceWorker" in navigator)navigator.serviceWorker.register("service-worker.js?v=20260630022144");
+      if("serviceWorker" in navigator)navigator.serviceWorker.register("service-worker.js?v=20260630071559");
       setInterval(checkMobileVersion, 15000);
       window.addEventListener("focus", checkMobileVersion);
       document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkMobileVersion();});

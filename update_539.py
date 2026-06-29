@@ -384,6 +384,7 @@ def init_db(conn):
             candidates_json TEXT NOT NULL,
             suggested_sets_json TEXT NOT NULL,
             strong_packs_json TEXT,
+            unlikely_packs_json TEXT,
             model_weights_json TEXT NOT NULL,
             backtest_json TEXT NOT NULL,
             created_at TEXT NOT NULL,
@@ -396,6 +397,7 @@ def init_db(conn):
             top15_hits INTEGER,
             set_hits_json TEXT,
             strong_pack_hits_json TEXT,
+            unlikely_pack_hits_json TEXT,
             status TEXT NOT NULL DEFAULT 'pending'
         )
         """
@@ -403,6 +405,8 @@ def init_db(conn):
     conn.execute("CREATE INDEX IF NOT EXISTS idx_predictions_539_status ON predictions_539(status)")
     ensure_column(conn, "predictions_539", "strong_packs_json", "TEXT")
     ensure_column(conn, "predictions_539", "strong_pack_hits_json", "TEXT")
+    ensure_column(conn, "predictions_539", "unlikely_packs_json", "TEXT")
+    ensure_column(conn, "predictions_539", "unlikely_pack_hits_json", "TEXT")
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS prediction_snapshots_539 (
@@ -413,6 +417,7 @@ def init_db(conn):
             candidates_json TEXT NOT NULL,
             suggested_sets_json TEXT NOT NULL,
             strong_packs_json TEXT,
+            unlikely_packs_json TEXT,
             model_weights_json TEXT NOT NULL,
             backtest_json TEXT NOT NULL,
             created_at TEXT NOT NULL,
@@ -420,6 +425,7 @@ def init_db(conn):
         )
         """
     )
+    ensure_column(conn, "prediction_snapshots_539", "unlikely_packs_json", "TEXT")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_prediction_snapshots_period ON prediction_snapshots_539(based_on_period)")
     conn.commit()
 
@@ -844,10 +850,124 @@ def integrity_report(conn):
     }
 
 
+def unlikely_packs_from_analysis(analysis):
+    industrial = analysis.get("industrial_engine") or {}
+    unlikely = industrial.get("unlikely_number_analysis") or {}
+    return unlikely.get("avoid_packs") or {}
+
+
+def settle_unlikely_packs(unlikely_packs, actual_numbers):
+    actual_set = {int(number) for number in actual_numbers}
+    results = {}
+    for key, pack in (unlikely_packs or {}).items():
+        numbers = [int(number) for number in pack.get("numbers", []) if number]
+        accidental_hits = sorted(set(numbers) & actual_set)
+        results[key] = {
+            "name": pack.get("name", key),
+            "numbers": numbers,
+            "target": "不中",
+            "hit_goal": 0,
+            "accidental_hits": len(accidental_hits),
+            "hit_numbers": accidental_hits,
+            "avoided_numbers": sorted(set(numbers) - actual_set),
+            "passed": len(accidental_hits) == 0,
+            "confidence_index": pack.get("confidence_index"),
+            "avg_avoid_score": pack.get("avg_avoid_score"),
+            "min_avoid_score": pack.get("min_avoid_score"),
+        }
+    return results
+
+
+def unlikely_packs_from_saved_candidates(candidates):
+    cleaned = []
+    for index, item in enumerate(candidates):
+        try:
+            number = int(item.get("number"))
+            score = float(item.get("score", 0.0) or 0.0)
+            confidence = float(item.get("confidence_index", 50.0) or 50.0)
+        except (TypeError, ValueError):
+            continue
+        if 1 <= number <= 39:
+            cleaned.append({
+                "number": number,
+                "score": max(0.0, min(1.0, score)),
+                "confidence_index": confidence,
+                "rank": int(item.get("rank") or index + 1),
+            })
+    cleaned.sort(key=lambda row: (row["score"], row["confidence_index"], -row["rank"], -row["number"]))
+
+    def make_pack(key, name, size):
+        selected = cleaned[:size]
+        numbers = sorted(row["number"] for row in selected)
+        avoid_scores = [1.0 - row["score"] for row in selected]
+        avg_avoid = sum(avoid_scores) / len(avoid_scores) if avoid_scores else 0.0
+        min_avoid = min(avoid_scores) if avoid_scores else 0.0
+        return key, {
+            "name": name,
+            "numbers": numbers,
+            "target": "不中",
+            "hit_goal": 0,
+            "confidence_index": round(50 + avg_avoid * 49, 1),
+            "avg_avoid_score": round(avg_avoid, 4),
+            "min_avoid_score": round(min_avoid, 4),
+            "source": "historical_backfill_from_saved_candidates",
+            "rule": "使用當時已保存候選排序的最低分號碼回填，避免使用未來資料。",
+        }
+
+    return dict([
+        make_pack("five_miss", "5不中暫避", 5),
+        make_pack("ten_miss", "10不中暫避", 10),
+        make_pack("fifteen_miss", "15不中暫避", 15),
+    ])
+
+
+def backfill_missing_unlikely_reviews(conn, limit=60):
+    rows = conn.execute(
+        """
+        SELECT id, candidates_json, actual_numbers_json, unlikely_packs_json, unlikely_pack_hits_json
+        FROM predictions_539
+        WHERE status='settled'
+          AND (
+            unlikely_packs_json IS NULL OR unlikely_packs_json='' OR unlikely_packs_json='{}'
+            OR unlikely_pack_hits_json IS NULL OR unlikely_pack_hits_json='' OR unlikely_pack_hits_json='{}'
+          )
+        ORDER BY actual_period DESC
+        LIMIT ?
+        """,
+        (limit,),
+    ).fetchall()
+    repaired = 0
+    for row in rows:
+        try:
+            candidates = json.loads(row[1] or "[]")
+            actual_numbers = json.loads(row[2] or "[]")
+            packs = json.loads(row[3] or "{}")
+        except json.JSONDecodeError:
+            continue
+        if not packs:
+            packs = unlikely_packs_from_saved_candidates(candidates)
+        hits = settle_unlikely_packs(packs, actual_numbers)
+        conn.execute(
+            """
+            UPDATE predictions_539
+            SET unlikely_packs_json=?, unlikely_pack_hits_json=?
+            WHERE id=?
+            """,
+            (
+                json.dumps(packs, ensure_ascii=False),
+                json.dumps(hits, ensure_ascii=False),
+                row[0],
+            ),
+        )
+        repaired += 1
+    conn.commit()
+    return {"repaired": repaired, "checked": len(rows)}
+
+
 def settle_predictions(conn):
     pending = conn.execute(
         """
-        SELECT id, based_on_period, candidates_json, suggested_sets_json, strong_packs_json
+        SELECT id, based_on_period, candidates_json, suggested_sets_json, strong_packs_json, unlikely_packs_json
         FROM predictions_539
         WHERE status = 'pending'
         ORDER BY based_on_period
@@ -871,6 +991,7 @@ def settle_predictions(conn):
         candidates = json.loads(prediction[2])
         suggested_sets = json.loads(prediction[3])
         strong_packs = json.loads(prediction[4] or "{}")
+        unlikely_packs = json.loads(prediction[5] or "{}")
         ranked_numbers = [item["number"] for item in candidates]
         set_hits = [
             {
@@ -891,12 +1012,13 @@ def settle_predictions(conn):
                 "hits": hits,
                 "passed": hits >= int(pack.get("hit_goal") or 0),
             }
+        unlikely_pack_hits = settle_unlikely_packs(unlikely_packs, actual_numbers)
         conn.execute(
             """
             UPDATE predictions_539
             SET settled_at=?, actual_period=?, actual_date=?, actual_numbers_json=?,
                 top5_hits=?, top10_hits=?, top15_hits=?, set_hits_json=?,
-                strong_pack_hits_json=?, status='settled'
+                strong_pack_hits_json=?, unlikely_pack_hits_json=?, status='settled'
             WHERE id=?
             """,
             (
@@ -909,6 +1031,7 @@ def settle_predictions(conn):
                 len(set(ranked_numbers[:15]) & actual_numbers),
                 json.dumps(set_hits, ensure_ascii=False),
                 json.dumps(strong_pack_hits, ensure_ascii=False),
+                json.dumps(unlikely_pack_hits, ensure_ascii=False),
                 prediction[0],
             ),
         )
@@ -1132,6 +1255,7 @@ def repair_missing_prediction_records(conn, lookback=12):
         candidates_json = json.dumps(analysis.get("official_candidates", analysis["candidates"]), ensure_ascii=False)
         suggested_sets_json = json.dumps(analysis["suggested_sets"], ensure_ascii=False)
         strong_packs_json = json.dumps(analysis["strong_prediction_packs"], ensure_ascii=False)
+        unlikely_packs_json = json.dumps(unlikely_packs_from_analysis(analysis), ensure_ascii=False)
         model_weights_json = json.dumps(analysis["model_weights"], ensure_ascii=False)
         backtest_payload = dict(analysis["backtest"])
         backtest_payload["auto_repair"] = analysis["auto_repair"]
@@ -1142,10 +1266,10 @@ def repair_missing_prediction_records(conn, lookback=12):
                 """
                 INSERT INTO predictions_539 (
                     based_on_period, based_on_date, target_period,
-                    candidates_json, suggested_sets_json, strong_packs_json,
+                    candidates_json, suggested_sets_json, strong_packs_json, unlikely_packs_json,
                     model_weights_json, backtest_json, created_at, status
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
                 """,
                 (
                     based["period"],
@@ -1154,6 +1278,7 @@ def repair_missing_prediction_records(conn, lookback=12):
                     candidates_json,
                     suggested_sets_json,
                     strong_packs_json,
+                    unlikely_packs_json,
                     model_weights_json,
                     backtest_json,
                     created_at,
@@ -1163,10 +1288,10 @@ def repair_missing_prediction_records(conn, lookback=12):
                 """
                 INSERT INTO prediction_snapshots_539 (
                     based_on_period, based_on_date, target_period,
-                    candidates_json, suggested_sets_json, strong_packs_json,
+                    candidates_json, suggested_sets_json, strong_packs_json, unlikely_packs_json,
                     model_weights_json, backtest_json, created_at, snapshot_reason
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     based["period"],
@@ -1175,6 +1300,7 @@ def repair_missing_prediction_records(conn, lookback=12):
                     candidates_json,
                     suggested_sets_json,
                     strong_packs_json,
+                    unlikely_packs_json,
                     model_weights_json,
                     backtest_json,
                     created_at,
@@ -1199,10 +1325,10 @@ def store_prediction_snapshot(conn, analysis, reason):
         """
         INSERT INTO prediction_snapshots_539 (
             based_on_period, based_on_date, target_period,
-            candidates_json, suggested_sets_json, strong_packs_json,
+            candidates_json, suggested_sets_json, strong_packs_json, unlikely_packs_json,
             model_weights_json, backtest_json, created_at, snapshot_reason
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             latest["period"],
@@ -1211,6 +1337,7 @@ def store_prediction_snapshot(conn, analysis, reason):
             json.dumps(analysis.get("official_candidates", analysis["candidates"]), ensure_ascii=False),
             json.dumps(analysis["suggested_sets"], ensure_ascii=False),
             json.dumps(analysis["strong_prediction_packs"], ensure_ascii=False),
+            json.dumps(unlikely_packs_from_analysis(analysis), ensure_ascii=False),
             json.dumps(analysis["model_weights"], ensure_ascii=False),
             json.dumps(analysis["backtest"], ensure_ascii=False),
             datetime.now().isoformat(timespec="seconds"),
@@ -1223,7 +1350,7 @@ def archive_existing_prediction(conn, prediction_id, reason):
     row = conn.execute(
         """
         SELECT based_on_period, based_on_date, target_period,
-               candidates_json, suggested_sets_json, strong_packs_json,
+               candidates_json, suggested_sets_json, strong_packs_json, unlikely_packs_json,
                model_weights_json, backtest_json
         FROM predictions_539
         WHERE id=?
@@ -1236,10 +1363,10 @@ def archive_existing_prediction(conn, prediction_id, reason):
         """
         INSERT INTO prediction_snapshots_539 (
             based_on_period, based_on_date, target_period,
-            candidates_json, suggested_sets_json, strong_packs_json,
+            candidates_json, suggested_sets_json, strong_packs_json, unlikely_packs_json,
             model_weights_json, backtest_json, created_at, snapshot_reason
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (*row, datetime.now().isoformat(timespec="seconds"), reason),
     )
@@ -1308,12 +1435,13 @@ def store_prediction(conn, analysis):
     new_candidates_json = json.dumps(analysis.get("official_candidates", analysis["candidates"]), ensure_ascii=False)
     new_sets_json = json.dumps(analysis["suggested_sets"], ensure_ascii=False)
     new_packs_json = json.dumps(analysis["strong_prediction_packs"], ensure_ascii=False)
+    new_unlikely_packs_json = json.dumps(unlikely_packs_from_analysis(analysis), ensure_ascii=False)
     new_weights_json = json.dumps(analysis["model_weights"], ensure_ascii=False)
     new_backtest_json = json.dumps(analysis["backtest"], ensure_ascii=False)
     exists = conn.execute(
         """
         SELECT id, status, candidates_json, suggested_sets_json, strong_packs_json,
-               model_weights_json, backtest_json
+               unlikely_packs_json, model_weights_json, backtest_json
         FROM predictions_539
         WHERE based_on_period=?
         """,
@@ -1331,7 +1459,7 @@ def store_prediction(conn, analysis):
             conn.execute(
                 """
                 UPDATE predictions_539
-                SET candidates_json=?, suggested_sets_json=?, strong_packs_json=?,
+                SET candidates_json=?, suggested_sets_json=?, strong_packs_json=?, unlikely_packs_json=?,
                     model_weights_json=?, backtest_json=?, created_at=?
                 WHERE id=?
                 """,
@@ -1339,6 +1467,7 @@ def store_prediction(conn, analysis):
                     new_candidates_json,
                     new_sets_json,
                     new_packs_json,
+                    new_unlikely_packs_json,
                     new_weights_json,
                     new_backtest_json,
                     datetime.now().isoformat(timespec="seconds"),
@@ -1352,15 +1481,16 @@ def store_prediction(conn, analysis):
             exists[2] != new_candidates_json
             or exists[3] != new_sets_json
             or (exists[4] or "") != new_packs_json
-            or exists[5] != new_weights_json
-            or exists[6] != new_backtest_json
+            or (exists[5] or "") != new_unlikely_packs_json
+            or exists[6] != new_weights_json
+            or exists[7] != new_backtest_json
         )
         if exists[1] == "pending" and changed:
             archive_existing_prediction(conn, exists[0], "official_prediction_before_recalculation_update")
             conn.execute(
                 """
                 UPDATE predictions_539
-                SET candidates_json=?, suggested_sets_json=?, strong_packs_json=?,
+                SET candidates_json=?, suggested_sets_json=?, strong_packs_json=?, unlikely_packs_json=?,
                     model_weights_json=?, backtest_json=?, created_at=?
                 WHERE id=?
                 """,
@@ -1368,6 +1498,7 @@ def store_prediction(conn, analysis):
                     new_candidates_json,
                     new_sets_json,
                     new_packs_json,
+                    new_unlikely_packs_json,
                     new_weights_json,
                     new_backtest_json,
                     datetime.now().isoformat(timespec="seconds"),
@@ -1381,7 +1512,7 @@ def store_prediction(conn, analysis):
             conn.execute(
                 """
                 UPDATE predictions_539
-                SET candidates_json=?, suggested_sets_json=?, strong_packs_json=?,
+                SET candidates_json=?, suggested_sets_json=?, strong_packs_json=?, unlikely_packs_json=?,
                     model_weights_json=?, backtest_json=?, created_at=?
                 WHERE id=?
                 """,
@@ -1389,6 +1520,7 @@ def store_prediction(conn, analysis):
                     new_candidates_json,
                     new_sets_json,
                     new_packs_json,
+                    new_unlikely_packs_json,
                     new_weights_json,
                     new_backtest_json,
                     datetime.now().isoformat(timespec="seconds"),
@@ -1410,10 +1542,10 @@ def store_prediction(conn, analysis):
         """
         INSERT INTO predictions_539 (
             based_on_period, based_on_date, target_period,
-            candidates_json, suggested_sets_json, strong_packs_json, model_weights_json, backtest_json,
+            candidates_json, suggested_sets_json, strong_packs_json, unlikely_packs_json, model_weights_json, backtest_json,
             created_at, status
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
         """,
         (
             latest["period"],
@@ -1422,6 +1554,7 @@ def store_prediction(conn, analysis):
             new_candidates_json,
             new_sets_json,
             new_packs_json,
+            new_unlikely_packs_json,
             new_weights_json,
             new_backtest_json,
             datetime.now().isoformat(timespec="seconds"),
@@ -1435,7 +1568,7 @@ def store_prediction(conn, analysis):
 def prediction_performance(conn):
     rows = conn.execute(
         """
-        SELECT top5_hits, top10_hits, top15_hits, set_hits_json, strong_pack_hits_json
+        SELECT top5_hits, top10_hits, top15_hits, set_hits_json, strong_pack_hits_json, unlikely_pack_hits_json
         FROM predictions_539
         WHERE status='settled'
         """
@@ -1445,15 +1578,21 @@ def prediction_performance(conn):
     set_hit_totals = []
     kpi_records = []
     pack_stats = defaultdict(lambda: {"rounds": 0, "passed": 0, "hits": 0})
+    unlikely_stats = defaultdict(lambda: {"rounds": 0, "passed": 0, "accidental_hits": 0})
     for row in rows:
         set_hits = json.loads(row[3] or "[]")
         set_hit_totals.extend(item["hits"] for item in set_hits)
         strong_pack_hits = json.loads(row[4] or "{}")
+        unlikely_pack_hits = json.loads(row[5] or "{}")
         kpi_records.append({"top15_hits": row[2], "strong_pack_hits": strong_pack_hits})
         for key, item in strong_pack_hits.items():
             pack_stats[key]["rounds"] += 1
             pack_stats[key]["passed"] += 1 if item.get("passed") else 0
             pack_stats[key]["hits"] += item.get("hits", 0)
+        for key, item in unlikely_pack_hits.items():
+            unlikely_stats[key]["rounds"] += 1
+            unlikely_stats[key]["passed"] += 1 if item.get("passed") else 0
+            unlikely_stats[key]["accidental_hits"] += int(item.get("accidental_hits") or 0)
     count = len(rows)
     return {
         "settled": count,
@@ -1468,6 +1607,14 @@ def prediction_performance(conn):
                 "avg_hits": round(value["hits"] / value["rounds"], 3) if value["rounds"] else 0,
             }
             for key, value in pack_stats.items()
+        },
+        "unlikely_pack_stats": {
+            key: {
+                "rounds": value["rounds"],
+                "pass_rate": round(value["passed"] / value["rounds"], 3) if value["rounds"] else 0,
+                "avg_accidental_hits": round(value["accidental_hits"] / value["rounds"], 3) if value["rounds"] else 0,
+            }
+            for key, value in unlikely_stats.items()
         },
         "research_kpi": evaluate_research_kpis(kpi_records),
     }
@@ -1579,6 +1726,12 @@ def run_main():
             settled = settle_predictions(conn)
             if settled:
                 logging.info("\u5df2\u7d50\u7b97\u9810\u6e2c\u7d00\u9304：%s \u7b46", settled)
+            repaired_unlikely = backfill_missing_unlikely_reviews(conn)
+            if repaired_unlikely["repaired"]:
+                logging.info(
+                    "\u5df2\u81ea\u52d5\u56de\u586b\u4f4e\u6a5f\u7387\u6aa2\u8a0e：%s",
+                    json.dumps(repaired_unlikely, ensure_ascii=False),
+                )
             integrity = integrity_report(conn)
             if integrity["invalid_periods"] or integrity["duplicate_periods"]:
                 raise RuntimeError(f"\u8cc7\u6599\u5b8c\u6574\u6027\u6aa2\u67e5\u5931\u6557：{integrity}")

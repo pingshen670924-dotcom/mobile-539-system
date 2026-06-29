@@ -1003,13 +1003,13 @@
       "hit_rate": 1.0
     },
     {
-      "reason": "尾數轉移加權",
+      "reason": "近100期偏熱(14次)",
       "hit": 1,
       "miss": 0,
       "hit_rate": 1.0
     },
     {
-      "reason": "近100期偏熱(14次)",
+      "reason": "尾數轉移加權",
       "hit": 1,
       "miss": 0,
       "hit_rate": 1.0

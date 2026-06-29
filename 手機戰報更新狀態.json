@@ -1,12 +1,12 @@
 {
   "status": "local_ready",
-  "version": "20260629220955",
-  "built_at": "2026-06-29T22:09:55+08:00",
+  "version": "20260630071559",
+  "built_at": "2026-06-30T07:15:59+08:00",
   "latest_period": 115000157,
   "latest_draw_date": "2026-06-29",
-  "site_url": "https://pingshen670924-dotcom.github.io/mobile-539-system/clear-cache.html?v=20260629220955&t=1782742195",
-  "cloud_url": "https://pingshen670924-dotcom.github.io/mobile-539-system/clear-cache.html?v=20260629220955&t=1782742195",
-  "report_url": "http://172.16.1.24:5390/report?token=oL18nVAg_JbaDg&v=20260629220955&t=1782742195",
-  "control_url": "http://172.16.1.24:5390/?token=oL18nVAg_JbaDg&v=20260629220955&t=1782742195",
+  "site_url": "https://pingshen670924-dotcom.github.io/mobile-539-system/clear-cache.html?v=20260630071559&t=1782774959",
+  "cloud_url": "https://pingshen670924-dotcom.github.io/mobile-539-system/clear-cache.html?v=20260630071559&t=1782774959",
+  "report_url": "http://172.16.1.24:5390/report?token=oL18nVAg_JbaDg&v=20260630071559&t=1782774959",
+  "control_url": "http://172.16.1.24:5390/?token=oL18nVAg_JbaDg&v=20260630071559&t=1782774959",
   "sync_policy": "本機手機版已重建；雲端手機版必須等發布腳本成功後才可標記為已同步。"
 }
