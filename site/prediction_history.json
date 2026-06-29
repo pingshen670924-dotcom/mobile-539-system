@@ -1,9 +1,63 @@
 {
-  "generated_at": "2026-06-29T14:57:11",
+  "generated_at": "2026-06-29T21:15:12",
   "total_periods": 81,
-  "settled_periods": 24,
+  "settled_periods": 25,
   "pending_periods": 1,
   "periods": [
+    {
+      "based_on_period": 115000157,
+      "based_on_date": "2026-06-29",
+      "target_period": 115000158,
+      "target_expected_date": "2026-06-30",
+      "top5": [
+        8,
+        4,
+        14,
+        5,
+        36
+      ],
+      "top10": [
+        8,
+        4,
+        14,
+        5,
+        36,
+        21,
+        20,
+        13,
+        10,
+        17
+      ],
+      "top15": [
+        8,
+        4,
+        14,
+        5,
+        36,
+        21,
+        20,
+        13,
+        10,
+        17,
+        29,
+        24,
+        32,
+        31,
+        3
+      ],
+      "actual_period": null,
+      "actual_date": null,
+      "actual_numbers": [],
+      "top5_hits": null,
+      "top10_hits": null,
+      "top15_hits": null,
+      "top10_hit_numbers": [],
+      "strong_pack_hits": {},
+      "status": "pending",
+      "created_at": "2026-06-29T21:15:11",
+      "settled_at": null,
+      "snapshot_count": 1
+    },
     {
       "based_on_period": 115000156,
       "based_on_date": "2026-06-27",
@@ -45,17 +99,87 @@
         18,
         22
       ],
-      "actual_period": null,
-      "actual_date": null,
-      "actual_numbers": [],
-      "top5_hits": null,
-      "top10_hits": null,
-      "top15_hits": null,
-      "top10_hit_numbers": [],
-      "strong_pack_hits": {},
-      "status": "pending",
+      "actual_period": 115000157,
+      "actual_date": "2026-06-29",
+      "actual_numbers": [
+        11,
+        15,
+        30,
+        34,
+        36
+      ],
+      "top5_hits": 1,
+      "top10_hits": 2,
+      "top15_hits": 3,
+      "top10_hit_numbers": [
+        30,
+        36
+      ],
+      "strong_pack_hits": {
+        "strong_single": {
+          "name": "最強單支",
+          "hit_goal": 1,
+          "numbers": [
+            29
+          ],
+          "hits": 0,
+          "passed": false
+        },
+        "two_hit_one": {
+          "name": "最強2中1",
+          "hit_goal": 1,
+          "numbers": [
+            8,
+            29
+          ],
+          "hits": 0,
+          "passed": false
+        },
+        "three_hit_one": {
+          "name": "最強3中1",
+          "hit_goal": 1,
+          "numbers": [
+            5,
+            8,
+            29
+          ],
+          "hits": 0,
+          "passed": false
+        },
+        "five_hit_two": {
+          "name": "最強5中2",
+          "hit_goal": 2,
+          "numbers": [
+            1,
+            8,
+            13,
+            29,
+            36
+          ],
+          "hits": 1,
+          "passed": false
+        },
+        "nine_hit_three": {
+          "name": "最強9中3",
+          "hit_goal": 3,
+          "numbers": [
+            1,
+            5,
+            8,
+            24,
+            26,
+            27,
+            29,
+            30,
+            36
+          ],
+          "hits": 2,
+          "passed": false
+        }
+      },
+      "status": "settled",
       "created_at": "2026-06-29T12:47:37",
-      "settled_at": null,
+      "settled_at": "2026-06-29T21:12:46",
       "snapshot_count": 6
     },
     {
@@ -4489,34 +4613,6 @@
         11,
         16,
         17
-      ],
-      "top5_hits": null,
-      "top10_hits": null,
-      "top15_hits": null,
-      "top10_hit_numbers": [],
-      "strong_pack_hits": {},
-      "status": "missing_prediction",
-      "created_at": "",
-      "settled_at": "",
-      "snapshot_count": 0,
-      "integrity_issue": "缺正式預測紀錄，不能結算命中率"
-    },
-    {
-      "based_on_period": null,
-      "based_on_date": null,
-      "target_period": 115000077,
-      "target_expected_date": "2026-03-27",
-      "top5": [],
-      "top10": [],
-      "top15": [],
-      "actual_period": 115000077,
-      "actual_date": "2026-03-27",
-      "actual_numbers": [
-        8,
-        18,
-        24,
-        34,
-        35
       ],
       "top5_hits": null,
       "top10_hits": null,

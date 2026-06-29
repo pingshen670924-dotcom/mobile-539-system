@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-29T15:39:26",
+  "generated_at": "2026-06-29T15:43:48",
   "status": "ok",
   "checked_files": 192,
   "failed_count": 0,
@@ -183,7 +183,7 @@
       "path": "publish_free_github.ps1",
       "status": "ok",
       "warnings": [],
-      "size": 10001
+      "size": 10021
     },
     {
       "path": "README.md",
@@ -405,7 +405,7 @@
       "path": "reports\\file_integrity_report.json",
       "status": "ok",
       "warnings": [],
-      "size": 26723
+      "size": 26724
     },
     {
       "path": "reports\\file_integrity_report.md",
