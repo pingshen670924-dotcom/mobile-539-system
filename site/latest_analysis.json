@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T00:30:02",
+  "generated_at": "2026-06-30T00:39:11",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000157,
@@ -17,7 +17,7 @@
     "latest_date": "2026-06-29",
     "expected_latest_date": "2026-06-29",
     "lag_days": 0,
-    "checked_at": "2026-06-30T00:28:15"
+    "checked_at": "2026-06-30T00:37:26"
   },
   "windows": [
     {
@@ -2610,13 +2610,13 @@
           "hit_rate": 1.0
         },
         {
-          "reason": "尾數轉移加權",
+          "reason": "近100期偏熱(14次)",
           "hit": 1,
           "miss": 0,
           "hit_rate": 1.0
         },
         {
-          "reason": "近100期偏熱(14次)",
+          "reason": "尾數轉移加權",
           "hit": 1,
           "miss": 0,
           "hit_rate": 1.0
@@ -4044,13 +4044,13 @@
             "hit_rate": 1.0
           },
           {
-            "reason": "尾數轉移加權",
+            "reason": "近100期偏熱(14次)",
             "hit": 1,
             "miss": 0,
             "hit_rate": 1.0
           },
           {
-            "reason": "近100期偏熱(14次)",
+            "reason": "尾數轉移加權",
             "hit": 1,
             "miss": 0,
             "hit_rate": 1.0
