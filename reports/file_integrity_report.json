@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-29T21:22:55",
+  "generated_at": "2026-06-29T21:34:53",
   "status": "ok",
   "checked_files": 193,
   "failed_count": 0,
@@ -147,7 +147,7 @@
       "path": "main_one_click.ps1",
       "status": "ok",
       "warnings": [],
-      "size": 7218
+      "size": 8218
     },
     {
       "path": "mobile_server.py",
@@ -219,7 +219,7 @@
       "path": "run_539_once.ps1",
       "status": "ok",
       "warnings": [],
-      "size": 6848
+      "size": 7848
     },
     {
       "path": "setup_line_push.ps1",
@@ -273,19 +273,19 @@
       "path": "手機戰報即時網址.txt",
       "status": "ok",
       "warnings": [],
-      "size": 81
+      "size": 68
     },
     {
       "path": "手機戰報更新狀態.json",
       "status": "ok",
       "warnings": [],
-      "size": 742
+      "size": 686
     },
     {
       "path": "手機控制台網址.txt",
       "status": "ok",
       "warnings": [],
-      "size": 75
+      "size": 62
     },
     {
       "path": "手機獨立版網址.txt",
@@ -309,7 +309,7 @@
       "path": "打開最新手機版.html",
       "status": "ok",
       "warnings": [],
-      "size": 907
+      "size": 939
     },
     {
       "path": "清理舊開機自動啟動_管理員.bat",
@@ -387,7 +387,7 @@
       "path": "reports\\daily_integrity_audit.json",
       "status": "ok",
       "warnings": [],
-      "size": 5154
+      "size": 5155
     },
     {
       "path": "reports\\daily_integrity_audit.md",
@@ -405,7 +405,7 @@
       "path": "reports\\file_integrity_report.json",
       "status": "ok",
       "warnings": [],
-      "size": 26724
+      "size": 26867
     },
     {
       "path": "reports\\file_integrity_report.md",
@@ -435,7 +435,7 @@
       "path": "reports\\latest_analysis.json",
       "status": "ok",
       "warnings": [],
-      "size": 1619087
+      "size": 1619118
     },
     {
       "path": "reports\\latest_analysis.md",
@@ -453,13 +453,13 @@
       "path": "reports\\latest_battle_report.md",
       "status": "ok",
       "warnings": [],
-      "size": 25445
+      "size": 25487
     },
     {
       "path": "reports\\latest_battle_report.txt",
       "status": "ok",
       "warnings": [],
-      "size": 25445
+      "size": 25487
     },
     {
       "path": "reports\\line_push_status.json",
@@ -579,7 +579,7 @@
       "path": "site\\latest_analysis.json",
       "status": "ok",
       "warnings": [],
-      "size": 1619087
+      "size": 1619118
     },
     {
       "path": "site\\low-probability.html",

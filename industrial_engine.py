@@ -344,6 +344,48 @@ def failed_number_set(review):
     return {n for n in failed if NUMBER_MIN <= n <= NUMBER_MAX}
 
 
+def recent_failed_strong_pack_map(review=None):
+    if not review or not review.get("has_review"):
+        return {}
+    settled = review.get("last_settled", {}) or {}
+    actual = {
+        int(number)
+        for number in settled.get("actual_numbers", [])
+        if NUMBER_MIN <= int(number) <= NUMBER_MAX
+    }
+    failed = defaultdict(set)
+    for key, pack in (settled.get("strong_pack_hits") or {}).items():
+        if pack.get("passed"):
+            continue
+        for number in pack.get("numbers", []):
+            number = int(number)
+            if NUMBER_MIN <= number <= NUMBER_MAX and number not in actual:
+                failed[number].add(str(key))
+    return {number: sorted(keys) for number, keys in failed.items()}
+
+
+def failed_strong_quarantine_release(item, review=None):
+    number = int(item.get("number"))
+    failed_map = recent_failed_strong_pack_map(review)
+    packs = set(failed_map.get(number, []))
+    if not packs:
+        return True
+    objective_edge = float((item.get("objective_feature_calibration") or {}).get("objective_edge", 0.0) or 0.0)
+    hit_edge = float((item.get("hit_through_calibration") or {}).get("edge_vs_baseline", 0.0) or 0.0)
+    cross = int((item.get("cross_validation") or {}).get("passed_count") or 0)
+    stability = int(item.get("stability_count") or 0)
+    score = float(item.get("score", 0.0) or 0.0)
+    strict_short_pack = bool(packs & {"strong_single", "two_hit_one", "three_hit_one"})
+    if strict_short_pack:
+        return bool(objective_edge >= 0.070 and hit_edge >= 0.035 and cross >= 9 and stability >= 4 and score >= 0.86)
+    return bool(objective_edge >= 0.055 and hit_edge >= 0.020 and cross >= 8 and score >= 0.82)
+
+
+def failed_strong_pack_blocked(item, review=None):
+    number = int(item.get("number"))
+    return bool(number in recent_failed_strong_pack_map(review) and not failed_strong_quarantine_release(item, review))
+
+
 def previous_prediction_set(review, limit=15):
     if not review or not review.get("has_review"):
         return set()
@@ -374,11 +416,22 @@ def previous_prediction_guard(number, values, review):
     validated_dependency = values.get("validated_dependency", 0) >= 0.7
     strong_count = sum(strong_conditions)
     recovery_count = sum(recovery_conditions)
-    passed = (
-        (validated_dependency and strong_count >= 2)
-        or recovery_count >= 2
-        or (strong_count >= 3 and values.get("cross_consensus", 0) >= 0.58)
-    )
+    if number in failed_number_set(review):
+        passed = (
+            (validated_dependency and strong_count >= 3 and recovery_count >= 2)
+            or (
+                strong_count >= 4
+                and recovery_count >= 2
+                and values.get("cross_consensus", 0) >= 0.70
+                and values.get("rank_error_correction", 0) >= 0.58
+            )
+        )
+    else:
+        passed = (
+            (validated_dependency and strong_count >= 2)
+            or recovery_count >= 2
+            or (strong_count >= 3 and values.get("cross_consensus", 0) >= 0.58)
+        )
     return {
         "passed": passed,
         "decision": "qualified_reentry_allowed" if passed else "soft_guard_previous_prediction",
@@ -1329,6 +1382,7 @@ def live_precision_calibration(candidates, review=None):
     monthly_recall = _count_map(rolling.get("monthly_recall_numbers", []), "number", "missed_count")
     monthly_tails = _count_map(rolling.get("monthly_recall_tails", []), "tail", "missed_count")
     monthly_zones = _label_count_map(rolling.get("monthly_recall_zones", []), "zone", "missed_count")
+    failed_strong_map = recent_failed_strong_pack_map(review)
     boosted_reasons = _string_set(rolling.get("boosted_reasons", []), "reason")
     penalized_reasons = _string_set(rolling.get("penalized_reasons", []), "reason")
     slump_intensity = 1.0 if mode == "warning" else 1.35 if mode == "critical" else 0.65
@@ -1352,6 +1406,7 @@ def live_precision_calibration(candidates, review=None):
         stability = int(row.get("stability_count", 0) or 0)
         guard = row.get("previous_prediction_guard")
         repeat_info = row.get("repeat_guard")
+        failed_strong_packs = set(failed_strong_map.get(number, []))
 
         adjustment = 0.0
         tags = []
@@ -1366,7 +1421,7 @@ def live_precision_calibration(candidates, review=None):
             boundary_factor = 1.0 if original_rank <= 15 else 0.72
             adjustment += 0.024 * boundary_factor * slump_intensity
             tags.append("top10_boundary_recovery")
-        if 11 <= original_rank <= 25 and (
+        if 11 <= original_rank <= 25 and number not in failed_strong_map and (
             number not in repeated_failed_numbers or number in monthly_recall or number in missed_actual
         ) and (number in late_hits or number in missed_actual or number in monthly_recall or stability >= 4):
             depth_factor = 1.0 if original_rank <= 15 else 0.68
@@ -1379,7 +1434,7 @@ def live_precision_calibration(candidates, review=None):
         if number in missed_actual:
             adjustment += min(0.145, 0.026 * missed_actual[number]) * slump_intensity
             tags.append("missed_actual_number_recovered")
-        if number in monthly_recall:
+        if number in monthly_recall and number not in failed_strong_map:
             adjustment += min(0.118, 0.022 * monthly_recall[number]) * slump_intensity
             tags.append("monthly_recall_number_recovered")
         if number % 10 in missed_tails:
@@ -1395,10 +1450,13 @@ def live_precision_calibration(candidates, review=None):
             adjustment += min(0.026, 0.0035 * monthly_zones[zone_label(number)]) * slump_intensity
             tags.append("monthly_zone_recovered")
 
+        if failed_strong_packs:
+            adjustment -= (0.145 + (0.050 if original_rank <= 5 else 0.0)) * slump_intensity
+            tags.append("failed_strong_pack_quarantine")
         if number in repeated_failed:
-            if number in late_hits or number in missed_actual or number in monthly_recall:
-                adjustment -= min(0.110, 0.014 * repeated_failed[number]) * (1.10 if top10_slump else 0.92)
-                tags.append("repeated_failed_softened_by_recovery")
+            if number in late_hits or number in missed_actual or (number in monthly_recall and not failed_strong_packs):
+                adjustment -= min(0.145, 0.020 * repeated_failed[number]) * (1.18 if top10_slump else 1.0)
+                tags.append("repeated_failed_recovery_limited")
             else:
                 adjustment -= min(0.245, 0.032 * repeated_failed[number]) * (1.22 if top10_slump else 1.0)
                 tags.append("repeated_failed_number_penalty")
@@ -1436,6 +1494,8 @@ def live_precision_calibration(candidates, review=None):
         adjustment += max(0.0, (passed / total) - 0.45) * 0.040
 
         calibrated_score = max(0.0, min(1.0, base_score + adjustment))
+        if failed_strong_packs and not (passed >= 9 and stability >= 4):
+            calibrated_score = min(calibrated_score, 0.82)
         row["pre_calibration_rank"] = original_rank
         row["pre_calibration_score"] = round(base_score, 4)
         row["precision_calibration"] = {
@@ -1959,6 +2019,8 @@ def recall_priority_score(item, review=None):
     repeated_count = maps["repeated_failed"].get(number, 0)
     if repeated_count >= 6 and number_score < 0.35:
         priority -= min(0.18, repeated_count * 0.018)
+    if number in recent_failed_strong_pack_map(review) and not failed_strong_quarantine_release(item, review):
+        priority -= 0.22
     if item.get("repeat_guard") and not item["repeat_guard"].get("passed"):
         priority -= 0.22
     if previous_guard_blocks_item(item) and number_score < 0.40:
@@ -1988,7 +2050,9 @@ def apply_slump_recall_coverage_mode(draws, candidates, review=None):
             adjustment -= 0.035 * intensity
         if maps["repeated_failed"].get(number, 0) >= 6 and priority < 0.55:
             adjustment -= 0.045 * intensity
-        if number in maps["missed_numbers"] or number in maps["monthly_numbers"] or number in maps["late_numbers"]:
+        if number in recent_failed_strong_pack_map(review) and not failed_strong_quarantine_release(row, review):
+            adjustment -= 0.085 * intensity
+        if number not in recent_failed_strong_pack_map(review) and (number in maps["missed_numbers"] or number in maps["monthly_numbers"] or number in maps["late_numbers"]):
             adjustment += 0.026 * intensity
         adjustment = max(-0.17, min(0.18, adjustment))
         base_score = float(row.get("score", 0) or 0)
@@ -2505,6 +2569,7 @@ def score_numbers(draws, review=None, include_dependency=True, weights_override=
     monthly_recall_numbers = {int(item.get("number")) for item in rolling.get("monthly_recall_numbers", []) if item.get("number")}
     monthly_recall_tails = {int(item.get("tail")) for item in rolling.get("monthly_recall_tails", []) if item.get("tail") is not None}
     monthly_recall_zones = {str(item.get("zone")) for item in rolling.get("monthly_recall_zones", []) if item.get("zone")}
+    failed_strong_map = recent_failed_strong_pack_map(review)
     mode = slump_mode(review)
     latest_set = set(draws[-1]["numbers"])
     repeat_policy = repeat_guard(draws)
@@ -2526,19 +2591,37 @@ def score_numbers(draws, review=None, include_dependency=True, weights_override=
         elif previous_policy and previous_policy["passed"]:
             reasons[number].append("\u6628\u65e5\u9810\u6e2c\u865f\u901a\u904e\u91cd\u5165\u9a57\u7b97")
         if number in failed:
+            failed_strong_packs = set(failed_strong_map.get(number, []))
             reentry_signal = (
                 number in late_hit_numbers
                 or number in missed_actual_numbers
-                or values.get("rank_error_correction", 0) >= 0.58
-                or values.get("missed_hit_recovery", 0) >= 0.58
-                or values.get("monthly_recall_pressure", 0) >= 0.58
-                or values.get("cold_rebound_champion", 0) >= 0.64
-                or values.get("tail_transition_bridge", 0) >= 0.62
-                or values.get("zone_quota_pressure", 0) >= 0.62
-                or values.get("zone_coverage_recovery", 0) >= 0.62
+                or values.get("rank_error_correction", 0) >= 0.68
+                or values.get("missed_hit_recovery", 0) >= 0.66
+                or values.get("monthly_recall_pressure", 0) >= 0.74
+                or values.get("cold_rebound_champion", 0) >= 0.72
+                or values.get("tail_transition_bridge", 0) >= 0.72
+                or values.get("zone_quota_pressure", 0) >= 0.72
+                or values.get("zone_coverage_recovery", 0) >= 0.70
             )
-            if reentry_signal:
-                raw *= 0.76 if mode == "critical" else 0.70
+            strong_reentry_signal = (
+                values.get("cross_consensus", 0) >= 0.78
+                and values.get("rank_error_correction", 0) >= 0.68
+                and values.get("missed_hit_recovery", 0) >= 0.62
+                and values.get("omission", 0) >= 0.50
+                and (
+                    values.get("freq_50", 0) >= 0.62
+                    or values.get("freq_100", 0) >= 0.62
+                    or values.get("multi_window_bagging", 0) >= 0.70
+                )
+            )
+            if failed_strong_packs and not strong_reentry_signal:
+                raw *= 0.18 if mode == "critical" else 0.22
+                reasons[number].append("\u4e0a\u671f\u5f37\u724c\u5931\u6557\u9694\u96e2")
+            elif failed_strong_packs:
+                raw *= 0.52 if mode == "critical" else 0.56
+                reasons[number].append("\u5f37\u724c\u5931\u6557\u5f8c\u56b4\u683c\u91cd\u5165")
+            elif reentry_signal:
+                raw *= 0.58 if mode == "critical" else 0.62
                 reasons[number].append("\u5931\u6557\u865f\u56de\u88dc\u9a57\u7b97")
             else:
                 raw *= 0.34 if mode == "critical" else 0.30
@@ -2605,7 +2688,7 @@ def score_numbers(draws, review=None, include_dependency=True, weights_override=
                 reasons[number].append("\u9023\u838a\u5b88\u9580\u672a\u901a\u904e")
         reason_set = set(reasons[number])
         if number in repeated_failed_numbers:
-            raw *= 0.62 if mode == "critical" else 0.68 if mode == "warning" else 0.72
+            raw *= 0.48 if mode == "critical" else 0.58 if mode == "warning" else 0.66
             reasons[number].append("\u6efe\u52d5\u6aa2\u8a0e\u9023\u7e8c\u672a\u547d\u4e2d\u964d\u6b0a")
         if number in late_hit_numbers and values["rank_error_correction"] >= 0.55:
             raw *= 1.28 if mode == "critical" else 1.22 if mode == "warning" else 1.16
@@ -2614,10 +2697,10 @@ def score_numbers(draws, review=None, include_dependency=True, weights_override=
             raw *= 1.26 if mode == "critical" else 1.18
             reasons[number].append("\u6efe\u52d5\u6aa2\u8a0e\u6f0f\u6293\u5be6\u958b\u865f\u88dc\u4f4d")
         if number in monthly_recall_numbers and values["rank_error_correction"] >= 0.45:
-            raw *= 1.18 if mode == "critical" else 1.12
+            raw *= 1.04 if number in failed else 1.14 if mode == "critical" else 1.09
             reasons[number].append("\u6708\u5ea6\u6f0f\u6293\u865f\u56de\u62c9")
         if values.get("monthly_recall_pressure", 0) >= 0.62:
-            raw *= 1.18 if mode == "critical" else 1.12 if mode == "warning" else 1.07
+            raw *= 1.03 if number in failed else 1.13 if mode == "critical" else 1.09 if mode == "warning" else 1.05
             reasons[number].append("\u6708\u5ea6\u6f0f\u6293\u58d3\u529b\u52a0\u6b0a")
         if values.get("cold_rebound_champion", 0) >= 0.70 and values.get("omission", 0) >= 0.46:
             raw *= 1.13 if mode == "critical" else 1.09
@@ -2842,6 +2925,174 @@ def apply_previous_similarity_guard(candidates, review=None, max_top10_overlap=4
     }
 
 
+def candidate_objective_edge(item):
+    return float((item.get("objective_feature_calibration") or {}).get("objective_edge", 0.0) or 0.0)
+
+
+def candidate_hit_edge(item):
+    calibration = item.get("hit_through_calibration") or {}
+    if "edge_vs_baseline" in calibration:
+        return float(calibration.get("edge_vs_baseline") or 0.0)
+    hit_rate = float(calibration.get("posterior_hit_rate", BASE_PROBABILITY) or BASE_PROBABILITY)
+    return hit_rate - BASE_PROBABILITY
+
+
+def candidate_evidence_score(item, review=None):
+    objective = max(0.0, min(1.0, (candidate_objective_edge(item) + 0.035) / 0.125))
+    hit_edge = max(0.0, min(1.0, (candidate_hit_edge(item) + 0.030) / 0.115))
+    cross = min(1.0, int((item.get("cross_validation") or {}).get("passed_count") or 0) / 10.0)
+    stability = min(1.0, int(item.get("stability_count") or 0) / 5.0)
+    recall = max(0.0, min(1.0, float((item.get("slump_recall_coverage") or {}).get("priority_score", 0.0) or 0.0)))
+    score = max(0.0, min(1.0, float(item.get("score", 0.0) or 0.0)))
+    penalty = 0.0
+    if failed_strong_pack_blocked(item, review):
+        penalty += 0.38
+    if previous_guard_blocks_item(item):
+        penalty += 0.12
+    if item.get("repeat_guard") and not item["repeat_guard"].get("passed"):
+        penalty += 0.18
+    return max(0.0, min(1.0, (
+        score * 0.24
+        + objective * 0.27
+        + hit_edge * 0.20
+        + cross * 0.14
+        + stability * 0.09
+        + recall * 0.06
+        - penalty
+    )))
+
+
+def apply_failed_strong_quarantine(candidates, review=None):
+    failed_map = recent_failed_strong_pack_map(review)
+    if not failed_map:
+        return refresh_candidate_metadata(candidates), {
+            "status": "not_triggered",
+            "reason": "no failed short-pack number from last settled draw",
+            "demotions": [],
+        }
+    adjusted = []
+    demotions = []
+    releases = []
+    for rank, item in enumerate(candidates, 1):
+        row = dict(item)
+        number = int(row["number"])
+        failed_packs = set(failed_map.get(number, []))
+        if not failed_packs:
+            row["failure_quarantine"] = {"active": False}
+            adjusted.append(row)
+            continue
+        release_allowed = failed_strong_quarantine_release(row, review)
+        objective_edge = candidate_objective_edge(row)
+        hit_edge = candidate_hit_edge(row)
+        cross = int((row.get("cross_validation") or {}).get("passed_count") or 0)
+        stability = int(row.get("stability_count") or 0)
+        base_score = float(row.get("score", 0.0) or 0.0)
+        penalty = 0.0 if release_allowed else 0.155
+        if "strong_single" in failed_packs:
+            penalty += 0.080
+        if failed_packs & {"two_hit_one", "three_hit_one"}:
+            penalty += 0.055
+        if rank <= 5:
+            penalty += 0.045
+        if not release_allowed:
+            row["score"] = round(max(0.0, min(0.86, base_score - penalty)), 4)
+            row["confidence_index"] = round(max(50.0, min(90.0, 50 + row["score"] * 43)), 1)
+            row["reasons"] = (row.get("reasons", []) + ["\u4e0a\u671f\u5f37\u724c\u5931\u6557\u9694\u96e2"])[:4]
+            demotions.append({
+                "number": number,
+                "from_rank": rank,
+                "failed_packs": sorted(failed_packs),
+                "penalty": round(penalty, 4),
+                "objective_edge": round(objective_edge, 4),
+                "hit_edge": round(hit_edge, 4),
+                "cross_validation_passed": cross,
+                "stability_count": stability,
+            })
+        else:
+            row["reasons"] = (row.get("reasons", []) + ["\u5931\u6557\u5f37\u724c\u91cd\u5165\u901a\u904e"])[:4]
+            releases.append({
+                "number": number,
+                "from_rank": rank,
+                "failed_packs": sorted(failed_packs),
+                "objective_edge": round(objective_edge, 4),
+                "hit_edge": round(hit_edge, 4),
+                "cross_validation_passed": cross,
+                "stability_count": stability,
+            })
+        row["failure_quarantine"] = {
+            "active": True,
+            "failed_packs": sorted(failed_packs),
+            "release_allowed": release_allowed,
+            "penalty": round(penalty, 4),
+            "objective_edge": round(objective_edge, 4),
+            "hit_edge": round(hit_edge, 4),
+            "cross_validation_passed": cross,
+            "stability_count": stability,
+        }
+        adjusted.append(row)
+    adjusted.sort(
+        key=lambda row: (
+            row.get("score", 0),
+            candidate_evidence_score(row, review),
+            candidate_objective_edge(row),
+            candidate_hit_edge(row),
+            int((row.get("cross_validation") or {}).get("passed_count") or 0),
+            int(row.get("stability_count") or 0),
+            -row["number"],
+        ),
+        reverse=True,
+    )
+    return refresh_candidate_metadata(adjusted), {
+        "status": "triggered",
+        "method": "last_failed_strong_pack_quarantine",
+        "policy": "failed strong-single and short-pack numbers cannot return to the front without objective edge, hit-through edge, cross validation and stability",
+        "demotion_count": len(demotions),
+        "release_count": len(releases),
+        "demotions": demotions[:15],
+        "releases": releases[:10],
+    }
+
+
+def apply_score_saturation_breaker(candidates, review=None):
+    saturated_count = sum(1 for item in candidates[:15] if float(item.get("score", 0.0) or 0.0) >= 0.995)
+    if saturated_count < 8:
+        return refresh_candidate_metadata(candidates), {
+            "status": "not_triggered",
+            "saturated_top15_count": saturated_count,
+            "reason": "top15 scores still have enough separation",
+        }
+    adjusted = []
+    for item in candidates:
+        row = dict(item)
+        evidence = candidate_evidence_score(row, review)
+        row["evidence_tie_break_score"] = round(evidence, 4)
+        if float(row.get("score", 0.0) or 0.0) >= 0.995:
+            row["pre_saturation_score"] = row.get("score")
+            row["score"] = round(0.880 + evidence * 0.108, 4)
+            row["confidence_index"] = round(max(50.0, min(95.5, 50 + row["score"] * 45)), 1)
+            row["reasons"] = (row.get("reasons", []) + ["\u98fd\u548c\u5206\u6578\u5be6\u8b49\u91cd\u6392"])[:4]
+        adjusted.append(row)
+    adjusted.sort(
+        key=lambda row: (
+            row.get("score", 0),
+            row.get("evidence_tie_break_score", 0),
+            candidate_objective_edge(row),
+            candidate_hit_edge(row),
+            int((row.get("cross_validation") or {}).get("passed_count") or 0),
+            int(row.get("stability_count") or 0),
+            -row["number"],
+        ),
+        reverse=True,
+    )
+    return refresh_candidate_metadata(adjusted), {
+        "status": "triggered",
+        "method": "saturated_score_evidence_tie_breaker",
+        "saturated_top15_count": saturated_count,
+        "policy": "when too many candidates are capped at 1.0000, re-rank by objective edge, hit-through edge, cross validation and stability",
+        "top15_after_breaker": [int(item["number"]) for item in adjusted[:15]],
+    }
+
+
 def failed_number_reentry_allowed(item, review=None):
     number = int(item.get("number"))
     rolling = (review or {}).get("rolling_adjustment", {})
@@ -2865,24 +3116,34 @@ def failed_number_reentry_allowed(item, review=None):
         for row in rolling.get("repeated_failed_numbers", [])
         if row.get("number")
     }
-    if number in missed_actual_numbers or number in late_hit_numbers or number in monthly_recall_numbers:
+    if number in missed_actual_numbers or number in late_hit_numbers:
         return True
     reasons = set(item.get("reasons", []))
     recovery_reasons = {"\u6392\u540d\u932f\u4f4d\u4fee\u6b63", "\u6f0f\u547d\u4e2d\u56de\u6536", "\u7a69\u5b9a\u5171\u8b58", "\u5171\u73fe\u95dc\u806f", "\u5206\u5340\u8986\u84cb\u56de\u88dc"}
     objective_edge = float((item.get("objective_feature_calibration") or {}).get("objective_edge", 0.0) or 0.0)
     hit_rate = float((item.get("hit_through_calibration") or {}).get("posterior_hit_rate", BASE_PROBABILITY) or BASE_PROBABILITY)
+    hit_edge = float((item.get("hit_through_calibration") or {}).get("edge_vs_baseline", hit_rate - BASE_PROBABILITY) or 0.0)
     guard = item.get("previous_prediction_guard") or {}
     recovery_count = int(guard.get("recovery_condition_count") or 0)
     strong_count = int(guard.get("strong_condition_count") or 0)
     repeated_count = repeated_failed.get(number, 0)
+    failed_strong_map = recent_failed_strong_pack_map(review)
+    failed_packs = set(failed_strong_map.get(number, []))
+    cross = int((item.get("cross_validation") or {}).get("passed_count") or 0)
+    stability = int(item.get("stability_count") or 0)
+    if failed_packs:
+        strict_short_pack = bool(failed_packs & {"strong_single", "two_hit_one", "three_hit_one"})
+        if strict_short_pack:
+            return bool(objective_edge >= 0.070 and hit_edge >= 0.035 and cross >= 9 and stability >= 4)
+        return bool(objective_edge >= 0.055 and hit_edge >= 0.020 and cross >= 8 and stability >= 3)
     strong_reentry = (
         item.get("score", 0) >= 0.62
         and (
-            objective_edge >= 0.035
-            or hit_rate >= BASE_PROBABILITY + 0.025
+            objective_edge >= 0.050
+            or hit_rate >= BASE_PROBABILITY + 0.035
             or item.get("stability_count", 0) >= 4
-            or bool(reasons & recovery_reasons)
-            or recovery_count >= 1
+            or (bool(reasons & recovery_reasons) and number not in monthly_recall_numbers)
+            or recovery_count >= 2
             or strong_count >= 2
         )
     )
@@ -4125,6 +4386,27 @@ def strong_packs(candidates, review=None, governance=None):
     }
     packs = {}
     short_pack_keys = {"strong_single", "two_hit_one", "three_hit_one"}
+
+    def short_pack_refill(numbers, size):
+        selected = []
+        removed = []
+        for number in list(numbers) + [item["number"] for item in candidates[:30]]:
+            if number in selected:
+                continue
+            item = candidate_map.get(number)
+            if not item:
+                continue
+            if failed_strong_pack_blocked(item, review):
+                removed.append(number)
+                continue
+            if previous_guard_blocks_item(item):
+                removed.append(number)
+                continue
+            selected.append(number)
+            if len(selected) >= size:
+                break
+        return selected[:size], sorted(set(removed))
+
     for key, (name, goal, size, min_avg_score, min_stability) in specs.items():
         recent_stat = pack_stats.get(key, {})
         variant = recent_stat.get("best_variant", "dedicated")
@@ -4159,8 +4441,16 @@ def strong_packs(candidates, review=None, governance=None):
             numbers = [single_decision["number"]] if single_decision.get("number") else []
         else:
             numbers = group_by_variant(key, selection_pool, review, variant)
+        quarantine_removed = []
+        if key in short_pack_keys:
+            numbers, quarantine_removed = short_pack_refill(numbers, size)
         if not numbers and selection_pool:
-            numbers = [selection_pool[0]["number"]] if size == 1 else optimized_group(selection_pool, size, review)
+            clean_pool = [
+                item for item in selection_pool
+                if not failed_strong_pack_blocked(item, review) and not previous_guard_blocks_item(item)
+            ]
+            fallback_pool = clean_pool or selection_pool
+            numbers = [fallback_pool[0]["number"]] if size == 1 else optimized_group(fallback_pool, size, review)
         avg_score = sum(score_map[n] for n in numbers) / len(numbers) if numbers else 0
         weak_numbers = [
             n for n in numbers
@@ -4169,6 +4459,7 @@ def strong_packs(candidates, review=None, governance=None):
         if key in short_pack_keys:
             packs[key] = pack(name, goal, sorted(numbers))
             packs[key]["release_note"] = "short pack is always calculated every fresh draw by multi-model arbitration"
+            packs[key]["failed_strong_quarantine_removed"] = quarantine_removed
         elif recent_stat and not recent_stat.get("passed"):
             packs[key] = watch_pack(name, goal, numbers, score_map, "recent walk-forward pack performance did not pass official gate; output as daily research prediction")
         elif avg_score < min_avg_score:
@@ -4807,6 +5098,8 @@ def compute_industrial_analysis(draws, review=None):
     candidates = apply_top10_boundary_promotion(candidates, review)
     candidates, top9_leakage_lock = apply_top9_leakage_lock(candidates, review)
     candidates, previous_similarity_guard = apply_previous_similarity_guard(candidates, review)
+    candidates, failed_strong_quarantine = apply_failed_strong_quarantine(candidates, review)
+    candidates, score_saturation_breaker = apply_score_saturation_breaker(candidates, review)
     pack_governance = pack_recent_governance(draws)
     packs = strong_packs(candidates, review, pack_governance)
     audit = industrial_backtest(draws)
@@ -4872,6 +5165,8 @@ def compute_industrial_analysis(draws, review=None):
         "zero_hit_recovery": zero_hit_recovery,
         "slump_recall_coverage": slump_recall_coverage,
         "top9_leakage_lock": top9_leakage_lock,
+        "failed_strong_quarantine": failed_strong_quarantine,
+        "score_saturation_breaker": score_saturation_breaker,
         "top10_promotion_audit": promotion_audit,
         "dependency_analysis": {
             "method": "three_fold_conditional_lift_with_fdr",

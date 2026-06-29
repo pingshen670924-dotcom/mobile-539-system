@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-29T21:34:01",
+  "generated_at": "2026-06-29T22:09:55",
   "total_periods": 81,
   "settled_periods": 25,
   "pending_periods": 1,
@@ -10,40 +10,40 @@
       "target_period": 115000158,
       "target_expected_date": "2026-06-30",
       "top5": [
-        8,
-        4,
+        36,
+        21,
+        6,
         14,
-        5,
-        36
+        31
       ],
       "top10": [
-        8,
-        4,
-        14,
-        5,
         36,
         21,
+        6,
+        14,
+        31,
         20,
-        13,
-        10,
-        17
+        4,
+        37,
+        17,
+        3
       ],
       "top15": [
-        8,
-        4,
-        14,
-        5,
         36,
         21,
-        20,
-        13,
-        10,
-        17,
-        29,
-        24,
-        32,
+        6,
+        14,
         31,
-        3
+        20,
+        4,
+        37,
+        17,
+        3,
+        32,
+        23,
+        10,
+        35,
+        16
       ],
       "actual_period": null,
       "actual_date": null,
@@ -54,9 +54,9 @@
       "top10_hit_numbers": [],
       "strong_pack_hits": {},
       "status": "pending",
-      "created_at": "2026-06-29T21:33:45",
+      "created_at": "2026-06-29T22:09:54",
       "settled_at": null,
-      "snapshot_count": 3
+      "snapshot_count": 5
     },
     {
       "based_on_period": 115000156,
