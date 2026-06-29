@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T00:39:11",
+  "generated_at": "2026-06-30T02:21:22",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000157,
@@ -17,7 +17,7 @@
     "latest_date": "2026-06-29",
     "expected_latest_date": "2026-06-29",
     "lag_days": 0,
-    "checked_at": "2026-06-30T00:37:26"
+    "checked_at": "2026-06-30T02:19:38"
   },
   "windows": [
     {
@@ -2610,25 +2610,25 @@
           "hit_rate": 1.0
         },
         {
-          "reason": "近100期偏熱(14次)",
-          "hit": 1,
-          "miss": 0,
-          "hit_rate": 1.0
-        },
-        {
           "reason": "尾數轉移加權",
           "hit": 1,
           "miss": 0,
           "hit_rate": 1.0
         },
         {
-          "reason": "與上期號碼近100期共現6次",
+          "reason": "近100期偏熱(14次)",
+          "hit": 1,
+          "miss": 0,
+          "hit_rate": 1.0
+        },
+        {
+          "reason": "上期失敗號碼僅微降權",
           "hit": 1,
           "miss": 1,
           "hit_rate": 0.5
         },
         {
-          "reason": "上期失敗號碼僅微降權",
+          "reason": "與上期號碼近100期共現6次",
           "hit": 1,
           "miss": 1,
           "hit_rate": 0.5
@@ -4044,25 +4044,25 @@
             "hit_rate": 1.0
           },
           {
-            "reason": "近100期偏熱(14次)",
-            "hit": 1,
-            "miss": 0,
-            "hit_rate": 1.0
-          },
-          {
             "reason": "尾數轉移加權",
             "hit": 1,
             "miss": 0,
             "hit_rate": 1.0
           },
           {
-            "reason": "與上期號碼近100期共現6次",
+            "reason": "近100期偏熱(14次)",
+            "hit": 1,
+            "miss": 0,
+            "hit_rate": 1.0
+          },
+          {
+            "reason": "上期失敗號碼僅微降權",
             "hit": 1,
             "miss": 1,
             "hit_rate": 0.5
           },
           {
-            "reason": "上期失敗號碼僅微降權",
+            "reason": "與上期號碼近100期共現6次",
             "hit": 1,
             "miss": 1,
             "hit_rate": 0.5
