@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-29T15:34:11",
+  "generated_at": "2026-06-29T15:39:26",
   "status": "ok",
   "checked_files": 192,
   "failed_count": 0,
@@ -261,7 +261,7 @@
       "path": "verify_mobile_sync.py",
       "status": "ok",
       "warnings": [],
-      "size": 3755
+      "size": 3759
     },
     {
       "path": "修復手機版顯示.bat",
@@ -405,7 +405,7 @@
       "path": "reports\\file_integrity_report.json",
       "status": "ok",
       "warnings": [],
-      "size": 26465
+      "size": 26723
     },
     {
       "path": "reports\\file_integrity_report.md",
@@ -471,7 +471,7 @@
       "path": "reports\\mobile_sync_verification.json",
       "status": "ok",
       "warnings": [],
-      "size": 971
+      "size": 1078
     },
     {
       "path": "reports\\mobile_update_status.json",

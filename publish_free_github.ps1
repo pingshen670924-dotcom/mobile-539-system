@@ -235,7 +235,7 @@ Write-PublishStatus "pushed" "Mobile files were pushed to GitHub. Workflow is st
 
 Write-Host ""
 Write-Host "Starting the cloud calculation and website deployment..."
-gh workflow run daily-update.yml --repo $Repository
+gh workflow run daily-update.yml --repo $Repository -f deploy_only=true
 if ($LASTEXITCODE -ne 0) {
   Write-PublishStatus "workflow_failed" "The cloud update workflow could not be started." $Owner | Out-Null
   throw "The cloud update workflow could not be started."
