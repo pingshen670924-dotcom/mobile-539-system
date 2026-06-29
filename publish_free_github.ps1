@@ -67,9 +67,13 @@ function Write-PublishStatus {
     [string]$Status,
     [string]$Message,
     [string]$Owner = "pingshen670924-dotcom",
-    [bool]$PromoteToPrimary = $false
+    [bool]$PromoteToPrimary = $false,
+    [string]$VersionOverride = ""
   )
-  $mobileVersion = Get-MobileVersion
+  $mobileVersion = $VersionOverride
+  if (-not $mobileVersion) {
+    $mobileVersion = Get-MobileVersion
+  }
   $freshPageUrl = "https://$Owner.github.io/$RepoName/clear-cache.html?v=$mobileVersion&t=$([DateTimeOffset]::Now.ToUnixTimeSeconds())"
   $cloudUrlName = ([char]0x624B) + ([char]0x6A5F) + ([char]0x96F2) + ([char]0x7AEF) + ([char]0x7248) + ([char]0x7DB2) + ([char]0x5740) + ".txt"
   $primaryUrlName = ([char]0x624B) + ([char]0x6A5F) + ([char]0x7368) + ([char]0x7ACB) + ([char]0x7248) + ([char]0x7DB2) + ([char]0x5740) + ".txt"
@@ -90,6 +94,22 @@ function Write-PublishStatus {
   return $freshPageUrl
 }
 
+function Get-RemoteMobileVersion {
+  param(
+    [string]$PageUrl,
+    [string]$FallbackVersion
+  )
+  try {
+    $remoteVersionUrl = $PageUrl + "version.json?t=$([DateTimeOffset]::Now.ToUnixTimeSeconds())"
+    $remoteVersionPayload = Invoke-RestMethod -Uri $remoteVersionUrl -TimeoutSec 30
+    if ($remoteVersionPayload.version) {
+      return [string]$remoteVersionPayload.version
+    }
+  } catch {
+  }
+  return $FallbackVersion
+}
+
 function Clear-PublishStage {
   param([string]$Path)
   Confirm-TemporaryPath $Path
@@ -104,7 +124,12 @@ function Copy-PublishPayload {
   New-Item -ItemType Directory -Path $To -Force | Out-Null
 
   Get-ChildItem -LiteralPath $From -Force -File |
-    Where-Object { $_.Name -ne "crowd_consensus.py" } |
+    Where-Object {
+      $_.Name -ne "crowd_consensus.py" -and
+      $_.Name -notlike "*.bak*" -and
+      $_.Name -notlike "*.zip" -and
+      $_.Name -notlike "fix_*_temp.py"
+    } |
     ForEach-Object {
       Copy-Item -LiteralPath $_.FullName -Destination $To -Force
     }
@@ -116,7 +141,13 @@ function Copy-PublishPayload {
     }
   }
 
-  Get-ChildItem -LiteralPath $To -Recurse -Force -File -Filter "crowd_consensus*" |
+  Get-ChildItem -LiteralPath $To -Recurse -Force -File |
+    Where-Object {
+      $_.Name -like "crowd_consensus*" -or
+      $_.Name -like "*.bak*" -or
+      $_.Name -like "*.zip" -or
+      $_.FullName -match "__pycache__"
+    } |
     Remove-Item -Force
 }
 
@@ -220,7 +251,9 @@ if ($RunId) {
     throw "GitHub Pages deployment failed."
   }
 }
-Write-PublishStatus "published" "Mobile cloud site published successfully." $Owner $true | Out-Null
+$PublishedVersion = Get-RemoteMobileVersion $PageUrl $MobileVersion
+$FreshPageUrl = $PageUrl + "clear-cache.html?v=$PublishedVersion&t=$([DateTimeOffset]::Now.ToUnixTimeSeconds())"
+Write-PublishStatus "published" "Mobile cloud site published successfully." $Owner $true $PublishedVersion | Out-Null
 
 Write-Host ""
 Write-Host "The free independent mobile website is online:"

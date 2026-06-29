@@ -4,6 +4,7 @@ import shutil
 import time
 from pathlib import Path
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 
@@ -14,6 +15,11 @@ REPORT = REPORTS / "539\u6700\u65b0\u5f37\u5316\u6230\u5831.html"
 HISTORY_REPORT = REPORTS / "539\u6bcf\u671f\u9810\u6e2c\u5c0d\u6bd4.html"
 LOW_PROBABILITY_REPORT = REPORTS / "539\u4f4e\u6a5f\u7387\u7cbe\u6e96\u66ab\u907f.html"
 REPOSITORY = os.environ.get("GITHUB_REPOSITORY", "pingshen670924-dotcom/mobile-539-system")
+TAIPEI = ZoneInfo("Asia/Taipei")
+
+
+def taipei_now():
+    return datetime.now(TAIPEI)
 
 
 def repository_url(path=""):
@@ -140,10 +146,10 @@ def build():
             analysis = json.loads(analysis_path.read_text(encoding="utf-8"))
         except json.JSONDecodeError:
             analysis = {}
-    generated_at = analysis.get("generated_at") or datetime.now().isoformat(timespec="seconds")
-    mobile_built_at = datetime.now().isoformat(timespec="seconds")
+    generated_at = analysis.get("generated_at") or taipei_now().isoformat(timespec="seconds")
+    mobile_built_at = taipei_now().isoformat(timespec="seconds")
     latest_draw = analysis.get("latest_draw", {})
-    version = datetime.now().strftime("%Y%m%d%H%M%S")
+    version = taipei_now().strftime("%Y%m%d%H%M%S")
     controls = f"""
     <section class="band">
       <h2>\u624b\u6a5f\u7368\u7acb\u64cd\u4f5c</h2>
