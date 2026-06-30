@@ -1457,10 +1457,5 @@
     "Top10 回拉：本月重複漏抓的號碼若同時具備分區/尾數/共現或命中穿透率支撐，允許進入 Top10 邊界候選。",
     "5中2/9中3：降低前段排名單一路徑依賴，改用分區覆蓋與尾數分散補足。",
     "錯殺控制：上期失敗號不再硬殺，只有連續落空且無月度回補訊號才重降權。"
-  ],
-  "active_source": "previous_complete_month",
-  "active_reason": "本月樣本不足，沿用上一完整月份檢討作為7月初校正基準，避免換月後失去6月失敗教訓。",
-  "current_month_sample_size": 0,
-  "previous_complete_month": "2026-06",
-  "previous_complete_month_sample_size": 26
+  ]
 }

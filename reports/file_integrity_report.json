@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-06-30T13:46:38",
+  "generated_at": "2026-07-01T07:19:55",
   "status": "ok",
-  "checked_files": 193,
+  "checked_files": 195,
   "failed_count": 0,
   "warning_count": 0,
   "files": [
@@ -21,7 +21,7 @@
       "path": "analyze_539.py",
       "status": "ok",
       "warnings": [],
-      "size": 72164
+      "size": 74706
     },
     {
       "path": "auto_update_monitor.ps1",
@@ -33,7 +33,7 @@
       "path": "battle_report.py",
       "status": "ok",
       "warnings": [],
-      "size": 216126
+      "size": 219716
     },
     {
       "path": "build_tw539_release.ps1",
@@ -93,7 +93,7 @@
       "path": "industrial_engine.py",
       "status": "ok",
       "warnings": [],
-      "size": 239471
+      "size": 243977
     },
     {
       "path": "install_all_auto_tasks.ps1",
@@ -333,7 +333,7 @@
       "path": "data\\539.csv",
       "status": "ok",
       "warnings": [],
-      "size": 712267
+      "size": 712403
     },
     {
       "path": "data\\mobile_access_token.txt",
@@ -357,19 +357,19 @@
       "path": "reports\\539低機率精準暫避.html",
       "status": "ok",
       "warnings": [],
-      "size": 7450
+      "size": 7094
     },
     {
       "path": "reports\\539最新強化戰報.html",
       "status": "ok",
       "warnings": [],
-      "size": 20998
+      "size": 24711
     },
     {
       "path": "reports\\539每期預測對比.html",
       "status": "ok",
       "warnings": [],
-      "size": 22276
+      "size": 22315
     },
     {
       "path": "reports\\cleanup_obsolete_runtime.json",
@@ -387,7 +387,7 @@
       "path": "reports\\daily_integrity_audit.json",
       "status": "ok",
       "warnings": [],
-      "size": 5155
+      "size": 5154
     },
     {
       "path": "reports\\daily_integrity_audit.md",
@@ -399,7 +399,7 @@
       "path": "reports\\dashboard.html",
       "status": "ok",
       "warnings": [],
-      "size": 5887
+      "size": 5888
     },
     {
       "path": "reports\\file_integrity_report.json",
@@ -423,43 +423,43 @@
       "path": "reports\\health_status.json",
       "status": "ok",
       "warnings": [],
-      "size": 5864
+      "size": 5893
     },
     {
       "path": "reports\\health_status.md",
       "status": "ok",
       "warnings": [],
-      "size": 433
+      "size": 434
     },
     {
       "path": "reports\\latest_analysis.json",
       "status": "ok",
       "warnings": [],
-      "size": 1761616
+      "size": 1855544
     },
     {
       "path": "reports\\latest_analysis.md",
       "status": "ok",
       "warnings": [],
-      "size": 6706
+      "size": 6678
     },
     {
       "path": "reports\\latest_battle_report.html",
       "status": "ok",
       "warnings": [],
-      "size": 20998
+      "size": 24711
     },
     {
       "path": "reports\\latest_battle_report.md",
       "status": "ok",
       "warnings": [],
-      "size": 26486
+      "size": 25355
     },
     {
       "path": "reports\\latest_battle_report.txt",
       "status": "ok",
       "warnings": [],
-      "size": 26486
+      "size": 25355
     },
     {
       "path": "reports\\line_push_status.json",
@@ -483,19 +483,19 @@
       "path": "reports\\model_competition.json",
       "status": "ok",
       "warnings": [],
-      "size": 28668
+      "size": 28671
     },
     {
       "path": "reports\\model_competition.md",
       "status": "ok",
       "warnings": [],
-      "size": 3117
+      "size": 3129
     },
     {
       "path": "reports\\monthly_prediction_review.json",
       "status": "ok",
       "warnings": [],
-      "size": 24790
+      "size": 25636
     },
     {
       "path": "reports\\network_permission_diagnostic.json",
@@ -519,7 +519,13 @@
       "path": "reports\\prediction_history.json",
       "status": "ok",
       "warnings": [],
-      "size": 208157
+      "size": 213758
+    },
+    {
+      "path": "reports\\previous_complete_month_review.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 25324
     },
     {
       "path": "reports\\startup_cleanup_status.json",
@@ -543,7 +549,7 @@
       "path": "site\\539低機率精準暫避.html",
       "status": "ok",
       "warnings": [],
-      "size": 7450
+      "size": 7094
     },
     {
       "path": "site\\clear-cache.html",
@@ -561,13 +567,13 @@
       "path": "site\\health_status.json",
       "status": "ok",
       "warnings": [],
-      "size": 5864
+      "size": 5893
     },
     {
       "path": "site\\index.html",
       "status": "ok",
       "warnings": [],
-      "size": 24524
+      "size": 28237
     },
     {
       "path": "site\\latest.html",
@@ -579,31 +585,31 @@
       "path": "site\\latest_analysis.json",
       "status": "ok",
       "warnings": [],
-      "size": 1761616
+      "size": 1855544
     },
     {
       "path": "site\\low-probability.html",
       "status": "ok",
       "warnings": [],
-      "size": 7450
+      "size": 7094
     },
     {
       "path": "site\\model_competition.json",
       "status": "ok",
       "warnings": [],
-      "size": 28668
+      "size": 28671
     },
     {
       "path": "site\\prediction-history.html",
       "status": "ok",
       "warnings": [],
-      "size": 22276
+      "size": 22315
     },
     {
       "path": "site\\prediction_history.json",
       "status": "ok",
       "warnings": [],
-      "size": 208157
+      "size": 213758
     },
     {
       "path": "site\\version.json",
@@ -1161,20 +1167,26 @@
       "path": "reports\\history\\period_115000158.json",
       "status": "ok",
       "warnings": [],
-      "size": 2238
+      "size": 5185
+    },
+    {
+      "path": "reports\\history\\period_115000159.json",
+      "status": "ok",
+      "warnings": [],
+      "size": 2237
     }
   ],
   "data_consistency": {
     "status": "ok",
     "csv_latest": {
-      "period": 115000157,
-      "draw_date": "2026-06-29",
+      "period": 115000158,
+      "draw_date": "2026-06-30",
       "numbers": [
+        3,
         11,
-        15,
-        30,
-        34,
-        36
+        23,
+        26,
+        37
       ]
     },
     "checks": [
@@ -1182,25 +1194,25 @@
         "name": "analysis_matches_csv_latest_draw",
         "status": "ok",
         "csv_latest": {
-          "period": 115000157,
-          "draw_date": "2026-06-29",
+          "period": 115000158,
+          "draw_date": "2026-06-30",
           "numbers": [
+            3,
             11,
-            15,
-            30,
-            34,
-            36
+            23,
+            26,
+            37
           ]
         },
         "analysis_latest": {
-          "period": 115000157,
-          "draw_date": "2026-06-29",
+          "period": 115000158,
+          "draw_date": "2026-06-30",
           "numbers": [
+            3,
             11,
-            15,
-            30,
-            34,
-            36
+            23,
+            26,
+            37
           ]
         }
       },
@@ -1208,19 +1220,19 @@
         "name": "health_matches_csv_latest_draw",
         "status": "ok",
         "csv_latest": {
-          "period": 115000157,
-          "draw_date": "2026-06-29",
+          "period": 115000158,
+          "draw_date": "2026-06-30",
           "numbers": [
+            3,
             11,
-            15,
-            30,
-            34,
-            36
+            23,
+            26,
+            37
           ]
         },
         "health_latest": {
-          "period": 115000157,
-          "draw_date": "2026-06-29",
+          "period": 115000158,
+          "draw_date": "2026-06-30",
           "freshness_status": "fresh"
         }
       }

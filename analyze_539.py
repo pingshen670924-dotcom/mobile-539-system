@@ -23,6 +23,7 @@ DB_PATH = DATA_DIR / "539.sqlite"
 LATEST_JSON = REPORT_DIR / "latest_analysis.json"
 LATEST_MD = REPORT_DIR / "latest_analysis.md"
 MONTHLY_REVIEW_JSON = REPORT_DIR / "monthly_prediction_review.json"
+PREVIOUS_MONTH_REVIEW_JSON = REPORT_DIR / "previous_complete_month_review.json"
 WINDOWS = [5, 10, 20, 50, 100]
 TAIPEI_TZ = ZoneInfo("Asia/Taipei")
 
@@ -790,8 +791,40 @@ def month_prediction_review(db_path=DB_PATH, month=None):
     }
 
 
+def previous_complete_month_key(now=None):
+    now = now or taipei_now()
+    first_day = now.date().replace(day=1)
+    previous_day = first_day - timedelta(days=1)
+    return previous_day.strftime("%Y-%m")
+
+
+def active_monthly_review_for_prediction(db_path=DB_PATH, minimum_current_samples=5):
+    current_review = month_prediction_review(db_path)
+    previous_review = month_prediction_review(db_path, previous_complete_month_key())
+    current_samples = int(current_review.get("sample_size") or 0)
+    previous_samples = int(previous_review.get("sample_size") or 0)
+    if current_samples >= minimum_current_samples:
+        active = dict(current_review)
+        source = "current_month"
+        reason = "本月已累積足夠已結算樣本，使用本月檢討作為主校正基準。"
+    elif previous_samples:
+        active = dict(previous_review)
+        source = "previous_complete_month"
+        reason = "本月樣本不足，沿用上一完整月份檢討作為7月初校正基準，避免換月後失去6月失敗教訓。"
+    else:
+        active = dict(current_review)
+        source = "current_month_no_fallback"
+        reason = "沒有上一完整月份可用樣本，暫用本月資料。"
+    active["active_source"] = source
+    active["active_reason"] = reason
+    active["current_month_sample_size"] = current_samples
+    active["previous_complete_month"] = previous_review.get("month")
+    active["previous_complete_month_sample_size"] = previous_samples
+    return active, current_review, previous_review
+
+
 def rolling_failure_profile(db_path=DB_PATH, limit=30):
-    monthly_review = month_prediction_review(db_path)
+    monthly_review, current_month_review, previous_complete_month_review = active_monthly_review_for_prediction(db_path)
     try:
         with sqlite3.connect(db_path) as conn:
             rows = conn.execute(
@@ -808,6 +841,9 @@ def rolling_failure_profile(db_path=DB_PATH, limit=30):
         return {
             "sample_size": 0,
             "monthly_review": monthly_review,
+            "current_month_review": current_month_review,
+            "previous_complete_month_review": previous_complete_month_review,
+            "active_monthly_review_source": monthly_review.get("active_source"),
             "penalized_reasons": [],
             "boosted_reasons": [],
             "repeated_failed_numbers": [],
@@ -895,6 +931,9 @@ def rolling_failure_profile(db_path=DB_PATH, limit=30):
         "sample_size": len(rows),
         "policy": "daily_and_monthly_miss_review_rolls_into_next_prediction_with_recall_mode",
         "monthly_review": monthly_review,
+        "current_month_review": current_month_review,
+        "previous_complete_month_review": previous_complete_month_review,
+        "active_monthly_review_source": monthly_review.get("active_source"),
         "penalized_reasons": sorted(penalized, key=lambda item: (item["miss"], -item["hit"]), reverse=True)[:12],
         "boosted_reasons": sorted(boosted, key=lambda item: (item.get("late_hit_count", 0), item["hit"]), reverse=True)[:12],
         "repeated_failed_numbers": [{"number": n, "miss_count": c} for n, c in number_misses.most_common() if c >= 3][:12],
@@ -941,6 +980,8 @@ def failure_review(db_path=DB_PATH):
         "actions": actions,
         "last_settled": settled,
         "monthly_review": monthly_review,
+        "current_month_review": rolling_adjustment.get("current_month_review", {}),
+        "previous_complete_month_review": rolling_adjustment.get("previous_complete_month_review", {}),
         "rolling_adjustment": rolling_adjustment,
     }
 
@@ -1676,6 +1717,9 @@ def save_analysis(analysis):
     monthly_review = (analysis.get("failure_review") or {}).get("monthly_review")
     if monthly_review:
         atomic_write_text(MONTHLY_REVIEW_JSON, json.dumps(monthly_review, ensure_ascii=False, indent=2))
+    previous_month_review = (analysis.get("failure_review") or {}).get("previous_complete_month_review")
+    if previous_month_review:
+        atomic_write_text(PREVIOUS_MONTH_REVIEW_JSON, json.dumps(previous_month_review, ensure_ascii=False, indent=2))
 
 
 def atomic_write_text(path, text):

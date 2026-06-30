@@ -3199,6 +3199,78 @@ def compact_hard_iron_html(analysis):
     """
 
 
+def compact_monthly_breakthrough_html(analysis):
+    review = analysis.get("failure_review") or {}
+    monthly = review.get("monthly_review") or {}
+    if not monthly or not monthly.get("sample_size"):
+        return """
+        <div class="band">
+          <h2>月度總檢討與本期校正</h2>
+          <p>目前沒有足夠已結算樣本可做月度校正。</p>
+        </div>
+        """
+
+    source = monthly.get("active_source") or review.get("active_monthly_review_source") or ""
+    month = monthly.get("month", "-")
+    reason = monthly.get("active_reason") or "依已結算月度資料修正本期預測。"
+    title = f"{month} 總檢討與本期突破校正"
+    if source == "previous_complete_month":
+        title = f"{month} 上月總檢討與本期突破校正"
+
+    def count_rows(items, key, label, action, limit=10):
+        rows = []
+        for item in (items or [])[:limit]:
+            value = item.get(key)
+            if value is None:
+                continue
+            if key == "number":
+                value_text = f"{int(value):02d}"
+                cls = " class='num'"
+            else:
+                value_text = escape_html(value)
+                cls = ""
+            rows.append(
+                "<tr>"
+                f"<td>{escape_html(label)}</td>"
+                f"<td{cls}>{value_text}</td>"
+                f"<td>{item.get('missed_count', '-')}</td>"
+                f"<td>{escape_html(action)}</td>"
+                "</tr>"
+            )
+        return rows
+
+    rows = []
+    rows.extend(count_rows(monthly.get("missed_top10_numbers"), "number", "漏抓主號", "納入上月失準突破回拉"))
+    rows.extend(count_rows(monthly.get("missed_tails"), "tail", "漏抓尾數", "尾數連動補位"))
+    rows.extend(count_rows(monthly.get("missed_zones"), "zone", "漏抓區間", "分區覆蓋補強"))
+    table = "".join(rows) or "<tr><td colspan='4'>沒有需要回拉的月度漏抓資料</td></tr>"
+
+    buckets = monthly.get("rank_buckets") or {}
+    bucket_text = " / ".join(
+        f"{name}:{buckets.get(name, 0)}"
+        for name in ["01-05", "06-10", "11-15", "16-25", "26-39", "missing"]
+    )
+    plan_text = "、".join(monthly.get("adjustment_plan") or []) or "-"
+
+    return f"""
+    <div class="band warn">
+      <h2>{escape_html(title)}</h2>
+      <div class="grid">
+        <div class="card"><div class="label">檢討月份</div><div class="value">{escape_html(month)}</div></div>
+        <div class="card"><div class="label">結算樣本</div><div class="value">{monthly.get('sample_size', '-')}</div></div>
+        <div class="card"><div class="label">前10平均命中</div><div class="value">{fmt_decimal(monthly.get('top10_avg_hits'))}</div></div>
+        <div class="card"><div class="label">前段命中率</div><div class="value">{fmt_percent(monthly.get('front_hit_rate'))}</div></div>
+        <div class="card"><div class="label">後段或漏抓率</div><div class="value">{fmt_percent(monthly.get('late_or_missing_rate'))}</div></div>
+      </div>
+      <p><strong>採用原因：</strong>{escape_html(reason)}</p>
+      <p><strong>診斷：</strong>{escape_html(monthly.get('diagnosis', '-'))}</p>
+      <p><strong>排名落點：</strong>{escape_html(bucket_text)}</p>
+      <table><thead><tr><th>類型</th><th>項目</th><th>次數</th><th>本期處理</th></tr></thead><tbody>{table}</tbody></table>
+      <p><strong>校正方向：</strong>{escape_html(plan_text)}</p>
+    </div>
+    """
+
+
 def compact_super_single_html(packs, candidates):
     single_pack = (packs or {}).get("strong_single") or {}
     decision = single_pack.get("super_single_decision") or {}
@@ -3284,6 +3356,7 @@ def build_compact_html_report():
     dual_track_html = compact_dual_track_html(analysis)
     low_review_html = compact_low_probability_review_html(history)
     hard_iron_html = compact_hard_iron_html(analysis)
+    monthly_breakthrough_html = compact_monthly_breakthrough_html(analysis)
     stats_rows = []
     for key, label in [("strong_single", "\u7368\u96bb1\u4e2d1"), ("two_hit_one", "2\u4e2d1"), ("three_hit_one", "3\u4e2d1"), ("five_hit_two", "5\u4e2d2"), ("nine_hit_three", "9\u4e2d3")]:
         stat = strong_stats.get(key) or {}
@@ -3365,6 +3438,7 @@ def build_compact_html_report():
       <p>\u904b\u7b97\u539f\u5247\uff1a\u53ea\u986f\u793a\u5b8c\u6210\u904b\u7b97\u5f8c\u7684\u7cbe\u6e96\u8cc7\u8a0a\uff1b\u4f9d\u5168\u6b77\u53f2\u8cc7\u6599\u5eab\u3001\u591a\u6a21\u578b\u4ea4\u53c9\u9a57\u7b97\u8207\u6efe\u52d5\u56de\u6e2c\u8f38\u51fa\u3002</p>
     </div>
     {hard_iron_html}
+    {monthly_breakthrough_html}
     {super_single_html}
     <div class="band">
       <h2>\u4e0b\u671f\u7cbe\u7b97\u524d9\u540d</h2>

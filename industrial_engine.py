@@ -835,6 +835,95 @@ def monthly_recall_pressure_scores(review):
     return normalize(values)
 
 
+def breakthrough_month_bridge_scores(review):
+    empty = {n: 0.0 for n in range(NUMBER_MIN, NUMBER_MAX + 1)}
+    if not review or not review.get("has_review"):
+        return empty
+    monthly = review.get("monthly_review", {}) or {}
+    if not monthly or not monthly.get("sample_size"):
+        return empty
+
+    late_rate = float(monthly.get("late_or_missing_rate", 0) or 0)
+    front_rate = float(monthly.get("front_hit_rate", 0) or 0)
+    current_samples = int(monthly.get("current_month_sample_size", monthly.get("sample_size", 0)) or 0)
+    source = str(monthly.get("active_source") or "")
+    bridge_multiplier = 1.18 if source == "previous_complete_month" and current_samples < 5 else 1.0
+    intensity = (
+        1.0
+        + max(0.0, late_rate - 0.45) * 1.70
+        + max(0.0, 0.36 - front_rate) * 1.25
+    ) * bridge_multiplier
+    values = {n: 0.0 for n in range(NUMBER_MIN, NUMBER_MAX + 1)}
+
+    missed_top10 = {
+        int(item.get("number")): int(item.get("missed_count", 0) or 0)
+        for item in monthly.get("missed_top10_numbers", [])
+        if item.get("number")
+    }
+    missed_top15 = {
+        int(item.get("number")): int(item.get("missed_count", 0) or 0)
+        for item in monthly.get("missed_top15_numbers", [])
+        if item.get("number")
+    }
+    missed_tails = {
+        int(item.get("tail")): int(item.get("missed_count", 0) or 0)
+        for item in monthly.get("missed_tails", [])
+        if item.get("tail") is not None
+    }
+    missed_zones = {
+        str(item.get("zone")): int(item.get("missed_count", 0) or 0)
+        for item in monthly.get("missed_zones", [])
+        if item.get("zone")
+    }
+
+    for number in range(NUMBER_MIN, NUMBER_MAX + 1):
+        score = 0.0
+        score += min(0.75, missed_top10.get(number, 0) * 0.13)
+        score += min(0.55, missed_top15.get(number, 0) * 0.10)
+        score += min(0.26, missed_tails.get(number % 10, 0) * 0.018)
+        score += min(0.24, missed_zones.get(zone_label(number), 0) * 0.012)
+        values[number] = score
+
+    for review_day in (monthly.get("daily_reviews") or [])[-14:]:
+        actual_ranks = review_day.get("actual_ranks") or {}
+        for number_text, rank_value in actual_ranks.items():
+            try:
+                number = int(number_text)
+            except (TypeError, ValueError):
+                continue
+            if not (NUMBER_MIN <= number <= NUMBER_MAX):
+                continue
+            rank = None
+            if rank_value is not None and rank_value != "":
+                try:
+                    rank = int(rank_value)
+                except (TypeError, ValueError):
+                    rank = None
+            if rank is None:
+                add = 0.42
+            elif rank > 25:
+                add = 0.38
+            elif rank > 15:
+                add = 0.30
+            elif rank > 10:
+                add = 0.20
+            else:
+                add = 0.0
+            values[number] += add
+            if add >= 0.30:
+                for candidate in range(NUMBER_MIN, NUMBER_MAX + 1):
+                    if candidate == number:
+                        continue
+                    if candidate % 10 == number % 10:
+                        values[candidate] += 0.026
+                    if zone_label(candidate) == zone_label(number):
+                        values[candidate] += 0.018
+                    if 1 <= abs(candidate - number) <= 2:
+                        values[candidate] += 0.020
+
+    return normalize({number: value * intensity for number, value in values.items()})
+
+
 def cold_rebound_champion_scores(draws):
     if len(draws) < 80:
         return {n: 0.0 for n in range(NUMBER_MIN, NUMBER_MAX + 1)}
@@ -1008,6 +1097,7 @@ def build_feature_matrix(draws, review=None, include_dependency=True):
     missed_hit_recovery = missed_hit_recovery_scores(review)
     rank_error_correction = rank_error_correction_scores(review)
     monthly_recall_pressure = monthly_recall_pressure_scores(review)
+    breakthrough_month_bridge = breakthrough_month_bridge_scores(review)
     cold_rebound_champion = cold_rebound_champion_scores(draws)
     multi_window_bagging = multi_window_bagging_scores(draws)
     tail_transition_bridge = tail_transition_bridge_scores(draws, review)
@@ -1035,6 +1125,7 @@ def build_feature_matrix(draws, review=None, include_dependency=True):
         missed_hit_recovery,
         rank_error_correction,
         monthly_recall_pressure,
+        breakthrough_month_bridge,
         cold_rebound_champion,
         multi_window_bagging,
         tail_transition_bridge,
@@ -1054,6 +1145,7 @@ def build_feature_matrix(draws, review=None, include_dependency=True):
         zone_parity_pressure,
         rank_error_correction,
         monthly_recall_pressure,
+        breakthrough_month_bridge,
         cold_rebound_champion,
         multi_window_bagging,
         tail_transition_bridge,
@@ -1088,6 +1180,7 @@ def build_feature_matrix(draws, review=None, include_dependency=True):
         feature_scores[number]["missed_hit_recovery"] = missed_hit_recovery[number]
         feature_scores[number]["rank_error_correction"] = rank_error_correction[number]
         feature_scores[number]["monthly_recall_pressure"] = monthly_recall_pressure[number]
+        feature_scores[number]["breakthrough_month_bridge"] = breakthrough_month_bridge[number]
         feature_scores[number]["cold_rebound_champion"] = cold_rebound_champion[number]
         feature_scores[number]["multi_window_bagging"] = multi_window_bagging[number]
         feature_scores[number]["tail_transition_bridge"] = tail_transition_bridge[number]
@@ -1130,6 +1223,7 @@ def industrial_weights(review=None):
         "missed_hit_recovery": 0.054,
         "rank_error_correction": 0.075,
         "monthly_recall_pressure": 0.082,
+        "breakthrough_month_bridge": 0.088,
         "cold_rebound_champion": 0.072,
         "multi_window_bagging": 0.064,
         "tail_transition_bridge": 0.066,
@@ -1161,6 +1255,7 @@ def industrial_weights(review=None):
                 "missed_hit_recovery": 0.074,
                 "rank_error_correction": 0.105,
                 "monthly_recall_pressure": 0.132,
+                "breakthrough_month_bridge": 0.145,
                 "cold_rebound_champion": 0.108,
                 "multi_window_bagging": 0.088,
                 "tail_transition_bridge": 0.112,
@@ -1185,6 +1280,7 @@ def industrial_weights(review=None):
         for key in [
             "rank_error_correction",
             "monthly_recall_pressure",
+            "breakthrough_month_bridge",
             "cold_rebound_champion",
             "multi_window_bagging",
             "tail_transition_bridge",
@@ -1233,6 +1329,7 @@ MODEL_SOURCE_LABELS = {
     "missed_hit_recovery": "\u6f0f\u547d\u4e2d\u56de\u6536",
     "rank_error_correction": "\u6392\u540d\u932f\u4f4d\u4fee\u6b63",
     "monthly_recall_pressure": "\u6708\u5ea6\u6f0f\u6293\u58d3\u529b\u56de\u62c9",
+    "breakthrough_month_bridge": "上月失準突破回拉",
     "cold_rebound_champion": "\u51b7\u865f\u53cd\u5f48\u51a0\u8ecd\u6a21\u578b",
     "multi_window_bagging": "\u591a\u7a97\u53e3\u888b\u88dd\u5171\u8b58",
     "tail_transition_bridge": "\u5c3e\u6578\u8f49\u79fb\u6a4b\u63a5",
@@ -1282,6 +1379,7 @@ def number_cross_validation(values):
         ("zone_parity_pressure", "\u5340\u9593\u5947\u5076\u58d3\u529b", values.get("zone_parity_pressure", 0) >= 0.52),
         ("missed_hit_recovery", "\u6f0f\u547d\u4e2d\u56de\u6536", values.get("missed_hit_recovery", 0) >= 0.52),
         ("rank_error_correction", "\u6392\u540d\u932f\u4f4d\u4fee\u6b63", values.get("rank_error_correction", 0) >= 0.52),
+        ("breakthrough_month_bridge", "上月失準突破回拉", values.get("breakthrough_month_bridge", 0) >= 0.52),
         ("regime_switch", "\u958b\u734e\u578b\u614b\u5207\u63db", values.get("regime_switch", 0) >= 0.52),
         ("zone_coverage_recovery", "\u5206\u5340\u8986\u84cb\u56de\u88dc", values.get("zone_coverage_recovery", 0) >= 0.52),
     ]
@@ -2598,6 +2696,7 @@ def score_numbers(draws, review=None, include_dependency=True, weights_override=
                 or values.get("rank_error_correction", 0) >= 0.68
                 or values.get("missed_hit_recovery", 0) >= 0.66
                 or values.get("monthly_recall_pressure", 0) >= 0.74
+                or values.get("breakthrough_month_bridge", 0) >= 0.72
                 or values.get("cold_rebound_champion", 0) >= 0.72
                 or values.get("tail_transition_bridge", 0) >= 0.72
                 or values.get("zone_quota_pressure", 0) >= 0.72
@@ -2662,6 +2761,8 @@ def score_numbers(draws, review=None, include_dependency=True, weights_override=
             reasons[number].append("\u6392\u540d\u932f\u4f4d\u4fee\u6b63")
         if values["monthly_recall_pressure"] >= 0.7:
             reasons[number].append("\u6708\u5ea6\u6f0f\u6293\u58d3\u529b\u56de\u62c9")
+        if values.get("breakthrough_month_bridge", 0) >= 0.7:
+            reasons[number].append("上月失準突破回拉")
         if values["cold_rebound_champion"] >= 0.7:
             reasons[number].append("\u51b7\u865f\u53cd\u5f48\u51a0\u8ecd\u6a21\u578b")
         if values["multi_window_bagging"] >= 0.7:
@@ -2702,6 +2803,9 @@ def score_numbers(draws, review=None, include_dependency=True, weights_override=
         if values.get("monthly_recall_pressure", 0) >= 0.62:
             raw *= 1.03 if number in failed else 1.13 if mode == "critical" else 1.09 if mode == "warning" else 1.05
             reasons[number].append("\u6708\u5ea6\u6f0f\u6293\u58d3\u529b\u52a0\u6b0a")
+        if values.get("breakthrough_month_bridge", 0) >= 0.66:
+            raw *= 1.04 if number in failed else 1.10 if mode == "critical" else 1.06
+            reasons[number].append("7月突破模型加權")
         if values.get("cold_rebound_champion", 0) >= 0.70 and values.get("omission", 0) >= 0.46:
             raw *= 1.13 if mode == "critical" else 1.09
             reasons[number].append("\u51b7\u5f48\u51a0\u8ecd\u6a21\u578b\u52a0\u6b0a")
