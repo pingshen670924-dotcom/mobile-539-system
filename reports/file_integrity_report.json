@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T07:17:24",
+  "generated_at": "2026-06-30T13:46:38",
   "status": "ok",
   "checked_files": 193,
   "failed_count": 0,
@@ -33,7 +33,7 @@
       "path": "battle_report.py",
       "status": "ok",
       "warnings": [],
-      "size": 214371
+      "size": 216126
     },
     {
       "path": "build_tw539_release.ps1",
@@ -93,7 +93,7 @@
       "path": "industrial_engine.py",
       "status": "ok",
       "warnings": [],
-      "size": 232324
+      "size": 239471
     },
     {
       "path": "install_all_auto_tasks.ps1",
@@ -357,19 +357,19 @@
       "path": "reports\\539低機率精準暫避.html",
       "status": "ok",
       "warnings": [],
-      "size": 7425
+      "size": 7450
     },
     {
       "path": "reports\\539最新強化戰報.html",
       "status": "ok",
       "warnings": [],
-      "size": 19884
+      "size": 20998
     },
     {
       "path": "reports\\539每期預測對比.html",
       "status": "ok",
       "warnings": [],
-      "size": 22275
+      "size": 22276
     },
     {
       "path": "reports\\cleanup_obsolete_runtime.json",
@@ -405,13 +405,13 @@
       "path": "reports\\file_integrity_report.json",
       "status": "ok",
       "warnings": [],
-      "size": 26924
+      "size": 26870
     },
     {
       "path": "reports\\file_integrity_report.md",
       "status": "ok",
       "warnings": [],
-      "size": 279
+      "size": 397
     },
     {
       "path": "reports\\full_system_scan.json",
@@ -435,7 +435,7 @@
       "path": "reports\\latest_analysis.json",
       "status": "ok",
       "warnings": [],
-      "size": 1726743
+      "size": 1761616
     },
     {
       "path": "reports\\latest_analysis.md",
@@ -447,19 +447,19 @@
       "path": "reports\\latest_battle_report.html",
       "status": "ok",
       "warnings": [],
-      "size": 19884
+      "size": 20998
     },
     {
       "path": "reports\\latest_battle_report.md",
       "status": "ok",
       "warnings": [],
-      "size": 26522
+      "size": 26486
     },
     {
       "path": "reports\\latest_battle_report.txt",
       "status": "ok",
       "warnings": [],
-      "size": 26522
+      "size": 26486
     },
     {
       "path": "reports\\line_push_status.json",
@@ -519,7 +519,7 @@
       "path": "reports\\prediction_history.json",
       "status": "ok",
       "warnings": [],
-      "size": 208151
+      "size": 208157
     },
     {
       "path": "reports\\startup_cleanup_status.json",
@@ -543,7 +543,7 @@
       "path": "site\\539低機率精準暫避.html",
       "status": "ok",
       "warnings": [],
-      "size": 7425
+      "size": 7450
     },
     {
       "path": "site\\clear-cache.html",
@@ -567,7 +567,7 @@
       "path": "site\\index.html",
       "status": "ok",
       "warnings": [],
-      "size": 23410
+      "size": 24524
     },
     {
       "path": "site\\latest.html",
@@ -579,13 +579,13 @@
       "path": "site\\latest_analysis.json",
       "status": "ok",
       "warnings": [],
-      "size": 1726743
+      "size": 1761616
     },
     {
       "path": "site\\low-probability.html",
       "status": "ok",
       "warnings": [],
-      "size": 7425
+      "size": 7450
     },
     {
       "path": "site\\model_competition.json",
@@ -597,13 +597,13 @@
       "path": "site\\prediction-history.html",
       "status": "ok",
       "warnings": [],
-      "size": 22275
+      "size": 22276
     },
     {
       "path": "site\\prediction_history.json",
       "status": "ok",
       "warnings": [],
-      "size": 208151
+      "size": 208157
     },
     {
       "path": "site\\version.json",
@@ -1161,7 +1161,7 @@
       "path": "reports\\history\\period_115000158.json",
       "status": "ok",
       "warnings": [],
-      "size": 2232
+      "size": 2238
     }
   ],
   "data_consistency": {

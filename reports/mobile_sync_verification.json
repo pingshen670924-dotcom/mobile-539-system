@@ -1,10 +1,10 @@
 {
   "status": "ok",
-  "checked_at": "2026-06-29T22:13:14",
-  "local_version": "20260629220955",
+  "checked_at": "2026-06-30T08:46:43",
+  "local_version": "20260630071559",
   "cloud_status": "published",
-  "cloud_version": "20260629220955",
-  "cloud_url": "https://pingshen670924-dotcom.github.io/mobile-539-system/clear-cache.html?v=20260629220955&t=1782742383",
+  "cloud_version": "20260630071559",
+  "cloud_url": "https://pingshen670924-dotcom.github.io/mobile-539-system/clear-cache.html?v=20260630071559&t=1782775104",
   "local_latest_draw": {
     "period": 115000157,
     "draw_date": "2026-06-29",
@@ -28,9 +28,9 @@
     ]
   },
   "remote_version": {
-    "version": "20260629220955",
-    "generated_at": "2026-06-29T22:09:25",
-    "mobile_built_at": "2026-06-29T22:09:55+08:00",
+    "version": "20260630071559",
+    "generated_at": "2026-06-30T07:15:31",
+    "mobile_built_at": "2026-06-30T07:15:59+08:00",
     "latest_period": 115000157,
     "latest_draw_date": "2026-06-29",
     "cache_policy": "network_first_no_store"

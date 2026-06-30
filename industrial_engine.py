@@ -2791,6 +2791,15 @@ def previous_guard_blocks_item(item):
     return recovery_count == 0 and strong_count < 2
 
 
+def repeat_guard_blocks_item(item):
+    guard = item.get("repeat_guard")
+    return bool(guard and not guard.get("passed"))
+
+
+def hard_iron_blocked(item):
+    return bool((item.get("hard_iron_rule") or {}).get("blocked"))
+
+
 def refresh_candidate_metadata(candidates):
     refreshed = []
     for rank, row in enumerate(candidates, 1):
@@ -2922,6 +2931,141 @@ def apply_previous_similarity_guard(candidates, review=None, max_top10_overlap=4
         "final_top10_overlap": final_top10_overlap,
         "final_top15_overlap": final_top15_overlap,
         "swaps": swaps,
+    }
+
+
+def apply_hard_iron_rules(draws, candidates, review=None, max_top10_overlap=4, max_top15_overlap=7):
+    latest_numbers = set(draws[-1]["numbers"])
+    repeat_policy = repeat_guard(draws)
+    previous_top10 = previous_prediction_set(review, limit=10)
+    previous_top15 = previous_prediction_set(review, limit=15)
+    rows = []
+    blocked_rows = []
+
+    for item in candidates:
+        row = dict(item)
+        number = int(row["number"])
+        reasons = []
+        if number in latest_numbers and not repeat_policy.get(number, {}).get("passed"):
+            reasons.append("連莊未達標硬排除")
+        if number in previous_top15 and previous_guard_blocks_item(row):
+            reasons.append("上期預測未達標重入硬排除")
+        if reasons:
+            row["score"] = round(min(float(row.get("score", 0.0) or 0.0), 0.045), 4)
+            row["confidence_index"] = min(float(row.get("confidence_index", 50.0) or 50.0), 52.0)
+            row["hard_iron_rule"] = {
+                "blocked": True,
+                "reasons": reasons,
+                "policy": "previous_prediction_no_copy_and_repeat_requires_passed_guard",
+            }
+            current_reasons = [text for text in row.get("reasons", []) if text not in reasons]
+            row["reasons"] = (reasons + current_reasons)[:4]
+            blocked_rows.append({
+                "number": number,
+                "reasons": reasons,
+                "repeat_guard": repeat_policy.get(number),
+                "previous_prediction_guard": row.get("previous_prediction_guard"),
+            })
+        else:
+            row["hard_iron_rule"] = {
+                "blocked": False,
+                "policy": "previous_prediction_no_copy_and_repeat_requires_passed_guard",
+                "repeat_reentry": number in latest_numbers,
+                "previous_prediction_reentry": number in previous_top15,
+            }
+        rows.append(row)
+
+    def sort_rows(values):
+        values.sort(
+            key=lambda row: (
+                not hard_iron_blocked(row),
+                float(row.get("score", 0.0) or 0.0),
+                candidate_evidence_score(row, review),
+                candidate_objective_edge(row),
+                candidate_hit_edge(row),
+                int((row.get("cross_validation") or {}).get("passed_count") or 0),
+                int(row.get("stability_count") or 0),
+                -int(row["number"]),
+            ),
+            reverse=True,
+        )
+
+    sort_rows(rows)
+
+    swaps = []
+
+    def limit_previous_overlap(limit, previous_set, max_overlap, phase):
+        attempts = 0
+        while attempts < 30:
+            top_numbers = {int(row["number"]) for row in rows[:limit]}
+            overlap = top_numbers & previous_set
+            if len(overlap) <= max_overlap:
+                break
+            attempts += 1
+            demote_indexes = [
+                index for index, row in enumerate(rows[:limit])
+                if int(row["number"]) in previous_set
+            ]
+            replacement_index = next(
+                (
+                    index for index, row in enumerate(rows[limit:], limit)
+                    if int(row["number"]) not in previous_set and not hard_iron_blocked(row)
+                ),
+                None,
+            )
+            if not demote_indexes or replacement_index is None:
+                break
+            demote_index = min(
+                demote_indexes,
+                key=lambda index: (
+                    qualified_previous_reentry(rows[index]),
+                    candidate_evidence_score(rows[index], review),
+                    float(rows[index].get("score", 0.0) or 0.0),
+                ),
+            )
+            demoted = rows[demote_index]
+            promoted = rows[replacement_index]
+            add_similarity_reason(demoted, "上期整包沿用硬封鎖")
+            add_similarity_reason(promoted, "鐵律補位")
+            rows[demote_index], rows[replacement_index] = promoted, demoted
+            swaps.append({
+                "phase": phase,
+                "demoted_number": int(demoted["number"]),
+                "promoted_number": int(promoted["number"]),
+                "reason": "hard_previous_copy_prevention",
+            })
+
+    if previous_top10:
+        limit_previous_overlap(10, previous_top10, max_top10_overlap, "top10")
+    if previous_top15:
+        limit_previous_overlap(15, previous_top15, max_top15_overlap, "top15")
+
+    rows = refresh_candidate_metadata(rows)
+    top10 = {int(row["number"]) for row in rows[:10]}
+    top15 = {int(row["number"]) for row in rows[:15]}
+    repeat_violations = sorted(
+        number for number in top15 & latest_numbers
+        if not repeat_policy.get(number, {}).get("passed")
+    )
+    previous_violations = sorted(
+        int(row["number"]) for row in rows[:15]
+        if int(row["number"]) in previous_top15 and previous_guard_blocks_item(row)
+    )
+    final_top10_overlap = sorted(top10 & previous_top10)
+    final_top15_overlap = sorted(top15 & previous_top15)
+    status = "failed" if repeat_violations or previous_violations else ("triggered" if blocked_rows or swaps else "passed")
+    return rows, {
+        "status": status,
+        "policy": "嚴禁上期預測整包沿用；上期號碼重入必須達標；最新開獎號連莊必須通過連莊守門。",
+        "max_top10_previous_overlap": max_top10_overlap,
+        "max_top15_previous_overlap": max_top15_overlap,
+        "blocked_numbers": blocked_rows,
+        "overlap_swaps": swaps,
+        "repeat_violations_in_top15": repeat_violations,
+        "previous_reentry_violations_in_top15": previous_violations,
+        "final_top10_previous_overlap": final_top10_overlap,
+        "final_top15_previous_overlap": final_top15_overlap,
+        "latest_draw_numbers": sorted(latest_numbers),
     }
 
 
@@ -3173,6 +3317,8 @@ def strong_single_group(candidates, review=None):
     repeated_failed_numbers = {int(item.get("number")) for item in rolling.get("repeated_failed_numbers", []) if item.get("number")}
     for item in candidates[:12]:
         number = item["number"]
+        if hard_iron_blocked(item):
+            continue
         reasons = set(item.get("reasons", []))
         if number in repeated_failed_numbers:
             continue
@@ -3199,6 +3345,8 @@ def single_precision_group(candidates, review=None):
     ranked = []
     for original_rank, item in enumerate(candidates[:24], 1):
         number = item["number"]
+        if hard_iron_blocked(item):
+            continue
         if number in failed and not failed_number_reentry_allowed(item, review):
             continue
         if number in repeated_failed_numbers and not failed_number_reentry_allowed(item, review):
@@ -3231,6 +3379,7 @@ def five_hit_two_group(candidates, review=None):
     selected = []
     pool = [
         item for item in candidates[:30]
+        if not hard_iron_blocked(item)
         if not (item["number"] in failed and not failed_number_reentry_allowed(item, review))
         and not previous_guard_blocks_item(item)
     ]
@@ -3285,6 +3434,7 @@ def nine_hit_three_group(candidates, review=None):
     score_map = {item["number"]: item["score"] for item in candidates}
     pool = [
         item["number"] for item in candidates[:30]
+        if not hard_iron_blocked(item)
         if not (item["number"] in failed and not failed_number_reentry_allowed(item, review))
         and not previous_guard_blocks_item(item)
     ]
@@ -3324,6 +3474,8 @@ def top_rank_group(candidates, size, review=None):
     selected = []
     for item in candidates:
         number = item["number"]
+        if hard_iron_blocked(item):
+            continue
         if number in failed and not failed_number_reentry_allowed(item, review):
             continue
         if previous_guard_blocks_item(item):
@@ -3374,7 +3526,8 @@ def micro_confidence_score(item, review=None, selected=None):
 def micro_confidence_group(candidates, size, review=None):
     pool = [
         item for item in candidates[:15]
-        if not previous_guard_blocks_item(item)
+        if not hard_iron_blocked(item)
+        and not previous_guard_blocks_item(item)
         and not (item.get("repeat_guard") and not item["repeat_guard"].get("passed"))
         and not (item["number"] in failed_number_set(review) and not failed_number_reentry_allowed(item, review))
     ]
@@ -3740,6 +3893,8 @@ def stability_group(candidates, size, review=None):
     selected = []
     for item in ranked:
         number = item["number"]
+        if hard_iron_blocked(item):
+            continue
         if number in failed:
             continue
         if previous_guard_blocks_item(item):
@@ -3796,7 +3951,8 @@ def target_precision_group(candidates, size, goal, review=None):
     failed = failed_number_set(review)
     pool = [
         item for item in candidates[:30]
-        if not (item["number"] in failed and not failed_number_reentry_allowed(item, review))
+        if not hard_iron_blocked(item)
+        and not (item["number"] in failed and not failed_number_reentry_allowed(item, review))
         and not previous_guard_blocks_item(item)
     ]
     if not pool:
@@ -4333,7 +4489,8 @@ def pack_recent_governance(draws, rounds=120):
 def strict_candidate_pool(candidates, min_score=0.64, min_confidence=81.0, min_stability=1):
     return [
         item for item in candidates
-        if item.get("score", 0) >= min_score
+        if not hard_iron_blocked(item)
+        and item.get("score", 0) >= min_score
         and item.get("confidence_index", 0) >= min_confidence
         and item.get("stability_count", 0) >= min_stability
     ]
@@ -4396,6 +4553,9 @@ def strong_packs(candidates, review=None, governance=None):
             item = candidate_map.get(number)
             if not item:
                 continue
+            if hard_iron_blocked(item):
+                removed.append(number)
+                continue
             if failed_strong_pack_blocked(item, review):
                 removed.append(number)
                 continue
@@ -4420,8 +4580,11 @@ def strong_packs(candidates, review=None, governance=None):
             variant = "slump_recall"
         allowed_pool = [
             item for item in candidates[:30]
-            if item["number"] in qualified_numbers or (
-                item.get("score", 0) >= min_avg_score and item.get("stability_count", 0) >= min_stability
+            if not hard_iron_blocked(item)
+            and (
+                item["number"] in qualified_numbers or (
+                    item.get("score", 0) >= min_avg_score and item.get("stability_count", 0) >= min_stability
+                )
             )
         ]
         selection_pool = candidates[:30] if key in short_pack_keys else allowed_pool
@@ -4447,19 +4610,25 @@ def strong_packs(candidates, review=None, governance=None):
         if not numbers and selection_pool:
             clean_pool = [
                 item for item in selection_pool
-                if not failed_strong_pack_blocked(item, review) and not previous_guard_blocks_item(item)
+                if not hard_iron_blocked(item)
+                and not failed_strong_pack_blocked(item, review)
+                and not previous_guard_blocks_item(item)
             ]
             fallback_pool = clean_pool or selection_pool
             numbers = [fallback_pool[0]["number"]] if size == 1 else optimized_group(fallback_pool, size, review)
         avg_score = sum(score_map[n] for n in numbers) / len(numbers) if numbers else 0
         weak_numbers = [
             n for n in numbers
-            if previous_guard_blocks_item(candidate_map[n])
+            if previous_guard_blocks_item(candidate_map[n]) or hard_iron_blocked(candidate_map[n])
         ]
         if key in short_pack_keys:
             packs[key] = pack(name, goal, sorted(numbers))
             packs[key]["release_note"] = "short pack is always calculated every fresh draw by multi-model arbitration"
             packs[key]["failed_strong_quarantine_removed"] = quarantine_removed
+            packs[key]["hard_iron_rule_removed"] = [
+                number for number in quarantine_removed
+                if hard_iron_blocked(candidate_map.get(number, {}))
+            ]
         elif recent_stat and not recent_stat.get("passed"):
             packs[key] = watch_pack(name, goal, numbers, score_map, "recent walk-forward pack performance did not pass official gate; output as daily research prediction")
         elif avg_score < min_avg_score:
@@ -5100,6 +5269,7 @@ def compute_industrial_analysis(draws, review=None):
     candidates, previous_similarity_guard = apply_previous_similarity_guard(candidates, review)
     candidates, failed_strong_quarantine = apply_failed_strong_quarantine(candidates, review)
     candidates, score_saturation_breaker = apply_score_saturation_breaker(candidates, review)
+    candidates, hard_iron_rules = apply_hard_iron_rules(draws, candidates, review)
     pack_governance = pack_recent_governance(draws)
     packs = strong_packs(candidates, review, pack_governance)
     audit = industrial_backtest(draws)
@@ -5156,6 +5326,7 @@ def compute_industrial_analysis(draws, review=None):
             "top10_overlap_rate": round(len(top10_overlap) / 10, 3),
             "top15_overlap_rate": round(len(top15_overlap) / 15, 3),
             "similarity_guard": previous_similarity_guard,
+            "hard_iron_rules": hard_iron_rules,
         },
         "stability_consensus": stability,
         "adaptive_weight_calibration": weight_calibration,
@@ -5167,6 +5338,7 @@ def compute_industrial_analysis(draws, review=None):
         "top9_leakage_lock": top9_leakage_lock,
         "failed_strong_quarantine": failed_strong_quarantine,
         "score_saturation_breaker": score_saturation_breaker,
+        "hard_iron_rules": hard_iron_rules,
         "top10_promotion_audit": promotion_audit,
         "dependency_analysis": {
             "method": "three_fold_conditional_lift_with_fdr",

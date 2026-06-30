@@ -3170,6 +3170,35 @@ def compact_dual_track_html(analysis):
     """
 
 
+def compact_hard_iron_html(analysis):
+    industrial = analysis.get("industrial_engine") or {}
+    rules = industrial.get("hard_iron_rules") or (industrial.get("previous_prediction_guard") or {}).get("hard_iron_rules") or {}
+    if not rules:
+        return ""
+    blocked_rows = []
+    for item in rules.get("blocked_numbers", [])[:15]:
+        reasons = "\u3001".join(item.get("reasons") or [])
+        blocked_rows.append(
+            "<tr>"
+            f"<td class='num'>{int(item.get('number')):02d}</td>"
+            f"<td>{escape_html(reasons)}</td>"
+            "</tr>"
+        )
+    return f"""
+    <div class="band warn">
+      <h2>\u9435\u5f8b\u5b88\u9580</h2>
+      <div class="grid">
+        <div class="card"><div class="label">\u72c0\u614b</div><div class="value">{escape_html(rules.get('status'))}</div></div>
+        <div class="card"><div class="label">Top10 \u4e0a\u671f\u91cd\u758a</div><div class="value">{fmt_numbers(rules.get('final_top10_previous_overlap', [])) or '-'}</div></div>
+        <div class="card"><div class="label">Top15 \u4e0a\u671f\u91cd\u758a</div><div class="value">{fmt_numbers(rules.get('final_top15_previous_overlap', [])) or '-'}</div></div>
+        <div class="card"><div class="label">\u672a\u9054\u6a19\u9023\u838a\u9055\u898f</div><div class="value">{fmt_numbers(rules.get('repeat_violations_in_top15', [])) or '-'}</div></div>
+      </div>
+      <p>{escape_html(rules.get('policy'))}</p>
+      <table><thead><tr><th>\u88ab\u64cb\u865f</th><th>\u539f\u56e0</th></tr></thead><tbody>{''.join(blocked_rows) or '<tr><td colspan="2">\u672c\u671f\u6c92\u6709\u9435\u5f8b\u5c01\u9396\u865f</td></tr>'}</tbody></table>
+    </div>
+    """
+
+
 def compact_super_single_html(packs, candidates):
     single_pack = (packs or {}).get("strong_single") or {}
     decision = single_pack.get("super_single_decision") or {}
@@ -3254,6 +3283,7 @@ def build_compact_html_report():
     low_url = LOW_PROBABILITY_HTML.name
     dual_track_html = compact_dual_track_html(analysis)
     low_review_html = compact_low_probability_review_html(history)
+    hard_iron_html = compact_hard_iron_html(analysis)
     stats_rows = []
     for key, label in [("strong_single", "\u7368\u96bb1\u4e2d1"), ("two_hit_one", "2\u4e2d1"), ("three_hit_one", "3\u4e2d1"), ("five_hit_two", "5\u4e2d2"), ("nine_hit_three", "9\u4e2d3")]:
         stat = strong_stats.get(key) or {}
@@ -3334,6 +3364,7 @@ def build_compact_html_report():
       </div>
       <p>\u904b\u7b97\u539f\u5247\uff1a\u53ea\u986f\u793a\u5b8c\u6210\u904b\u7b97\u5f8c\u7684\u7cbe\u6e96\u8cc7\u8a0a\uff1b\u4f9d\u5168\u6b77\u53f2\u8cc7\u6599\u5eab\u3001\u591a\u6a21\u578b\u4ea4\u53c9\u9a57\u7b97\u8207\u6efe\u52d5\u56de\u6e2c\u8f38\u51fa\u3002</p>
     </div>
+    {hard_iron_html}
     {super_single_html}
     <div class="band">
       <h2>\u4e0b\u671f\u7cbe\u7b97\u524d9\u540d</h2>
