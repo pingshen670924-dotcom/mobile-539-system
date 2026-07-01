@@ -14,6 +14,7 @@ SITE = ROOT / "site"
 REPORT = REPORTS / "539\u6700\u65b0\u5f37\u5316\u6230\u5831.html"
 HISTORY_REPORT = REPORTS / "539\u6bcf\u671f\u9810\u6e2c\u5c0d\u6bd4.html"
 LOW_PROBABILITY_REPORT = REPORTS / "539\u4f4e\u6a5f\u7387\u7cbe\u6e96\u66ab\u907f.html"
+MONTHLY_SUMMARY_REPORT = REPORTS / "539\u6bcf\u6708\u9810\u6e2c\u7e3d\u6574\u7406.html"
 REPOSITORY = os.environ.get("GITHUB_REPOSITORY", "pingshen670924-dotcom/mobile-539-system")
 TAIPEI = ZoneInfo("Asia/Taipei")
 
@@ -148,12 +149,13 @@ def build():
             analysis = {}
     generated_at = analysis.get("generated_at") or taipei_now().isoformat(timespec="seconds")
     mobile_built_at = taipei_now().isoformat(timespec="seconds")
+    mobile_built_display = str(mobile_built_at).replace("T", " ").replace("+08:00", "")
     latest_draw = analysis.get("latest_draw", {})
     version = taipei_now().strftime("%Y%m%d%H%M%S")
     controls = f"""
     <section class="band">
       <h2>\u624b\u6a5f\u7368\u7acb\u64cd\u4f5c</h2>
-      <p><strong>\u624b\u6a5f\u7248\u6700\u5f8c\u5efa\u7acb\uff1a{mobile_built_at}</strong></p>
+      <p><strong>\u624b\u6a5f\u7248\u6700\u5f8c\u5efa\u7acb\uff1a{mobile_built_display}</strong></p>
       <p>\u6700\u65b0\u8cc7\u6599\uff1a{latest_draw.get('period', '-')}\u671f / {latest_draw.get('draw_date', '-')} / \u7248\u672c {version}</p>
       <p><a class="mobile-action refresh" href="clear-cache.html?v={version}">\u6e05\u9664\u820a\u7248\u5feb\u53d6\u4e26\u6253\u958b\u6700\u65b0\u624b\u6a5f\u7248</a></p>
       <p><a class="mobile-action history" href="prediction-history.html?v={version}">\u67e5\u770b\u6bcf\u671f\u9810\u6e2c\u5c0d\u6bd4</a></p>
@@ -232,6 +234,9 @@ def build():
     if LOW_PROBABILITY_REPORT.exists():
         shutil.copy2(LOW_PROBABILITY_REPORT, SITE / "539\u4f4e\u6a5f\u7387\u7cbe\u6e96\u66ab\u907f.html")
         shutil.copy2(LOW_PROBABILITY_REPORT, SITE / "low-probability.html")
+    if MONTHLY_SUMMARY_REPORT.exists():
+        shutil.copy2(MONTHLY_SUMMARY_REPORT, SITE / "539\u6bcf\u6708\u9810\u6e2c\u7e3d\u6574\u7406.html")
+        shutil.copy2(MONTHLY_SUMMARY_REPORT, SITE / "monthly-summary.html")
     manifest = {
         "name": "539 \u624b\u6a5f\u7368\u7acb\u7cfb\u7d71",
         "short_name": "539\u7cfb\u7d71",

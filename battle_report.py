@@ -2,7 +2,7 @@
 import sqlite3
 import re
 import html
-from collections import defaultdict
+from collections import Counter, defaultdict
 from datetime import datetime, timedelta
 from html.parser import HTMLParser
 from pathlib import Path
@@ -24,6 +24,7 @@ ENHANCED_BATTLE_HTML = REPORT_DIR / "539\u6700\u65b0\u5f37\u5316\u6230\u5831.htm
 HISTORY_JSON = REPORT_DIR / "prediction_history.json"
 HISTORY_HTML = REPORT_DIR / "539\u6bcf\u671f\u9810\u6e2c\u5c0d\u6bd4.html"
 LOW_PROBABILITY_HTML = REPORT_DIR / "539\u4f4e\u6a5f\u7387\u7cbe\u6e96\u66ab\u907f.html"
+MONTHLY_SUMMARY_HTML = REPORT_DIR / "539\u6bcf\u6708\u9810\u6e2c\u7e3d\u6574\u7406.html"
 HISTORY_DIR = REPORT_DIR / "history"
 TAIPEI_TZ = ZoneInfo("Asia/Taipei")
 
@@ -55,6 +56,12 @@ TEXT_REPLACEMENTS = [
     ("Top11-15 has captured real hits; ranking calibration should promote stable consensus and mid-rank validated signals into Top10.", "第11到15名曾捕捉實際命中號，排序校準要把穩定共識與中段驗證訊號提前到前十名。"),
     ("insufficient_samples", "樣本不足"),
     ("watch_only", "觀察候選"),
+    ("reality_gate_blocked", "實戰閘門封鎖"),
+    ("research_kpi_blocked", "研究目標未達標"),
+    ("blocked_high_confidence", "封鎖高信心"),
+    ("official_high_confidence_gate_passed", "正式高信心門檻通過"),
+    ("failed", "未通過"),
+    ("passed", "通過"),
     ("official_release", "正式發布"),
     ("official", "正式"),
     ("yellow", "黃燈"),
@@ -125,6 +132,16 @@ TEXT_REPLACEMENTS = [
     ("freq_10", "近10期熱度"),
     ("freq_50", "近50期熱度"),
     ("freq_100", "近100期熱度"),
+    ("heat_short", "短期熱度"),
+    ("heat_mid", "中期熱度"),
+    ("similar", "相似牌"),
+    ("repeat_neighbor", "連莊鄰號"),
+    ("twin", "雙生牌"),
+    ("date", "日期牌"),
+    ("omission", "遺漏期數"),
+    ("missing", "候選外"),
+    ("html", "網頁"),
+    ("vs", "對照"),
     ("zone_parity_pressure", "區間奇偶壓力"),
     ("time_series", "時間序列"),
     ("regime_switch", "開獎型態切換"),
@@ -2919,8 +2936,237 @@ def status_zh(status):
         "watch_only": "\u89c0\u5bdf",
         "fresh": "\u8cc7\u6599\u65b0\u9bae",
         "stale": "\u8cc7\u6599\u904e\u671f",
+        "failed": "\u672a\u901a\u904e",
+        "passed": "\u901a\u904e",
+        "evaluated": "\u5df2\u8a55\u4f30",
+        "triggered": "\u5df2\u89f8\u767c",
+        "warning": "\u8b66\u793a",
+        "blocked_high_confidence": "\u5c01\u9396\u9ad8\u4fe1\u5fc3",
+        "reality_gate_blocked": "\u5be6\u6230\u9580\u6abb\u5c01\u9396",
+        "research_kpi_blocked": "\u7814\u7a76\u76ee\u6a19\u672a\u9054\u6a19",
+        "official_high_confidence_gate_passed": "\u6b63\u5f0f\u9ad8\u4fe1\u5fc3\u9580\u6abb\u901a\u904e",
     }
     return labels.get(status or "", status or "-")
+
+
+FEATURE_LABELS = {
+    "freq_5": "\u8fd1\u4e94\u671f\u71b1\u5ea6",
+    "freq_10": "\u8fd1\u5341\u671f\u71b1\u5ea6",
+    "freq_20": "\u8fd1\u4e8c\u5341\u671f\u71b1\u5ea6",
+    "freq_50": "\u8fd1\u4e94\u5341\u671f\u71b1\u5ea6",
+    "freq_100": "\u8fd1\u4e00\u767e\u671f\u71b1\u5ea6",
+    "freq_300": "\u8fd1\u4e09\u767e\u671f\u7a69\u5b9a",
+    "ewma_fast": "\u77ed\u7dda\u52a0\u6b0a",
+    "ewma_slow": "\u9577\u7dda\u52a0\u6b0a",
+    "omission": "\u907a\u6f0f\u671f\u6578",
+    "transition": "\u62d6\u724c\u8f49\u79fb",
+    "validated_dependency": "\u6a23\u672c\u5916\u9023\u52d5",
+    "markov_chain": "\u7248\u8def\u8f49\u79fb",
+    "time_series": "\u8da8\u52e2\u52d5\u80fd",
+    "neural_network": "\u7d9c\u5408\u5b78\u7fd2",
+    "pair": "\u5171\u73fe\u914d\u5c0d",
+    "tail_zone": "\u5c3e\u6578\u5340\u9593",
+    "cycle_timing": "\u9031\u671f\u4f4d\u7f6e",
+    "trend_alignment": "\u5feb\u6162\u8da8\u52e2",
+    "cross_consensus": "\u591a\u6a21\u578b\u5171\u8b58",
+    "bayesian_posterior": "\u4fdd\u5b88\u6821\u6e96",
+    "monte_carlo_stability": "\u7a69\u5b9a\u62bd\u6a23",
+    "distribution_balance": "\u5206\u5e03\u5e73\u8861",
+    "shape_follow": "\u76f8\u4f3c\u724c\u578b",
+    "zone_parity_pressure": "\u5340\u9593\u5947\u5076",
+    "missed_hit_recovery": "\u6f0f\u6293\u56de\u6536",
+    "rank_error_correction": "\u6392\u540d\u932f\u4f4d",
+    "monthly_recall_pressure": "\u6708\u5ea6\u6f0f\u6293\u56de\u62c9",
+    "breakthrough_month_bridge": "\u4e0a\u6708\u5931\u6e96\u56de\u62c9",
+    "cold_rebound_champion": "\u51b7\u865f\u53cd\u5f48",
+    "multi_window_bagging": "\u591a\u8996\u7a97\u5171\u8b58",
+    "tail_transition_bridge": "\u5c3e\u6578\u8f49\u79fb",
+    "zone_quota_pressure": "\u5340\u9593\u914d\u984d",
+    "regime_switch": "\u958b\u734e\u578b\u614b",
+    "zone_coverage_recovery": "\u5206\u5340\u56de\u88dc",
+    "date": "\u65e5\u671f\u724c",
+    "repeat": "\u9023\u838a\u5b88\u9580",
+    "neighbor": "\u9130\u865f\u9023\u52d5",
+}
+
+
+def feature_value(item, key):
+    try:
+        return float((item.get("feature_scores") or {}).get(key))
+    except (TypeError, ValueError):
+        return None
+
+
+def evidence_group_text(item, specs, limit=4):
+    entries = []
+    for key, threshold in specs:
+        value = feature_value(item, key)
+        if value is None:
+            continue
+        label = FEATURE_LABELS.get(key, key)
+        if value >= threshold:
+            verdict = "\u9054\u6a19"
+        elif value >= threshold * 0.72:
+            verdict = "\u63a5\u8fd1"
+        else:
+            verdict = "\u672a\u9054"
+        entries.append((value >= threshold, value, f"{label}{verdict}{fmt_percent(value)}"))
+    entries.sort(key=lambda row: (row[0], row[1]), reverse=True)
+    if not entries:
+        return "\u7121\u53ef\u7528\u8a0a\u865f"
+    return "\uff1b".join(text for _, _, text in entries[:limit])
+
+
+def cross_validation_text(item):
+    cv = item.get("cross_validation") or {}
+    passed_count = cv.get("passed_count", "-")
+    total_count = cv.get("total_count", "-")
+    passed_labels = [
+        str(layer.get("label") or FEATURE_LABELS.get(layer.get("key"), layer.get("key")))
+        for layer in (cv.get("passed") or [])[:4]
+        if layer
+    ]
+    failed_labels = [
+        str(layer.get("label") or FEATURE_LABELS.get(layer.get("key"), layer.get("key")))
+        for layer in (cv.get("failed") or [])[:4]
+        if layer
+    ]
+    parts = [f"\u901a\u904e {passed_count}/{total_count}"]
+    if passed_labels:
+        parts.append("\u901a\u904e\u5c64\uff1a" + "\u3001".join(localize_text(label) for label in passed_labels))
+    if failed_labels:
+        parts.append("\u672a\u904e\u5c64\uff1a" + "\u3001".join(localize_text(label) for label in failed_labels))
+    return "\uff1b".join(parts)
+
+
+def risk_conclusion_text(item):
+    parts = []
+    profile = item.get("confidence_profile") or {}
+    if item.get("high_confidence"):
+        parts.append("\u5141\u8a31\u6a19\u793a\u9ad8\u4fe1\u5fc3")
+    else:
+        parts.append("\u672a\u5217\u5165\u9ad8\u4fe1\u5fc3")
+    if profile.get("risk_note"):
+        parts.append(str(profile.get("risk_note")))
+    gate = item.get("reality_gate") or {}
+    if gate:
+        reasons = "\u3001".join(gate.get("reasons") or [])
+        gate_text = f"\u5be6\u6230\u9580\u6abb{status_zh(gate.get('status'))}"
+        if reasons:
+            gate_text += f"\uff1a{reasons}"
+        parts.append(gate_text)
+    repeat_guard = item.get("repeat_guard") or {}
+    if repeat_guard:
+        parts.append("\u9023\u838a\u5b88\u9580" + status_zh(repeat_guard.get("status")))
+    previous_guard = item.get("previous_prediction_guard") or {}
+    if previous_guard:
+        parts.append("\u4e0a\u671f\u91cd\u5165\u5b88\u9580" + status_zh(previous_guard.get("status")))
+    return "\uff1b".join(localize_text(part) for part in parts if part) or "\u672a\u89f8\u767c\u984d\u5916\u98a8\u63a7"
+
+
+def verified_candidate_items(candidates, packs, limit=15):
+    rows = []
+    seen = set()
+    lookup = {}
+    for item in candidates or []:
+        try:
+            lookup[int(item.get("number"))] = item
+        except (TypeError, ValueError):
+            continue
+    for item in (candidates or [])[:limit]:
+        try:
+            number = int(item.get("number"))
+        except (TypeError, ValueError):
+            continue
+        seen.add(number)
+        rows.append(item)
+    for pack in (packs or {}).values():
+        for raw_number in pack.get("numbers") or []:
+            try:
+                number = int(raw_number)
+            except (TypeError, ValueError):
+                continue
+            if number in seen:
+                continue
+            seen.add(number)
+            rows.append(lookup.get(number, {"number": number, "reasons": ["\u5f37\u724c\u5305\u8f38\u51fa\uff0c\u5019\u9078\u9a57\u7b97\u8cc7\u6599\u4e0d\u8db3"], "reality_gate": {"status": "blocked_high_confidence"}}))
+    return rows
+
+
+def compact_verified_candidate_rows(candidates, packs, limit=15, based_date="-", target_date="-"):
+    rows = []
+    drag_specs = [
+        ("transition", 0.55),
+        ("markov_chain", 0.55),
+        ("validated_dependency", 0.45),
+        ("pair", 0.45),
+        ("shape_follow", 0.48),
+        ("neighbor", 0.45),
+        ("repeat", 0.60),
+    ]
+    tail_zone_specs = [
+        ("tail_zone", 0.55),
+        ("tail_transition_bridge", 0.55),
+        ("zone_quota_pressure", 0.60),
+        ("zone_coverage_recovery", 0.50),
+        ("distribution_balance", 0.50),
+        ("zone_parity_pressure", 0.55),
+    ]
+    timing_specs = [
+        ("omission", 0.55),
+        ("cycle_timing", 0.55),
+        ("date", 0.45),
+        ("freq_5", 0.45),
+        ("freq_10", 0.45),
+        ("freq_20", 0.45),
+        ("freq_50", 0.45),
+        ("freq_100", 0.45),
+    ]
+    stability_specs = [
+        ("cross_consensus", 0.55),
+        ("monte_carlo_stability", 0.50),
+        ("bayesian_posterior", 0.55),
+        ("trend_alignment", 0.55),
+        ("multi_window_bagging", 0.50),
+        ("neural_network", 0.55),
+        ("time_series", 0.55),
+    ]
+    recovery_specs = [
+        ("rank_error_correction", 0.50),
+        ("missed_hit_recovery", 0.50),
+        ("monthly_recall_pressure", 0.45),
+        ("breakthrough_month_bridge", 0.45),
+        ("cold_rebound_champion", 0.50),
+        ("regime_switch", 0.45),
+    ]
+    for item in verified_candidate_items(candidates, packs, limit=limit):
+        try:
+            number_text = f"{int(item.get('number')):02d}"
+        except (TypeError, ValueError):
+            number_text = "-"
+        cv = item.get("cross_validation") or {}
+        source_text = compact_source_text(item, 6)
+        rows.append(
+            "<tr>"
+            f"<td class='num'>{number_text}</td>"
+            f"<td>{escape_html(based_date)}</td>"
+            f"<td>{escape_html(target_date)}</td>"
+            f"<td>{item.get('rank', '-')}</td>"
+            f"<td>{fmt_percent(item.get('score'))}</td>"
+            f"<td>{fmt_decimal(item.get('model_probability_percent'), 2)}%</td>"
+            f"<td>{fmt_decimal(item.get('confidence_index'), 1)}</td>"
+            f"<td>{cv.get('passed_count', '-')}/{cv.get('total_count', '-')}</td>"
+            f"<td class='small'>{escape_html(source_text)}</td>"
+            f"<td class='small'>{escape_html(evidence_group_text(item, drag_specs))}</td>"
+            f"<td class='small'>{escape_html(evidence_group_text(item, tail_zone_specs))}</td>"
+            f"<td class='small'>{escape_html(evidence_group_text(item, timing_specs))}</td>"
+            f"<td class='small'>{escape_html(evidence_group_text(item, stability_specs))}</td>"
+            f"<td class='small'>{escape_html(evidence_group_text(item, recovery_specs))}</td>"
+            f"<td class='small'>{escape_html(cross_validation_text(item))}</td>"
+            f"<td class='small'>{escape_html(risk_conclusion_text(item))}</td>"
+            "</tr>"
+        )
+    return "".join(rows) or "<tr><td colspan='16'>\u672c\u671f\u7121\u9010\u865f\u9a57\u7b97\u8cc7\u6599</td></tr>"
 
 
 def history_basis_text(health, latest_date):
@@ -2976,13 +3222,15 @@ def compact_pack_rows(packs):
     return "".join(rows)
 
 
-def compact_candidate_rows(candidates, limit=9):
+def compact_candidate_rows(candidates, limit=9, based_date="-", target_date="-"):
     rows = []
     for item in candidates[:limit]:
         cv = item.get("cross_validation") or {}
         rows.append(
             "<tr>"
             f"<td class='num'>{int(item.get('number')):02d}</td>"
+            f"<td>{escape_html(based_date)}</td>"
+            f"<td>{escape_html(target_date)}</td>"
             f"<td>{item.get('rank', '-')}</td>"
             f"<td>{fmt_percent(item.get('score'))}</td>"
             f"<td>{fmt_decimal(item.get('confidence_index'), 1)}</td>"
@@ -2992,7 +3240,7 @@ def compact_candidate_rows(candidates, limit=9):
             f"<td>{escape_html(compact_source_text(item, 4))}</td>"
             "</tr>"
         )
-    return "".join(rows) or "<tr><td colspan='8'>\u672c\u671f\u7121\u5019\u9078\u8cc7\u6599</td></tr>"
+    return "".join(rows) or "<tr><td colspan='10'>\u672c\u671f\u7121\u5019\u9078\u8cc7\u6599</td></tr>"
 
 
 def compact_model_rows(analysis, health):
@@ -3005,9 +3253,10 @@ def compact_model_rows(analysis, health):
         reverse=True,
     )[:8]
     for name, data in ranked:
+        model_label = localize_text(str(name))
         rows.append(
             "<tr>"
-            f"<td>{escape_html(name)}</td>"
+            f"<td>{escape_html(model_label)}</td>"
             f"<td>{data.get('rounds', '-')}</td>"
             f"<td>{fmt_decimal(data.get('top5_avg_hits'))}</td>"
             f"<td>{fmt_decimal(data.get('top10_avg_hits'))}</td>"
@@ -3093,6 +3342,338 @@ def compact_low_probability_review_html(history):
     """
 
 
+def compact_prediction_similarity_audit_html(history, latest_date, target_date):
+    pending = next((item for item in history if item.get("status") == "pending"), None)
+    if not pending:
+        return f"""
+        <div class="band warn">
+          <h2>\u8fd1\u671f\u9810\u6e2c\u76f8\u4f3c\u5ea6\u7a3d\u6838\uff08\u8cc7\u6599\u4f9d\u64da\u65e5 {latest_date} / \u9810\u6e2c\u76ee\u6a19\u65e5 {target_date}\uff09</h2>
+          <p>\u672c\u671f\u5c1a\u7121\u5f85\u7d50\u7b97\u9810\u6e2c\u8a18\u9304\uff0c\u7121\u6cd5\u6bd4\u5c0d\u76f8\u4f3c\u5ea6\u3002</p>
+        </div>
+        """
+    current_top10 = [int(number) for number in (pending.get("top10") or [])]
+    settled = [item for item in history if item.get("status") == "settled"][:6]
+    rows = []
+    max_overlap = 0
+    high_count = 0
+    for item in settled:
+        previous_top10 = [int(number) for number in (item.get("top10") or [])]
+        overlap = sorted(set(current_top10) & set(previous_top10))
+        max_overlap = max(max_overlap, len(overlap))
+        if len(overlap) >= 5:
+            high_count += 1
+        verdict = "\u504f\u9ad8\uff0c\u9700\u8981\u6aa2\u67e5\u6a21\u578b\u9396\u6b7b" if len(overlap) >= 5 else "\u53ef\u63a5\u53d7"
+        rows.append(
+            "<tr>"
+            f"<td>{escape_html(pending.get('based_on_date', latest_date))}</td>"
+            f"<td>{escape_html(pending.get('target_expected_date') or target_date)}</td>"
+            f"<td>{escape_html(item.get('based_on_date', '-'))}</td>"
+            f"<td>{escape_html(item.get('actual_date', '-'))}</td>"
+            f"<td>{len(overlap)}</td>"
+            f"<td>{fmt_numbers(overlap) or '-'}</td>"
+            f"<td>{verdict}</td>"
+            "</tr>"
+        )
+    conclusion = "\u8fd1\u671f\u6709\u504f\u9ad8\u91cd\u758a\uff0c\u5fc5\u9808\u7e7c\u7e8c\u58d3\u4f4e\u6a21\u578b\u9396\u6b7b\u98a8\u96aa\u3002" if high_count else "\u8fd1\u671f\u672a\u767c\u73fe\u8207\u4e0a\u671f\u76f4\u63a5\u7167\u6284\u7684\u60c5\u5f62\u3002"
+    return f"""
+    <div class="band warn">
+      <h2>\u8fd1\u671f\u9810\u6e2c\u76f8\u4f3c\u5ea6\u7a3d\u6838\uff08\u8cc7\u6599\u4f9d\u64da\u65e5 {latest_date} / \u9810\u6e2c\u76ee\u6a19\u65e5 {target_date}\uff09</h2>
+      <div class="grid">
+        <div class="card"><div class="label">\u672c\u671f\u524d\u5341</div><div class="value">{fmt_numbers(current_top10) or '-'}</div></div>
+        <div class="card"><div class="label">\u6700\u9ad8\u91cd\u758a</div><div class="value">{max_overlap}</div></div>
+        <div class="card"><div class="label">\u504f\u9ad8\u6b21\u6578</div><div class="value">{high_count}</div></div>
+      </div>
+      <p><strong>\u7d50\u8ad6\uff1a</strong>{conclusion}</p>
+      <table><thead><tr><th>\u672c\u671f\u4f9d\u64da\u65e5</th><th>\u672c\u671f\u76ee\u6a19\u65e5</th><th>\u5c0d\u7167\u4f9d\u64da\u65e5</th><th>\u5c0d\u7167\u958b\u734e\u65e5</th><th>\u524d\u5341\u91cd\u758a</th><th>\u91cd\u758a\u865f\u78bc</th><th>\u5224\u5b9a</th></tr></thead><tbody>{''.join(rows) or '<tr><td colspan="7">\u6c92\u6709\u53ef\u5c0d\u7167\u8cc7\u6599</td></tr>'}</tbody></table>
+    </div>
+    """
+
+
+def prediction_summary_months(history):
+    month_counts = Counter()
+    for item in history:
+        actual_date = str(item.get("actual_date") or "")
+        if item.get("status") == "settled" and len(actual_date) >= 7:
+            month_counts[actual_date[:7]] += 1
+    return sorted(month_counts.keys(), reverse=True), month_counts
+
+
+def month_label(month):
+    try:
+        year, month_number = month.split("-")
+        return f"{int(year):04d}年{int(month_number):02d}月"
+    except (AttributeError, ValueError):
+        return escape_html(month)
+
+
+def next_month_label(month):
+    try:
+        year, month_number = [int(part) for part in month.split("-")]
+        month_number += 1
+        if month_number == 13:
+            year += 1
+            month_number = 1
+        return f"{year:04d}年{month_number:02d}月"
+    except (AttributeError, ValueError):
+        return "下一月"
+
+
+def compact_monthly_prediction_summary_html(history, month=None):
+    months, month_counts = prediction_summary_months(history)
+    if month is None:
+        month = months[0] if months else taipei_now().strftime("%Y-%m")
+    label = month_label(month)
+    next_label = next_month_label(month)
+    month_rows = []
+    for item_month in months:
+        month_rows.append(
+            "<tr>"
+            f"<td>{month_label(item_month)}</td>"
+            f"<td>{month_counts[item_month]}</td>"
+            f"<td>{'目前顯示' if item_month == month else '已保存'}</td>"
+            "</tr>"
+        )
+    month_table_body = "".join(month_rows) or '<tr><td colspan="3">沒有可查月份</td></tr>'
+    month_list_html = (
+        "<div class='band'><h2>可查月份</h2>"
+        f"<table><thead><tr><th>月份</th><th>已結算期數</th><th>狀態</th></tr></thead><tbody>{month_table_body}</tbody></table>"
+        "</div>"
+    )
+
+    records = [
+        item for item in history
+        if item.get("status") == "settled" and str(item.get("actual_date", "")).startswith(month)
+    ]
+    records = sorted(records, key=lambda item: item.get("actual_date") or "")
+    if not records:
+        return f"""
+        <div class="band">
+          <h2>{label}預測總整理</h2>
+          <p>本月沒有可結算的預測資料。</p>
+        </div>
+        {month_list_html}
+        """
+
+    def avg(key):
+        values = [int(item.get(key) or 0) for item in records]
+        return round(sum(values) / len(values), 3)
+
+    def pass_rate(key, goal):
+        values = [int(item.get(key) or 0) for item in records]
+        return round(sum(1 for value in values if value >= goal) / len(values), 3)
+
+    def bar(label_text, value, maximum, color="#0f766e"):
+        pct = 0 if maximum <= 0 else max(0, min(100, value / maximum * 100))
+        return (
+            "<div class='bar-row'>"
+            f"<div class='bar-label'>{escape_html(label_text)}</div>"
+            "<div class='bar-track'>"
+            f"<div class='bar-fill' style='width:{pct:.1f}%;background:{color}'></div>"
+            "</div>"
+            f"<div class='bar-value'>{fmt_decimal(value, 3)}</div>"
+            "</div>"
+        )
+
+    top5_avg = avg("top5_hits")
+    top10_avg = avg("top10_hits")
+    top15_avg = avg("top15_hits")
+    top5_zero = sum(1 for item in records if int(item.get("top5_hits") or 0) == 0)
+    top10_zero = sum(1 for item in records if int(item.get("top10_hits") or 0) == 0)
+    top15_zero = sum(1 for item in records if int(item.get("top15_hits") or 0) == 0)
+    top10_ge3 = pass_rate("top10_hits", 3)
+    top5_ge2 = pass_rate("top5_hits", 2)
+    top15_ge3 = pass_rate("top15_hits", 3)
+
+    predicted_counter = Counter()
+    hit_counter = Counter()
+    actual_counter = Counter()
+    top10_distribution = Counter()
+    strong_totals = defaultdict(lambda: {"rounds": 0, "hits": 0, "passed": 0})
+    low_totals = defaultdict(lambda: {"rounds": 0, "accidental": 0, "passed": 0})
+    daily_rows = []
+    daily_chart_rows = []
+
+    for item in records:
+        actual = [int(number) for number in item.get("actual_numbers") or []]
+        top5 = [int(number) for number in item.get("top5") or []]
+        top10 = [int(number) for number in item.get("top10") or []]
+        top15 = [int(number) for number in item.get("top15") or []]
+        top5_hits = int(item.get("top5_hits") or 0)
+        top10_hits = int(item.get("top10_hits") or 0)
+        top15_hits = int(item.get("top15_hits") or 0)
+        top10_hit_numbers = sorted(set(top10) & set(actual))
+        top15_hit_numbers = sorted(set(top15) & set(actual))
+
+        predicted_counter.update(top10)
+        actual_counter.update(actual)
+        hit_counter.update(top10_hit_numbers)
+        top10_distribution[top10_hits] += 1
+
+        strong_parts = []
+        for key, value in (item.get("strong_pack_hits") or {}).items():
+            name = value.get("name") or key
+            hits = int(value.get("hits") or 0)
+            strong_totals[name]["rounds"] += 1
+            strong_totals[name]["hits"] += hits
+            if value.get("passed"):
+                strong_totals[name]["passed"] += 1
+            strong_parts.append(f"{name}{hits}")
+
+        low_parts = []
+        for key, value in (item.get("unlikely_pack_hits") or {}).items():
+            name = value.get("name") or key
+            accidental = int(value.get("accidental_hits") or 0)
+            low_totals[name]["rounds"] += 1
+            low_totals[name]["accidental"] += accidental
+            if value.get("passed"):
+                low_totals[name]["passed"] += 1
+            low_parts.append(f"{name}誤中{accidental}")
+
+        strong_text = "、".join(strong_parts) or "-"
+        low_text = "、".join(low_parts) or "-"
+        daily_chart_rows.append(
+            "<tr>"
+            f"<td>{escape_html(item.get('actual_date'))}</td>"
+            f"<td>{bar('前五', top5_hits, 5, '#2563eb')}</td>"
+            f"<td>{bar('前十', top10_hits, 5, '#0f766e')}</td>"
+            f"<td>{bar('前十五', top15_hits, 5, '#b45309')}</td>"
+            "</tr>"
+        )
+        daily_rows.append(
+            "<tr>"
+            f"<td>{escape_html(item.get('based_on_date'))}</td>"
+            f"<td>{escape_html(item.get('actual_date'))}</td>"
+            f"<td>{fmt_numbers(top10)}</td>"
+            f"<td>{fmt_numbers(actual)}</td>"
+            f"<td>{fmt_numbers(top10_hit_numbers) or '-'}</td>"
+            f"<td>{top5_hits}</td>"
+            f"<td>{top10_hits}</td>"
+            f"<td>{top15_hits}</td>"
+            f"<td>{fmt_numbers(top15_hit_numbers) or '-'}</td>"
+            f"<td>{escape_html(strong_text)}</td>"
+            f"<td>{escape_html(low_text)}</td>"
+            "</tr>"
+        )
+
+    distribution_rows = []
+    max_dist = max(top10_distribution.values() or [1])
+    for hit_count in range(0, 6):
+        count = top10_distribution.get(hit_count, 0)
+        count_label = f"{count}期"
+        distribution_rows.append(
+            "<tr>"
+            f"<td>前十命中 {hit_count} 顆</td>"
+            f"<td>{bar(count_label, count, max_dist, '#7c3aed')}</td>"
+            f"<td>{fmt_percent(count / len(records), True)}</td>"
+            "</tr>"
+        )
+
+    number_rows = []
+    all_numbers = set(predicted_counter) | set(actual_counter) | set(hit_counter)
+    ranked_numbers = sorted(
+        all_numbers,
+        key=lambda number: (hit_counter[number], actual_counter[number], predicted_counter[number], -number),
+        reverse=True,
+    )[:18]
+    for number in ranked_numbers:
+        predicted = predicted_counter[number]
+        actual = actual_counter[number]
+        hits = hit_counter[number]
+        efficiency = hits / predicted if predicted else 0
+        number_rows.append(
+            "<tr>"
+            f"<td class='num'>{number:02d}</td>"
+            f"<td>{predicted}</td>"
+            f"<td>{actual}</td>"
+            f"<td>{hits}</td>"
+            f"<td>{fmt_percent(efficiency, True)}</td>"
+            "</tr>"
+        )
+
+    strong_rows = []
+    for name, value in sorted(strong_totals.items()):
+        rounds = value["rounds"] or 1
+        strong_rows.append(
+            "<tr>"
+            f"<td>{escape_html(name)}</td>"
+            f"<td>{value['rounds']}</td>"
+            f"<td>{fmt_decimal(value['hits'] / rounds, 3)}</td>"
+            f"<td>{fmt_percent(value['passed'] / rounds, True)}</td>"
+            "</tr>"
+        )
+
+    low_rows = []
+    for name, value in sorted(low_totals.items()):
+        rounds = value["rounds"] or 1
+        low_rows.append(
+            "<tr>"
+            f"<td>{escape_html(name)}</td>"
+            f"<td>{value['rounds']}</td>"
+            f"<td>{fmt_decimal(value['accidental'] / rounds, 3)}</td>"
+            f"<td>{fmt_percent(value['passed'] / rounds, True)}</td>"
+            "</tr>"
+        )
+
+    conclusion = []
+    if top10_avg < 1.6:
+        conclusion.append("前十平均命中偏低，排名模型需降低固定熱號與重複號權重。")
+    if top5_zero >= len(records) * 0.35:
+        conclusion.append("前五落空比率偏高，獨隻與短包需加入更強的漏抓回補與分區控制。")
+    if top10_ge3 < 0.2:
+        conclusion.append(f"前十達三顆的期數不足，{next_label}必須把後段命中回拉到前十以內。")
+    if not conclusion:
+        conclusion.append(f"{label}整體呈現中等命中，但仍需持續降低低分候選進入前十的機率。")
+
+    return f"""
+    <div class="band">
+      <h2>{label}預測總整理</h2>
+      <p>本頁只統計{label}已結算的每期預測，依據當期開獎前已保存的預測號碼，不使用開獎後候選倒灌。</p>
+      <div class="grid">
+        <div class="card"><div class="label">結算期數</div><div class="value">{len(records)}</div></div>
+        <div class="card"><div class="label">前五平均命中</div><div class="value">{fmt_decimal(top5_avg, 3)}</div></div>
+        <div class="card"><div class="label">前十平均命中</div><div class="value">{fmt_decimal(top10_avg, 3)}</div></div>
+        <div class="card"><div class="label">前十五平均命中</div><div class="value">{fmt_decimal(top15_avg, 3)}</div></div>
+        <div class="card"><div class="label">前五達二率</div><div class="value">{fmt_percent(top5_ge2, True)}</div></div>
+        <div class="card"><div class="label">前十達三率</div><div class="value">{fmt_percent(top10_ge3, True)}</div></div>
+      </div>
+    </div>
+    {month_list_html}
+    <div class="band">
+      <h2>{label}每日命中走勢圖</h2>
+      <table><thead><tr><th>開獎日</th><th>前五</th><th>前十</th><th>前十五</th></tr></thead><tbody>{''.join(daily_chart_rows)}</tbody></table>
+    </div>
+    <div class="band">
+      <h2>{label}前十命中分布圖</h2>
+      <table><thead><tr><th>命中顆數</th><th>期數圖</th><th>比率</th></tr></thead><tbody>{''.join(distribution_rows)}</tbody></table>
+    </div>
+    <div class="band">
+      <h2>{label}號碼效率分析</h2>
+      <table><thead><tr><th>號碼</th><th>入選前十次數</th><th>實際開出次數</th><th>前十命中次數</th><th>入選後命中率</th></tr></thead><tbody>{''.join(number_rows)}</tbody></table>
+    </div>
+    <div class="band">
+      <h2>{label}強牌與低機率檢討</h2>
+      <h3>強牌組</h3>
+      <table><thead><tr><th>類型</th><th>結算期</th><th>平均命中</th><th>達標率</th></tr></thead><tbody>{''.join(strong_rows) or '<tr><td colspan="4">沒有強牌統計</td></tr>'}</tbody></table>
+      <h3>低機率</h3>
+      <table><thead><tr><th>類型</th><th>結算期</th><th>平均誤中</th><th>達標率</th></tr></thead><tbody>{''.join(low_rows) or '<tr><td colspan="4">沒有低機率統計</td></tr>'}</tbody></table>
+    </div>
+    <div class="band warn">
+      <h2>{label}總檢討結論</h2>
+      <div class="grid">
+        <div class="card"><div class="label">前五落空</div><div class="value">{top5_zero}</div></div>
+        <div class="card"><div class="label">前十落空</div><div class="value">{top10_zero}</div></div>
+        <div class="card"><div class="label">前十五落空</div><div class="value">{top15_zero}</div></div>
+        <div class="card"><div class="label">前十達三</div><div class="value">{fmt_percent(top10_ge3, True)}</div></div>
+      </div>
+      <ul>{''.join(f'<li>{escape_html(text)}</li>' for text in conclusion)}</ul>
+    </div>
+    <div class="band">
+      <h2>{label}每期明細表</h2>
+      <table class="month-table"><thead><tr><th>預測依據日</th><th>開獎日</th><th>當期前十預測</th><th>實際開獎</th><th>前十命中號</th><th>前五</th><th>前十</th><th>前十五</th><th>前十五命中號</th><th>強牌命中</th><th>低機率誤中</th></tr></thead><tbody>{''.join(daily_rows)}</tbody></table>
+    </div>
+    """
+
+
 def compact_dual_track_html(analysis):
     comparison = analysis.get("dual_track_model_comparison") or (
         (analysis.get("industrial_engine") or {}).get("dual_track_model_comparison") or {}
@@ -3117,9 +3698,10 @@ def compact_dual_track_html(analysis):
 
     model_rows = []
     for item in (comparison.get("raw_model_scorecard") or [])[:10]:
+        model_label = localize_text(str(item.get("label") or item.get("model") or "-"))
         model_rows.append(
             "<tr>"
-            f"<td>{escape_html(item.get('label') or item.get('model'))}</td>"
+            f"<td>{escape_html(model_label)}</td>"
             f"<td>{item.get('rounds', '-')}</td>"
             f"<td>{fmt_decimal(item.get('top5_avg_hits'))}</td>"
             f"<td>{fmt_decimal(item.get('top10_avg_hits'))}</td>"
@@ -3144,12 +3726,12 @@ def compact_dual_track_html(analysis):
         )
     return f"""
       <div class="band">
-        <h2>\u96d9\u8ecc\u6a21\u578b\u5c0d\u7167\uff08\u539f\u59cb\u672a\u8abf\u6574 vs \u6efe\u52d5\u8abf\u6574\uff09</h2>
+        <h2>\u96d9\u8ecc\u6a21\u578b\u5c0d\u7167\uff08\u539f\u59cb\u672a\u8abf\u6574\u5c0d\u7167\u6efe\u52d5\u8abf\u6574\uff09</h2>
         <div class="grid">
           <div class="card"><div class="label">\u5c0d\u7167\u671f\u6578</div><div class="value">{comparison.get('sample_count')}</div></div>
-          <div class="card"><div class="label">\u539f\u59cb Top10</div><div class="value">{fmt_decimal(raw.get('top10_avg_hits'))}</div></div>
-          <div class="card"><div class="label">\u6efe\u52d5 Top10</div><div class="value">{fmt_decimal(rolling.get('top10_avg_hits'))}</div></div>
-          <div class="card"><div class="label">Top10 \u5dee\u503c</div><div class="value">{fmt_decimal(delta.get('top10_avg_hit_delta'))}</div></div>
+          <div class="card"><div class="label">\u539f\u59cb\u524d\u5341\u5e73\u5747</div><div class="value">{fmt_decimal(raw.get('top10_avg_hits'))}</div></div>
+          <div class="card"><div class="label">\u6efe\u52d5\u524d\u5341\u5e73\u5747</div><div class="value">{fmt_decimal(rolling.get('top10_avg_hits'))}</div></div>
+          <div class="card"><div class="label">\u524d\u5341\u5dee\u503c</div><div class="value">{fmt_decimal(delta.get('top10_avg_hit_delta'))}</div></div>
           <div class="card"><div class="label">\u5224\u5b9a</div><div class="value">{escape_html(summary.get('decision_label'))}</div></div>
         </div>
         <p>\u539f\u5247\uff1a{escape_html(comparison.get('policy'))}</p>
@@ -3165,7 +3747,7 @@ def compact_dual_track_html(analysis):
       </div>
       <div class="band">
         <h2>\u8fd1\u671f\u9010\u671f\u5c0d\u7167</h2>
-        <table><thead><tr><th>\u958b\u734e\u65e5</th><th>\u5be6\u969b\u865f</th><th>\u539f\u59cbTop10</th><th>\u539f\u59cb\u4e2d</th><th>\u6efe\u52d5Top10</th><th>\u6efe\u52d5\u4e2d</th><th>\u5dee\u503c</th><th>\u6551\u56de</th><th>\u932f\u6bba</th></tr></thead><tbody>{''.join(period_rows) or '<tr><td colspan="9">\u6c92\u6709\u9010\u671f\u5c0d\u7167</td></tr>'}</tbody></table>
+        <table><thead><tr><th>\u958b\u734e\u65e5</th><th>\u5be6\u969b\u865f</th><th>\u539f\u59cb\u524d\u5341</th><th>\u539f\u59cb\u547d\u4e2d</th><th>\u6efe\u52d5\u524d\u5341</th><th>\u6efe\u52d5\u547d\u4e2d</th><th>\u5dee\u503c</th><th>\u6551\u56de</th><th>\u932f\u6bba</th></tr></thead><tbody>{''.join(period_rows) or '<tr><td colspan="9">\u6c92\u6709\u9010\u671f\u5c0d\u7167</td></tr>'}</tbody></table>
       </div>
     """
 
@@ -3195,6 +3777,35 @@ def compact_hard_iron_html(analysis):
       </div>
       <p>{escape_html(rules.get('policy'))}</p>
       <table><thead><tr><th>\u88ab\u64cb\u865f</th><th>\u539f\u56e0</th></tr></thead><tbody>{''.join(blocked_rows) or '<tr><td colspan="2">\u672c\u671f\u6c92\u6709\u9435\u5f8b\u5c01\u9396\u865f</td></tr>'}</tbody></table>
+    </div>
+    """
+
+
+def compact_reality_gate_html(analysis):
+    industrial = analysis.get("industrial_engine") or {}
+    gate = industrial.get("monthly_reality_gate") or {}
+    if not gate:
+        return ""
+    allowed = bool(gate.get("high_confidence_allowed"))
+    status_text = "\u901a\u904e" if gate.get("status") == "passed" else "\u672a\u901a\u904e"
+    high_confidence_text = "\u5141\u8a31" if allowed else "\u7981\u6b62"
+    reasons = "\uff1b".join(gate.get("reasons") or []) or "\u672a\u5217\u51fa\u984d\u5916\u539f\u56e0"
+    return f"""
+    <div class="band warn">
+      <h2>\u5be6\u6230\u9580\u6abb</h2>
+      <div class="grid">
+        <div class="card"><div class="label">\u9580\u6abb\u7d50\u679c</div><div class="value">{status_text}</div></div>
+        <div class="card"><div class="label">\u6aa2\u8a0e\u6708\u4efd</div><div class="value">{escape_html(gate.get('month', '-'))}</div></div>
+        <div class="card"><div class="label">\u7d50\u7b97\u6a23\u672c</div><div class="value">{gate.get('sample_size', '-')}</div></div>
+        <div class="card"><div class="label">\u524d\u5341\u5e73\u5747\u547d\u4e2d</div><div class="value">{fmt_decimal(gate.get('top10_avg_hits'))}</div></div>
+        <div class="card"><div class="label">\u96a8\u6a5f\u57fa\u6e96</div><div class="value">{fmt_decimal(gate.get('random_top10_expectation'))}</div></div>
+        <div class="card"><div class="label">\u672c\u6708\u512a\u52e2</div><div class="value">{fmt_decimal(gate.get('month_edge_vs_random'))}</div></div>
+        <div class="card"><div class="label">\u9577\u671f\u512a\u52e2</div><div class="value">{fmt_decimal(gate.get('engine_edge_vs_random'))}</div></div>
+        <div class="card"><div class="label">\u4e3b\u5305\u6700\u4f4e\u9054\u6a19\u7387</div><div class="value">{fmt_percent(gate.get('key_pack_min_pass_rate'))}</div></div>
+        <div class="card hot-card"><div class="label">\u9ad8\u4fe1\u5fc3\u6a19\u793a</div><div class="value">{high_confidence_text}</div></div>
+      </div>
+      <p><strong>\u7d50\u8ad6\uff1a</strong>\u672c\u5340\u4f9d\u672c\u6708\u5df2\u7d50\u7b97\u6210\u6548\u8207\u9577\u671f\u56de\u6e2c\u512a\u52e2\u5224\u5b9a\uff0c\u672a\u9054\u6a19\u6642\u4e0d\u5f97\u628a\u5019\u9078\u865f\u5305\u88dd\u6210\u9ad8\u4fe1\u5fc3\u865f\u3002</p>
+      <p><strong>\u672a\u901a\u904e\u539f\u56e0\uff1a</strong>{escape_html(reasons)}</p>
     </div>
     """
 
@@ -3246,8 +3857,16 @@ def compact_monthly_breakthrough_html(analysis):
     table = "".join(rows) or "<tr><td colspan='4'>沒有需要回拉的月度漏抓資料</td></tr>"
 
     buckets = monthly.get("rank_buckets") or {}
+    bucket_labels = {
+        "01-05": "\u7b2c1\u52305\u540d",
+        "06-10": "\u7b2c6\u523010\u540d",
+        "11-15": "\u7b2c11\u523015\u540d",
+        "16-25": "\u7b2c16\u523025\u540d",
+        "26-39": "\u7b2c26\u523039\u540d",
+        "missing": "\u5019\u9078\u5916",
+    }
     bucket_text = " / ".join(
-        f"{name}:{buckets.get(name, 0)}"
+        f"{bucket_labels.get(name, name)}:{buckets.get(name, 0)}"
         for name in ["01-05", "06-10", "11-15", "16-25", "26-39", "missing"]
     )
     plan_text = "、".join(monthly.get("adjustment_plan") or []) or "-"
@@ -3355,8 +3974,21 @@ def build_compact_html_report():
     low_url = LOW_PROBABILITY_HTML.name
     dual_track_html = compact_dual_track_html(analysis)
     low_review_html = compact_low_probability_review_html(history)
+    similarity_audit_html = compact_prediction_similarity_audit_html(history, latest_date, target_date)
     hard_iron_html = compact_hard_iron_html(analysis)
+    reality_gate_html = compact_reality_gate_html(analysis)
     monthly_breakthrough_html = compact_monthly_breakthrough_html(analysis)
+    monthly_summary_html = compact_monthly_prediction_summary_html(history)
+    reality_gate = industrial.get("monthly_reality_gate") or {}
+    candidate_base = "\u4e0b\u671f\u9ad8\u4fe1\u5fc3\u524d9\u540d" if reality_gate.get("high_confidence_allowed") else "\u4e0b\u671f\u7814\u7a76\u5019\u9078\u524d9\u540d"
+    candidate_heading = f"{candidate_base}\uff08\u8cc7\u6599\u4f9d\u64da\u65e5 {latest_date} / \u9810\u6e2c\u76ee\u6a19\u65e5 {target_date}\uff09"
+    settled_for_heading = next((item for item in history if item.get("status") == "settled"), {})
+    review_heading = (
+        f"\u4e0a\u671f\u547d\u4e2d\u6aa2\u8a0e\uff08{settled_for_heading.get('based_on_date', '-')} \u9810\u6e2c / "
+        f"{settled_for_heading.get('actual_date', '-')} \u958b\u734e\uff09"
+    )
+    model_heading = f"\u6a21\u578b\u6210\u6548\uff08\u8cc7\u6599\u622a\u81f3 {latest_date} / \u56de\u6e2c\u7522\u751f {report_time}\uff09"
+    avoid_heading = f"\u4f4e\u6a5f\u7387\uff08\u8cc7\u6599\u4f9d\u64da\u65e5 {latest_date} / \u9810\u6e2c\u76ee\u6a19\u65e5 {target_date}\uff09"
     stats_rows = []
     for key, label in [("strong_single", "\u7368\u96bb1\u4e2d1"), ("two_hit_one", "2\u4e2d1"), ("three_hit_one", "3\u4e2d1"), ("five_hit_two", "5\u4e2d2"), ("nine_hit_three", "9\u4e2d3")]:
         stat = strong_stats.get(key) or {}
@@ -3403,10 +4035,18 @@ def build_compact_html_report():
     .singlebox{{border-color:#fecaca;background:#fffafa;}}
     .label{{font-size:13px;color:#64748b;font-weight:700;}}
     .value{{font-size:22px;font-weight:900;margin-top:6px;}}
+    .date-ribbon{{background:#ecfeff;border-color:#67e8f9;}}
     table{{width:100%;border-collapse:collapse;min-width:760px;}}
     th,td{{border-bottom:1px solid #e5e7eb;padding:9px;text-align:left;vertical-align:top;}}
     th{{background:#f1f5f9;}}
     .num{{font-size:20px;font-weight:900;color:#b91c1c;}}
+    .small{{font-size:13px;line-height:1.5;}}
+    .verify-table{{min-width:1840px;}}
+    .month-table{{min-width:1500px;}}
+    .bar-row{{display:grid;grid-template-columns:72px 1fr 58px;gap:8px;align-items:center;min-width:280px;}}
+    .bar-track{{height:14px;background:#e5e7eb;border-radius:999px;overflow:hidden;}}
+    .bar-fill{{height:100%;}}
+    .bar-label,.bar-value{{font-size:12px;font-weight:800;}}
     .warn{{background:#fff7ed;border-color:#fed7aa;}}
     a{{color:#0f766e;font-weight:800;}}
     @media(max-width:680px){{main{{padding:10px}}header{{padding:16px}}table{{min-width:680px}}}}
@@ -3421,13 +4061,25 @@ def build_compact_html_report():
 <main>
   <nav class="tabs">
     <button class="active" data-tab="prediction">\u4e0b\u671f\u9810\u6e2c</button>
-    <button data-tab="review">\u4e0a\u671f\u6aa2\u8a0e</button>
-    <button data-tab="models">\u6a21\u578b\u6210\u6548</button>
+    <button data-tab="review">\u547d\u4e2d\u6aa2\u8a0e</button>
+    <button data-tab="monthly">\u6bcf\u6708\u7e3d\u6574\u7406</button>
     <button data-tab="avoid">\u4f4e\u6a5f\u7387</button>
+    <button data-tab="models">\u6a21\u578b\u56de\u6e2c</button>
+    <button data-tab="system">\u5176\u4ed6\u7a3d\u6838</button>
   </nav>
+  <section class="band date-ribbon">
+    <h2>\u672c\u5831\u8868\u65e5\u671f\u5c0d\u7167</h2>
+    <div class="grid">
+      <div class="card"><div class="label">\u5168\u6b77\u53f2\u8cc7\u6599\u7bc4\u570d</div><div class="value">{date_text}</div></div>
+      <div class="card"><div class="label">\u8cc7\u6599\u4f9d\u64da\u6700\u65b0\u958b\u734e\u65e5</div><div class="value">{latest_date}</div></div>
+      <div class="card"><div class="label">\u6700\u65b0\u958b\u734e\u671f\u5225</div><div class="value">{latest.get('period', '-')}</div></div>
+      <div class="card"><div class="label">\u4e0b\u671f\u9810\u6e2c\u76ee\u6a19\u65e5</div><div class="value">{target_date}</div></div>
+      <div class="card"><div class="label">\u6230\u5831\u7522\u751f\u6642\u9593</div><div class="value">{report_time}</div></div>
+    </div>
+  </section>
   <section id="prediction" class="panel active">
     <div class="band">
-      <h2>\u6838\u5fc3\u6c7a\u7b56</h2>
+      <h2>\u6838\u5fc3\u6c7a\u7b56\uff08\u8cc7\u6599\u4f9d\u64da\u65e5 {latest_date} / \u9810\u6e2c\u76ee\u6a19\u65e5 {target_date}\uff09</h2>
       <div class="grid">
         <div class="card"><div class="label">\u8cc7\u6599\u72c0\u614b</div><div class="value">{status_zh(freshness.get('status'))}</div></div>
         <div class="card"><div class="label">\u6aa2\u67e5</div><div class="value">{escape_html(audit_status)}</div></div>
@@ -3437,28 +4089,46 @@ def build_compact_html_report():
       </div>
       <p>\u904b\u7b97\u539f\u5247\uff1a\u53ea\u986f\u793a\u5b8c\u6210\u904b\u7b97\u5f8c\u7684\u7cbe\u6e96\u8cc7\u8a0a\uff1b\u4f9d\u5168\u6b77\u53f2\u8cc7\u6599\u5eab\u3001\u591a\u6a21\u578b\u4ea4\u53c9\u9a57\u7b97\u8207\u6efe\u52d5\u56de\u6e2c\u8f38\u51fa\u3002</p>
     </div>
-    {hard_iron_html}
-    {monthly_breakthrough_html}
     {super_single_html}
     <div class="band">
-      <h2>\u4e0b\u671f\u7cbe\u7b97\u524d9\u540d</h2>
-      <table><thead><tr><th>\u865f\u78bc</th><th>\u6392\u540d</th><th>\u5206\u6578</th><th>\u4fe1\u5fc3</th><th>\u6a5f\u7387</th><th>\u907a\u6f0f</th><th>\u9a57\u7b97\u6578</th><th>\u4f86\u6e90\u6a21\u578b</th></tr></thead><tbody>{compact_candidate_rows(candidates, 9)}</tbody></table>
+      <h2>{candidate_heading}</h2>
+      <table><thead><tr><th>\u865f\u78bc</th><th>\u8cc7\u6599\u4f9d\u64da\u65e5</th><th>\u9810\u6e2c\u76ee\u6a19\u65e5</th><th>\u6392\u540d</th><th>\u5206\u6578</th><th>\u4fe1\u5fc3</th><th>\u6a5f\u7387</th><th>\u907a\u6f0f</th><th>\u9a57\u7b97\u6578</th><th>\u4f86\u6e90\u6a21\u578b</th></tr></thead><tbody>{compact_candidate_rows(candidates, 9, latest_date, target_date)}</tbody></table>
     </div>
     <div class="band">
-      <h2>\u5f37\u724c\u7d44\u7cbe\u7b97</h2>
+      <h2>\u751f\u6210\u865f\u78bc\u9010\u865f\u9a57\u7b97\uff08\u8cc7\u6599\u4f9d\u64da\u65e5 {latest_date} / \u9810\u6e2c\u76ee\u6a19\u65e5 {target_date}\uff09</h2>
+      <p>\u4ee5\u5019\u9078\u524d\u5341\u4e94\u540d\u8207\u5f37\u724c\u5305\u5be6\u969b\u8f38\u51fa\u865f\u78bc\u70ba\u5c0d\u8c61\uff1b\u6bcf\u4e00\u9846\u865f\u78bc\u90fd\u5fc5\u9808\u5217\u51fa\u4f86\u6e90\u3001\u7248\u8def\u62d6\u724c\u3001\u5c3e\u6578\u5340\u9593\u3001\u9031\u671f\u65e5\u671f\u3001\u7a69\u5b9a\u4ea4\u53c9\u3001\u5931\u6e96\u56de\u88dc\u8207\u98a8\u63a7\u7d50\u8ad6\u3002</p>
+      <table class="verify-table"><thead><tr><th>\u865f\u78bc</th><th>\u8cc7\u6599\u4f9d\u64da\u65e5</th><th>\u9810\u6e2c\u76ee\u6a19\u65e5</th><th>\u540d\u6b21</th><th>\u7e3d\u5206</th><th>\u4fdd\u5b88\u6a5f\u7387</th><th>\u8b49\u64da\u4fe1\u5fc3</th><th>\u901a\u904e\u5c64\u6578</th><th>\u4e3b\u8981\u4f86\u6e90</th><th>\u7248\u8def\u62d6\u724c\u9a57\u7b97</th><th>\u5c3e\u6578\u5340\u9593\u9a57\u7b97</th><th>\u9031\u671f\u65e5\u671f\u9a57\u7b97</th><th>\u7a69\u5b9a\u4ea4\u53c9\u9a57\u7b97</th><th>\u5931\u6e96\u56de\u88dc\u9a57\u7b97</th><th>\u4ea4\u53c9\u5c64\u7d30\u9805</th><th>\u98a8\u63a7\u7d50\u8ad6</th></tr></thead><tbody>{compact_verified_candidate_rows(candidates, packs, 15, latest_date, target_date)}</tbody></table>
+    </div>
+    <div class="band">
+      <h2>\u5f37\u724c\u7d44\u7cbe\u7b97\uff08\u8cc7\u6599\u4f9d\u64da\u65e5 {latest_date} / \u9810\u6e2c\u76ee\u6a19\u65e5 {target_date}\uff09</h2>
       <table><thead><tr><th>\u985e\u578b</th><th>\u865f\u78bc</th><th>\u72c0\u614b</th><th>\u56de\u6e2c\u671f</th><th>\u9054\u6a19\u7387</th><th>\u5e73\u5747\u547d\u4e2d</th><th>\u5224\u5b9a</th></tr></thead><tbody>{compact_pack_rows(packs)}</tbody></table>
     </div>
   </section>
   <section id="review" class="panel">
     <div class="band">
-      <h2>\u4e0a\u671f\u547d\u4e2d\u6aa2\u8a0e</h2>
+      <h2>{review_heading}</h2>
       {compact_review_html(history)}
+    </div>
+  </section>
+  <section id="monthly" class="panel">
+    {monthly_summary_html}
+  </section>
+  <section id="avoid" class="panel">
+    <div class="band">
+      <h2>\u4f4e\u6a5f\u7387\u9054\u6a19\u6aa2\u8a0e\uff08{settled_for_heading.get('based_on_date', '-')} \u9810\u6e2c / {settled_for_heading.get('actual_date', '-')} \u958b\u734e\uff09</h2>
+      {low_review_html}
+    </div>
+    <div class="band warn">
+      <h2>{avoid_heading}</h2>
+      <p>\u4f4e\u6a5f\u7387\u5206\u6790\u5df2\u7368\u7acb\u958b\u9801\uff0c\u4e3b\u9801\u53ea\u4fdd\u7559 5\u4e0d\u4e2d\u300110\u4e0d\u4e2d\u300115\u4e0d\u4e2d\u6458\u8981\u3002</p>
+      <p><a href="{low_url}">\u958b\u555f539\u4f4e\u6a5f\u7387\u7cbe\u6e96\u66ab\u907f\u9801</a></p>
+      <table><thead><tr><th>\u66ab\u907f\u5305</th><th>\u865f\u78bc</th><th>\u4fe1\u5fc3\u6307\u6a19</th><th>\u5e73\u5747\u66ab\u907f\u5206</th><th>\u660e\u7d30</th></tr></thead><tbody>{''.join(low_summary_rows)}</tbody></table>
     </div>
   </section>
   <section id="models" class="panel">
     {dual_track_html}
     <div class="band">
-      <h2>\u6a21\u578b\u56de\u6e2c\u6458\u8981</h2>
+      <h2>{model_heading}</h2>
       <table><thead><tr><th>\u6a21\u578b</th><th>\u56de\u6e2c\u671f</th><th>\u524d5\u5e73\u5747</th><th>\u524d10\u5e73\u5747</th><th>\u524d15\u5e73\u5747</th><th>\u524d10\u512a\u52e2</th></tr></thead><tbody>{compact_model_rows(analysis, health)}</tbody></table>
     </div>
     <div class="band">
@@ -3470,17 +4140,11 @@ def build_compact_html_report():
       <table><thead><tr><th>\u6a21\u578b</th><th>\u52d5\u4f5c</th><th>\u8fd1\u671f\u512a\u52e2</th><th>\u9577\u671f\u512a\u52e2</th><th>\u539f\u56e0</th></tr></thead><tbody>{compact_lifecycle_rows(analysis)}</tbody></table>
     </div>
   </section>
-  <section id="avoid" class="panel">
-    <div class="band">
-      <h2>\u4f4e\u6a5f\u7387\u9054\u6a19\u6aa2\u8a0e</h2>
-      {low_review_html}
-    </div>
-    <div class="band warn">
-      <h2>\u4f4e\u6a5f\u7387\u7cbe\u6e96\u66ab\u907f</h2>
-      <p>\u4f4e\u6a5f\u7387\u5206\u6790\u5df2\u7368\u7acb\u958b\u9801\uff0c\u4e3b\u9801\u53ea\u4fdd\u7559 5\u4e0d\u4e2d\u300110\u4e0d\u4e2d\u300115\u4e0d\u4e2d\u6458\u8981\u3002</p>
-      <p><a href="{low_url}">\u958b\u555f 539\u4f4e\u6a5f\u7387\u7cbe\u6e96\u66ab\u907f.html</a></p>
-      <table><thead><tr><th>\u66ab\u907f\u5305</th><th>\u865f\u78bc</th><th>\u4fe1\u5fc3\u6307\u6a19</th><th>\u5e73\u5747\u66ab\u907f\u5206</th><th>\u660e\u7d30</th></tr></thead><tbody>{''.join(low_summary_rows)}</tbody></table>
-    </div>
+  <section id="system" class="panel">
+    {similarity_audit_html}
+    {hard_iron_html}
+    {reality_gate_html}
+    {monthly_breakthrough_html}
   </section>
 </main>
 <script>
@@ -3604,15 +4268,74 @@ def build_low_probability_html_report():
 </html>"""
 
 
+def build_monthly_summary_html_report(month=None):
+    analysis = load_json(ANALYSIS_JSON)
+    health = load_json(HEALTH_JSON)
+    latest = analysis.get("latest_draw", {})
+    latest_date = latest.get("draw_date", "-")
+    target_date = next_draw_date(latest_date) if latest_date and latest_date != "-" else "-"
+    count, date_text, period_text = history_basis_text(health, latest_date)
+    report_time = analysis.get("generated_at", taipei_now().isoformat(timespec="seconds")).replace("T", " ")
+    history = prediction_history()
+    summary_html = compact_monthly_prediction_summary_html(history, month)
+    return f"""<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>539每月預測總整理</title>
+  <style>
+    body{{margin:0;background:#f5f7fb;color:#172033;font-family:"Microsoft JhengHei",Arial,sans-serif;}}
+    header{{background:#111827;color:white;padding:22px 24px;}}
+    main{{max-width:1180px;margin:0 auto;padding:18px;}}
+    .band{{background:white;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:14px;overflow:auto;}}
+    .grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;}}
+    .card{{border:1px solid #e5e7eb;border-radius:8px;padding:12px;background:#fbfdff;}}
+    .label{{font-size:13px;color:#64748b;font-weight:700;}}
+    .value{{font-size:22px;font-weight:900;margin-top:6px;}}
+    table{{width:100%;border-collapse:collapse;min-width:760px;}}
+    th,td{{border-bottom:1px solid #e5e7eb;padding:9px;text-align:left;vertical-align:top;}}
+    th{{background:#f1f5f9;}}
+    .num{{font-size:20px;font-weight:900;color:#b91c1c;}}
+    .month-table{{min-width:1500px;}}
+    .bar-row{{display:grid;grid-template-columns:72px 1fr 58px;gap:8px;align-items:center;min-width:280px;}}
+    .bar-track{{height:14px;background:#e5e7eb;border-radius:999px;overflow:hidden;}}
+    .bar-fill{{height:100%;}}
+    .bar-label,.bar-value{{font-size:12px;font-weight:800;}}
+    .warn{{background:#fff7ed;border-color:#fed7aa;}}
+    a{{color:#0f766e;font-weight:800;}}
+    @media(max-width:680px){{main{{padding:10px}}header{{padding:16px}}table{{min-width:680px}}}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>539每月預測總整理</h1>
+  <p>產生時間 {report_time} / 全歷史資料 {date_text} / 共 {count} 期 / 期別 {period_text}</p>
+  <p>最新開獎 {latest.get('period', '-')} 期 / {latest_date}　預測目標 {target_date}</p>
+</header>
+<main>
+  <section class="band">
+    <h2>報表入口</h2>
+    <p><a href="latest_battle_report.html">回到主戰報</a></p>
+  </section>
+  {summary_html}
+</main>
+</body>
+</html>"""
+
+
 def save_battle_reports(report=None):
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     report = report or build_report()
     html = build_compact_html_report()
     low_probability_html = build_low_probability_html_report()
+    monthly_summary_html = build_monthly_summary_html_report()
     html = localize_html_visible_text(html)
     html = localize_html_global_tokens(html)
     low_probability_html = localize_html_visible_text(low_probability_html)
     low_probability_html = localize_html_global_tokens(low_probability_html)
+    monthly_summary_html = localize_html_visible_text(monthly_summary_html)
+    monthly_summary_html = localize_html_global_tokens(monthly_summary_html)
     history = prediction_history()
     save_prediction_history(history)
     history_html = build_history_html(history)
@@ -3623,7 +4346,13 @@ def save_battle_reports(report=None):
     atomic_write_text(BATTLE_HTML, html)
     atomic_write_text(ENHANCED_BATTLE_HTML, html)
     atomic_write_text(LOW_PROBABILITY_HTML, low_probability_html)
+    atomic_write_text(MONTHLY_SUMMARY_HTML, monthly_summary_html)
     atomic_write_text(HISTORY_HTML, history_html)
+    for month, _count in prediction_summary_months(history)[1].items():
+        monthly_history_html = build_monthly_summary_html_report(month)
+        monthly_history_html = localize_html_visible_text(monthly_history_html)
+        monthly_history_html = localize_html_global_tokens(monthly_history_html)
+        atomic_write_text(HISTORY_DIR / f"{month}_\u6bcf\u6708\u9810\u6e2c\u7e3d\u6574\u7406.html", monthly_history_html)
     return ENHANCED_BATTLE_HTML
 
 

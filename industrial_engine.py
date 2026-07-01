@@ -1223,7 +1223,7 @@ def industrial_weights(review=None):
         "missed_hit_recovery": 0.054,
         "rank_error_correction": 0.075,
         "monthly_recall_pressure": 0.082,
-        "breakthrough_month_bridge": 0.088,
+        "breakthrough_month_bridge": 0.045,
         "cold_rebound_champion": 0.072,
         "multi_window_bagging": 0.064,
         "tail_transition_bridge": 0.066,
@@ -1255,7 +1255,7 @@ def industrial_weights(review=None):
                 "missed_hit_recovery": 0.074,
                 "rank_error_correction": 0.105,
                 "monthly_recall_pressure": 0.132,
-                "breakthrough_month_bridge": 0.145,
+                "breakthrough_month_bridge": 0.072,
                 "cold_rebound_champion": 0.108,
                 "multi_window_bagging": 0.088,
                 "tail_transition_bridge": 0.112,
@@ -1344,10 +1344,27 @@ MODEL_SOURCE_LABELS = {
 
 def conservative_probability_percent(score, rank=None):
     baseline_percent = BASE_PROBABILITY * 100
-    calibrated = baseline_percent * (0.72 + max(0.0, min(score, 1.0)) * 0.74)
-    if rank is not None and rank > 9:
-        calibrated *= 0.72 if rank <= 15 else 0.58
-    return round(max(0.0, min(38.0, calibrated)), 2)
+    score = max(0.0, min(float(score or 0.0), 1.0))
+    if rank is None:
+        rank_factor = 0.0
+    elif rank <= 3:
+        rank_factor = 0.74
+    elif rank <= 5:
+        rank_factor = 0.58
+    elif rank <= 9:
+        rank_factor = 0.42
+    elif rank <= 15:
+        rank_factor = 0.16
+    else:
+        rank_factor = -0.18
+    calibrated = baseline_percent + (score - 0.50) * 1.35 + rank_factor
+    if rank is not None and rank <= 9:
+        cap = 14.25
+    elif rank is not None and rank <= 15:
+        cap = 13.55
+    else:
+        cap = 13.05
+    return round(max(9.50, min(cap, calibrated)), 2)
 
 
 def number_model_sources(values, weights, limit=8):
@@ -1394,13 +1411,35 @@ def number_cross_validation(values):
     }
 
 
+def evidence_confidence_index(score, rank, model_sources, cross_validation, values=None):
+    values = values or {}
+    passed_count = int((cross_validation or {}).get("passed_count") or 0)
+    total_count = int((cross_validation or {}).get("total_count") or 0)
+    ratio = (passed_count / total_count) if total_count else 0.0
+    source_count = len(model_sources or [])
+    rank_bonus = max(0.0, (16 - min(int(rank or 99), 16)) * 1.08)
+    evidence_bonus = min(12.0, source_count * 1.35) + ratio * 12.0
+    score_bonus = max(0.0, min(float(score or 0.0), 1.0) - 0.50) * 16.0
+    stability_bonus = (
+        min(1.0, float(values.get("monte_carlo_stability", 0.0) or 0.0)) * 3.0
+        + min(1.0, float(values.get("cross_consensus", 0.0) or 0.0)) * 3.0
+        + min(1.0, float(values.get("bayesian_posterior", 0.0) or 0.0)) * 2.0
+    )
+    confidence = 50.0 + rank_bonus + evidence_bonus + score_bonus + stability_bonus
+    if rank and rank > 9:
+        confidence = min(confidence, 76.0)
+    else:
+        confidence = min(confidence, 88.0)
+    return round(max(50.0, confidence), 1)
+
+
 def confidence_profile(score, confidence, probability, model_sources, cross_validation, rank):
     source_count = len(model_sources)
     passed_count = int(cross_validation.get("passed_count") or 0)
     total_count = int(cross_validation.get("total_count") or 0)
     ratio = (passed_count / total_count) if total_count else 0
 
-    if score >= 0.92 and confidence >= 95 and probability >= 17.0 and source_count >= 6 and passed_count >= 6 and rank <= 5:
+    if score >= 0.90 and confidence >= 84 and probability >= 14.05 and source_count >= 6 and passed_count >= 7 and rank <= 3:
         return {
             "level": "very_high",
             "label": "\u672c\u65e5\u9ad8\u6a5f\u7387\u5f37\u8abf",
@@ -1408,7 +1447,7 @@ def confidence_profile(score, confidence, probability, model_sources, cross_vali
             "is_high_confidence": True,
             "risk_note": "\u5206\u6578\u3001\u6a5f\u7387\u3001\u4fe1\u5fc3\u3001\u4f86\u6e90\u6a21\u578b\u8207\u4ea4\u53c9\u9a57\u8b49\u540c\u6642\u9054\u6a19",
         }
-    if score >= 0.84 and confidence >= 91 and probability >= 16.0 and source_count >= 5 and passed_count >= 5 and rank <= 9:
+    if score >= 0.82 and confidence >= 80 and probability >= 13.75 and source_count >= 5 and passed_count >= 6 and rank <= 9:
         return {
             "level": "high",
             "label": "\u9ad8\u4fe1\u5fc3\u95dc\u6ce8",
@@ -1416,7 +1455,7 @@ def confidence_profile(score, confidence, probability, model_sources, cross_vali
             "is_high_confidence": True,
             "risk_note": "\u689d\u4ef6\u9054\u5230\u4e3b\u63a8\u89c0\u5bdf\uff0c\u4f46\u672a\u9054\u672c\u65e5\u9ad8\u6a5f\u7387\u5f37\u8abf\u7d1a",
         }
-    if score >= 0.76 and confidence >= 87 and probability >= 15.0 and source_count >= 4 and ratio >= 0.33 and rank <= 15:
+    if score >= 0.72 and confidence >= 70 and probability >= 13.05 and source_count >= 4 and ratio >= 0.33 and rank <= 15:
         return {
             "level": "watch",
             "label": "\u5f37\u70c8\u95dc\u6ce8",
@@ -2803,9 +2842,13 @@ def score_numbers(draws, review=None, include_dependency=True, weights_override=
         if values.get("monthly_recall_pressure", 0) >= 0.62:
             raw *= 1.03 if number in failed else 1.13 if mode == "critical" else 1.09 if mode == "warning" else 1.05
             reasons[number].append("\u6708\u5ea6\u6f0f\u6293\u58d3\u529b\u52a0\u6b0a")
-        if values.get("breakthrough_month_bridge", 0) >= 0.66:
-            raw *= 1.04 if number in failed else 1.10 if mode == "critical" else 1.06
-            reasons[number].append("7月突破模型加權")
+        if (
+            values.get("breakthrough_month_bridge", 0) >= 0.72
+            and values.get("cross_consensus", 0) >= 0.58
+            and values.get("monte_carlo_stability", 0) >= 0.50
+        ):
+            raw *= 1.02 if number in failed else 1.045 if mode == "critical" else 1.025
+            reasons[number].append("失準回拉交叉驗證加權")
         if values.get("cold_rebound_champion", 0) >= 0.70 and values.get("omission", 0) >= 0.46:
             raw *= 1.13 if mode == "critical" else 1.09
             reasons[number].append("\u51b7\u5f48\u51a0\u8ecd\u6a21\u578b\u52a0\u6b0a")
@@ -2840,8 +2883,14 @@ def score_numbers(draws, review=None, include_dependency=True, weights_override=
         model_sources = number_model_sources(features[number], weights)
         cross_validation = number_cross_validation(features[number])
         score_value = round(normalized_score[number], 4)
-        confidence_value = round(50 + normalized_score[number] * 49, 1)
         probability_value = conservative_probability_percent(normalized_score[number], rank)
+        confidence_value = evidence_confidence_index(
+            score_value,
+            rank,
+            model_sources,
+            cross_validation,
+            features[number],
+        )
         confidence = confidence_profile(
             score_value,
             confidence_value,
@@ -2910,8 +2959,15 @@ def refresh_candidate_metadata(candidates):
         item = dict(row)
         item["rank"] = rank
         score = float(item.get("score", 0.0) or 0.0)
-        confidence_value = float(item.get("confidence_index", 50.0) or 50.0)
         probability_value = conservative_probability_percent(score, rank)
+        confidence_value = evidence_confidence_index(
+            score,
+            rank,
+            item.get("model_sources", []),
+            item.get("cross_validation", {}),
+            item.get("feature_scores", {}),
+        )
+        item["confidence_index"] = confidence_value
         item["model_probability_percent"] = probability_value
         confidence = confidence_profile(
             score,
@@ -4429,6 +4485,13 @@ def apply_top9_leakage_lock(candidates, review=None):
     for rank, item in enumerate(promoted, 1):
         item["rank"] = rank
         probability_value = conservative_probability_percent(item["score"], rank)
+        item["confidence_index"] = evidence_confidence_index(
+            item["score"],
+            rank,
+            item.get("model_sources", []),
+            item.get("cross_validation", {}),
+            item.get("feature_scores", {}),
+        )
         item["model_probability_percent"] = probability_value
         confidence = confidence_profile(
             item["score"],
@@ -4816,7 +4879,7 @@ def decisive_battle_decision(candidates, packs, release_gate, slump_recall, unli
     if status == "official" and main_targets_passed and recent_passed:
         grade = "A"
         action = "execute_primary_plan"
-    elif slump_triggered or release_light in {"yellow", "green"}:
+    elif status not in {"reality_gate_blocked", "research_kpi_blocked"} and (slump_triggered or release_light in {"yellow", "green"}):
         grade = "B"
         action = "execute_slump_recall_control_plan"
     else:
@@ -4844,46 +4907,30 @@ def decisive_battle_decision(candidates, packs, release_gate, slump_recall, unli
             if len(attack_core) >= attack_core_target:
                 break
     high_confidence_numbers = []
-    for item in candidates[:15]:
-        number = int(item["number"])
-        recall_score = item.get("slump_recall_coverage", {}).get("priority_score", 0)
-        cross_passed = item.get("cross_validation", {}).get("passed_count", 0)
-        if number in avoid_numbers[:5]:
-            continue
-        if (
-            number in attack_core[:attack_core_target]
-            and (
-                item.get("high_confidence")
-                or float(item.get("score", 0) or 0) >= 0.78
-                or float(recall_score or 0) >= 0.62
-                or int(cross_passed or 0) >= 3
-            )
-        ):
-            high_confidence_numbers.append({
-                "number": number,
-                "rank": item.get("rank"),
-                "score": item.get("score"),
-                "probability_percent": item.get("model_probability_percent"),
-                "confidence": item.get("confidence_index"),
-                "recall_priority": round(float(recall_score or 0), 4),
-                "cross_validation_passed": cross_passed,
-                "reason": "high_score_or_recall_or_cross_validation",
-        })
-        if len(high_confidence_numbers) >= 5:
-            break
-    if not high_confidence_numbers:
-        for number in attack_core[:3]:
-            item = next((row for row in candidates if int(row["number"]) == int(number)), {})
-            high_confidence_numbers.append({
-                "number": int(number),
-                "rank": item.get("rank"),
-                "score": item.get("score"),
-                "probability_percent": item.get("model_probability_percent"),
-                "confidence": item.get("confidence_index"),
-                "recall_priority": round(float(item.get("slump_recall_coverage", {}).get("priority_score", 0) or 0), 4),
-                "cross_validation_passed": item.get("cross_validation", {}).get("passed_count", 0),
-                "reason": "decisive_attack_core_fallback",
+    if status == "official":
+        for item in candidates[:15]:
+            number = int(item["number"])
+            recall_score = item.get("slump_recall_coverage", {}).get("priority_score", 0)
+            cross_passed = item.get("cross_validation", {}).get("passed_count", 0)
+            if number in avoid_numbers[:5]:
+                continue
+            if (
+                number in attack_core[:attack_core_target]
+                and item.get("high_confidence")
+                and int(cross_passed or 0) >= 6
+            ):
+                high_confidence_numbers.append({
+                    "number": number,
+                    "rank": item.get("rank"),
+                    "score": item.get("score"),
+                    "probability_percent": item.get("model_probability_percent"),
+                    "confidence": item.get("confidence_index"),
+                    "recall_priority": round(float(recall_score or 0), 4),
+                    "cross_validation_passed": cross_passed,
+                    "reason": "official_high_confidence_gate_passed",
             })
+            if len(high_confidence_numbers) >= 5:
+                break
 
     return {
         "status": "decisive",
@@ -5168,7 +5215,6 @@ def stability_consensus(draws, base_candidates, review=None):
         item["stability_count"] = counts.get(number, 0)
         item["stability_rate"] = round(counts.get(number, 0) / denominator, 3)
         item["score"] = round(combined[number], 4)
-        item["confidence_index"] = round(50 + min(combined[number], 1) * 49, 1)
         if item["stability_rate"] >= 0.8:
             item["reasons"] = (item.get("reasons", []) + ["\u7a69\u5b9a\u5171\u8b58"])[:4]
         stable_candidates.append(item)
@@ -5356,6 +5402,80 @@ def unlikely_backtest_by_size(draws, rounds=120, sizes=(5, 10, 15)):
     return results
 
 
+def monthly_reality_gate(review, audit, pack_governance):
+    monthly = (review or {}).get("monthly_review", {}) or {}
+    sample_size = int(monthly.get("sample_size") or 0)
+    top10_avg = float(monthly.get("top10_avg_hits") or 0.0)
+    random_top10 = DRAW_SIZE * 10 / NUMBER_MAX
+    month_edge = top10_avg - random_top10
+    audit_edge = float((audit or {}).get("top10_avg_hits", 0.0) or 0.0) - float(
+        (audit or {}).get("random_top10_expectation", random_top10) or random_top10
+    )
+    pack_stats = (pack_governance or {}).get("pack_stats", {}) or {}
+    key_pack_rates = [
+        float((pack_stats.get(key) or {}).get("pass_rate") or 0.0)
+        for key in ["strong_single", "five_hit_two", "nine_hit_three"]
+    ]
+    key_pack_min_rate = min(key_pack_rates) if key_pack_rates else 0.0
+    has_month_sample = sample_size >= 20
+    passed = (
+        (not has_month_sample or month_edge >= 0.20)
+        and audit_edge >= 0.12
+        and key_pack_min_rate >= 0.24
+    )
+    reasons = []
+    if has_month_sample and month_edge < 0.20:
+        reasons.append("本月前10名平均命中只微幅高於隨機，禁止標示高信心")
+    if audit_edge < 0.12:
+        reasons.append("長期回測優勢不足，禁止用排名分數包裝高機率")
+    if key_pack_min_rate < 0.24:
+        reasons.append("獨支、5中2、9中3主包實戰達標率過低")
+    return {
+        "status": "passed" if passed else "failed",
+        "month": monthly.get("month"),
+        "sample_size": sample_size,
+        "top10_avg_hits": round(top10_avg, 3),
+        "random_top10_expectation": round(random_top10, 3),
+        "month_edge_vs_random": round(month_edge, 3),
+        "engine_edge_vs_random": round(audit_edge, 3),
+        "key_pack_min_pass_rate": round(key_pack_min_rate, 3),
+        "required_month_edge": 0.20,
+        "required_engine_edge": 0.12,
+        "required_key_pack_min_pass_rate": 0.24,
+        "high_confidence_allowed": passed,
+        "reasons": reasons,
+    }
+
+
+def apply_reality_gate_candidate_policy(candidates, reality_gate):
+    if (reality_gate or {}).get("status") == "passed":
+        return refresh_candidate_metadata(candidates)
+    reasons = (reality_gate or {}).get("reasons") or ["實戰閘門未通過"]
+    adjusted = []
+    for item in candidates:
+        row = dict(item)
+        row["confidence_index"] = min(float(row.get("confidence_index", 50.0) or 50.0), 76.0)
+        row["model_probability_percent"] = min(float(row.get("model_probability_percent", 0.0) or 0.0), 13.05)
+        row["high_confidence"] = False
+        row["confidence_level"] = "watch"
+        row["confidence_label"] = "實戰閘門未通過"
+        row["confidence_badges"] = []
+        row["confidence_profile"] = {
+            "level": "watch",
+            "label": "實戰閘門未通過",
+            "badges": [],
+            "is_high_confidence": False,
+            "risk_note": "；".join(reasons),
+        }
+        row["reality_gate"] = {
+            "status": "blocked_high_confidence",
+            "reasons": reasons,
+        }
+        row["reasons"] = (row.get("reasons", []) + ["實戰閘門封鎖高信心"])[:4]
+        adjusted.append(row)
+    return adjusted
+
+
 def compute_industrial_analysis(draws, review=None):
     weights, weight_calibration = adaptive_feature_weights(draws, review)
     lifecycle = model_lifecycle_policy(weight_calibration)
@@ -5375,8 +5495,10 @@ def compute_industrial_analysis(draws, review=None):
     candidates, score_saturation_breaker = apply_score_saturation_breaker(candidates, review)
     candidates, hard_iron_rules = apply_hard_iron_rules(draws, candidates, review)
     pack_governance = pack_recent_governance(draws)
-    packs = strong_packs(candidates, review, pack_governance)
     audit = industrial_backtest(draws)
+    reality_gate = monthly_reality_gate(review, audit, pack_governance)
+    candidates = apply_reality_gate_candidate_policy(candidates, reality_gate)
+    packs = strong_packs(candidates, review, pack_governance)
     advanced_models = advanced_model_summary(draws)
     advanced_backtest = advanced_model_backtest(draws)
     _, validated_links = validated_dependency_scores(draws)
@@ -5392,6 +5514,8 @@ def compute_industrial_analysis(draws, review=None):
     )
     pack_release_passed = pack_governance.get("release_light") in {"green", "yellow"} and main_target_passed
     release_status = "official" if stability["top10_retention"] >= 0.6 and edge >= 0 and recent_passed and pack_release_passed else "watch_only"
+    if reality_gate.get("status") != "passed":
+        release_status = "reality_gate_blocked"
     previous = previous_prediction_set(review)
     top10_overlap = sorted(previous & {item["number"] for item in candidates[:10]})
     top15_overlap = sorted(previous & {item["number"] for item in candidates[:15]})
@@ -5415,6 +5539,7 @@ def compute_industrial_analysis(draws, review=None):
         "recent_windows_required": [60, 120],
         "recent_edges": recent_edges,
         "recent_performance_passed": recent_passed,
+        "reality_gate": reality_gate,
     }
     decisive_decision = decisive_battle_decision(candidates, packs, release_gate, slump_recall_coverage, unlikely)
     return {
@@ -5461,6 +5586,7 @@ def compute_industrial_analysis(draws, review=None):
         "unlikely_number_analysis": unlikely,
         "unlikely_backtest": unlikely_backtest_result,
         "precision_governor": pack_governance,
+        "monthly_reality_gate": reality_gate,
         "model_audit": model_audit(audit, review),
         "regime_analysis": regime_analysis(draws),
         "candidates": candidates,

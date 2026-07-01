@@ -1,10 +1,10 @@
 {
-  "status": "failed",
-  "checked_at": "2026-07-01T07:19:53",
+  "status": "ok",
+  "checked_at": "2026-07-01T07:22:22",
   "local_version": "20260701071938",
-  "cloud_status": "local_ready_not_published",
+  "cloud_status": "published",
   "cloud_version": "20260701071938",
-  "cloud_url": "https://pingshen670924-dotcom.github.io/mobile-539-system/clear-cache.html?v=20260701071938&t=1782861578",
+  "cloud_url": "https://pingshen670924-dotcom.github.io/mobile-539-system/clear-cache.html?v=20260701071938&t=1782861651",
   "local_latest_draw": {
     "period": 115000158,
     "draw_date": "2026-06-30",
@@ -28,15 +28,13 @@
     ]
   },
   "remote_version": {
-    "version": "20260701021042",
-    "generated_at": "2026-07-01T02:10:18",
-    "mobile_built_at": "2026-07-01T02:10:42+08:00",
+    "version": "20260701071938",
+    "generated_at": "2026-07-01T07:19:05",
+    "mobile_built_at": "2026-07-01T07:19:38+08:00",
     "latest_period": 115000158,
     "latest_draw_date": "2026-06-30",
     "cache_policy": "network_first_no_store"
   },
   "rule": "電腦版與手機雲端必須同一期數、同日期、同號碼；雲端狀態必須為 published。",
-  "failures": [
-    "手機雲端尚未發布成功"
-  ]
+  "message": "手機雲端已與電腦版同步"
 }
