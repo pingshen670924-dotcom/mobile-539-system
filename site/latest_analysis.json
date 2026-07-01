@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-01T23:41:09",
+  "generated_at": "2026-07-02T01:34:37",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000159,
@@ -17,7 +17,7 @@
     "latest_date": "2026-07-01",
     "expected_latest_date": "2026-07-01",
     "lag_days": 0,
-    "checked_at": "2026-07-01T23:39:16"
+    "checked_at": "2026-07-02T01:32:42"
   },
   "windows": [
     {
@@ -2658,13 +2658,13 @@
           "hit_rate": 0.5
         },
         {
-          "reason": "相似牌",
+          "reason": "尾數轉移加權",
           "hit": 1,
           "miss": 2,
           "hit_rate": 0.333
         },
         {
-          "reason": "尾數轉移加權",
+          "reason": "相似牌",
           "hit": 1,
           "miss": 2,
           "hit_rate": 0.333
@@ -3211,13 +3211,7 @@
           "hit_rate": 0.143
         },
         {
-          "reason": "失敗號回補驗算",
-          "hit": 0,
-          "miss": 1,
-          "hit_rate": 0.0
-        },
-        {
-          "reason": "漏命中回收",
+          "reason": "上月失準突破回拉",
           "hit": 0,
           "miss": 1,
           "hit_rate": 0.0
@@ -3229,7 +3223,7 @@
           "hit_rate": 0.0
         },
         {
-          "reason": "上月失準突破回拉",
+          "reason": "失敗號回補驗算",
           "hit": 0,
           "miss": 1,
           "hit_rate": 0.0
@@ -3247,7 +3241,13 @@
           "hit_rate": 0.0
         },
         {
-          "reason": "週期位置",
+          "reason": "漏命中回收",
+          "hit": 0,
+          "miss": 1,
+          "hit_rate": 0.0
+        },
+        {
+          "reason": "貝氏保守校準",
           "hit": 0,
           "miss": 2,
           "hit_rate": 0.0
@@ -4421,13 +4421,13 @@
           "hit_rate": 0.5
         },
         {
-          "reason": "相似牌",
+          "reason": "尾數轉移加權",
           "hit": 1,
           "miss": 2,
           "hit_rate": 0.333
         },
         {
-          "reason": "尾數轉移加權",
+          "reason": "相似牌",
           "hit": 1,
           "miss": 2,
           "hit_rate": 0.333
@@ -5885,13 +5885,13 @@
             "hit_rate": 0.5
           },
           {
-            "reason": "相似牌",
+            "reason": "尾數轉移加權",
             "hit": 1,
             "miss": 2,
             "hit_rate": 0.333
           },
           {
-            "reason": "尾數轉移加權",
+            "reason": "相似牌",
             "hit": 1,
             "miss": 2,
             "hit_rate": 0.333
@@ -6438,13 +6438,7 @@
             "hit_rate": 0.143
           },
           {
-            "reason": "失敗號回補驗算",
-            "hit": 0,
-            "miss": 1,
-            "hit_rate": 0.0
-          },
-          {
-            "reason": "漏命中回收",
+            "reason": "上月失準突破回拉",
             "hit": 0,
             "miss": 1,
             "hit_rate": 0.0
@@ -6456,7 +6450,7 @@
             "hit_rate": 0.0
           },
           {
-            "reason": "上月失準突破回拉",
+            "reason": "失敗號回補驗算",
             "hit": 0,
             "miss": 1,
             "hit_rate": 0.0
@@ -6474,7 +6468,13 @@
             "hit_rate": 0.0
           },
           {
-            "reason": "週期位置",
+            "reason": "漏命中回收",
+            "hit": 0,
+            "miss": 1,
+            "hit_rate": 0.0
+          },
+          {
+            "reason": "貝氏保守校準",
             "hit": 0,
             "miss": 2,
             "hit_rate": 0.0
@@ -7648,13 +7648,13 @@
             "hit_rate": 0.5
           },
           {
-            "reason": "相似牌",
+            "reason": "尾數轉移加權",
             "hit": 1,
             "miss": 2,
             "hit_rate": 0.333
           },
           {
-            "reason": "尾數轉移加權",
+            "reason": "相似牌",
             "hit": 1,
             "miss": 2,
             "hit_rate": 0.333
