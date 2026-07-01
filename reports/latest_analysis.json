@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-02T01:34:37",
+  "generated_at": "2026-07-02T02:10:36",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000159,
@@ -17,7 +17,7 @@
     "latest_date": "2026-07-01",
     "expected_latest_date": "2026-07-01",
     "lag_days": 0,
-    "checked_at": "2026-07-02T01:32:42"
+    "checked_at": "2026-07-02T02:08:44"
   },
   "windows": [
     {
@@ -2634,13 +2634,13 @@
       ],
       "source_performance": [
         {
-          "reason": "近100期偏熱(14次)",
+          "reason": "月度漏抓壓力加權",
           "hit": 1,
           "miss": 0,
           "hit_rate": 1.0
         },
         {
-          "reason": "月度漏抓壓力加權",
+          "reason": "近100期偏熱(14次)",
           "hit": 1,
           "miss": 0,
           "hit_rate": 1.0
@@ -3211,18 +3211,6 @@
           "hit_rate": 0.143
         },
         {
-          "reason": "上月失準突破回拉",
-          "hit": 0,
-          "miss": 1,
-          "hit_rate": 0.0
-        },
-        {
-          "reason": "開獎型態切換",
-          "hit": 0,
-          "miss": 1,
-          "hit_rate": 0.0
-        },
-        {
           "reason": "失敗號回補驗算",
           "hit": 0,
           "miss": 1,
@@ -3235,7 +3223,7 @@
           "hit_rate": 0.0
         },
         {
-          "reason": "昨日預測號軟守門觀察",
+          "reason": "上月失準突破回拉",
           "hit": 0,
           "miss": 1,
           "hit_rate": 0.0
@@ -3247,13 +3235,25 @@
           "hit_rate": 0.0
         },
         {
-          "reason": "貝氏保守校準",
+          "reason": "昨日預測號軟守門觀察",
+          "hit": 0,
+          "miss": 1,
+          "hit_rate": 0.0
+        },
+        {
+          "reason": "開獎型態切換",
+          "hit": 0,
+          "miss": 1,
+          "hit_rate": 0.0
+        },
+        {
+          "reason": "週期位置",
           "hit": 0,
           "miss": 2,
           "hit_rate": 0.0
         },
         {
-          "reason": "區間配額壓力",
+          "reason": "尾數區間",
           "hit": 0,
           "miss": 2,
           "hit_rate": 0.0
@@ -4397,13 +4397,13 @@
       ],
       "source_performance": [
         {
-          "reason": "近100期偏熱(14次)",
+          "reason": "月度漏抓壓力加權",
           "hit": 1,
           "miss": 0,
           "hit_rate": 1.0
         },
         {
-          "reason": "月度漏抓壓力加權",
+          "reason": "近100期偏熱(14次)",
           "hit": 1,
           "miss": 0,
           "hit_rate": 1.0
@@ -5861,13 +5861,13 @@
         ],
         "source_performance": [
           {
-            "reason": "近100期偏熱(14次)",
+            "reason": "月度漏抓壓力加權",
             "hit": 1,
             "miss": 0,
             "hit_rate": 1.0
           },
           {
-            "reason": "月度漏抓壓力加權",
+            "reason": "近100期偏熱(14次)",
             "hit": 1,
             "miss": 0,
             "hit_rate": 1.0
@@ -6438,18 +6438,6 @@
             "hit_rate": 0.143
           },
           {
-            "reason": "上月失準突破回拉",
-            "hit": 0,
-            "miss": 1,
-            "hit_rate": 0.0
-          },
-          {
-            "reason": "開獎型態切換",
-            "hit": 0,
-            "miss": 1,
-            "hit_rate": 0.0
-          },
-          {
             "reason": "失敗號回補驗算",
             "hit": 0,
             "miss": 1,
@@ -6462,7 +6450,7 @@
             "hit_rate": 0.0
           },
           {
-            "reason": "昨日預測號軟守門觀察",
+            "reason": "上月失準突破回拉",
             "hit": 0,
             "miss": 1,
             "hit_rate": 0.0
@@ -6474,13 +6462,25 @@
             "hit_rate": 0.0
           },
           {
-            "reason": "貝氏保守校準",
+            "reason": "昨日預測號軟守門觀察",
+            "hit": 0,
+            "miss": 1,
+            "hit_rate": 0.0
+          },
+          {
+            "reason": "開獎型態切換",
+            "hit": 0,
+            "miss": 1,
+            "hit_rate": 0.0
+          },
+          {
+            "reason": "週期位置",
             "hit": 0,
             "miss": 2,
             "hit_rate": 0.0
           },
           {
-            "reason": "區間配額壓力",
+            "reason": "尾數區間",
             "hit": 0,
             "miss": 2,
             "hit_rate": 0.0
@@ -7624,13 +7624,13 @@
         ],
         "source_performance": [
           {
-            "reason": "近100期偏熱(14次)",
+            "reason": "月度漏抓壓力加權",
             "hit": 1,
             "miss": 0,
             "hit_rate": 1.0
           },
           {
-            "reason": "月度漏抓壓力加權",
+            "reason": "近100期偏熱(14次)",
             "hit": 1,
             "miss": 0,
             "hit_rate": 1.0
