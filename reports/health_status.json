@@ -1,86 +1,86 @@
 {
-  "generated_at": "2026-07-01T18:10:57",
+  "generated_at": "2026-07-02T15:01:01",
   "database_exists": true,
   "backup_count": 1,
-  "latest_backup": "/home/runner/work/mobile-539-system/mobile-539-system/backups/539_20260701_180841.sqlite",
+  "latest_backup": "/home/runner/work/mobile-539-system/mobile-539-system/backups/539_20260702_145915.sqlite",
   "log_exists": true,
   "latest_analysis_exists": true,
   "status": "ok",
   "warnings": [],
   "notices": [],
-  "draw_count": 5903,
+  "draw_count": 5904,
   "period_range": [
     96000001,
-    115000159
+    115000160
   ],
   "date_range": [
     "2007-01-01",
-    "2026-07-01"
+    "2026-07-02"
   ],
   "latest_draw": {
-    "period": 115000159,
-    "draw_date": "2026-07-01",
+    "period": 115000160,
+    "draw_date": "2026-07-02",
     "numbers": [
       1,
-      3,
-      12,
-      14,
-      34
+      6,
+      8,
+      13,
+      30
     ],
     "source": "taiwanlottery_latest_result",
-    "fetched_at": "2026-07-01T18:08:44"
+    "fetched_at": "2026-07-02T14:59:17"
   },
   "data_freshness": {
     "status": "fresh",
-    "latest_date": "2026-07-01",
-    "expected_latest_date": "2026-06-30"
+    "latest_date": "2026-07-02",
+    "expected_latest_date": "2026-07-01"
   },
   "last_run": {
     "run_type": "latest",
-    "started_at": "2026-07-01T18:08:41",
-    "finished_at": "2026-07-01T18:08:44",
+    "started_at": "2026-07-02T14:59:15",
+    "finished_at": "2026-07-02T14:59:17",
     "status": "success",
-    "message": "{\"rows\": 5903, \"invalid_periods\": [], \"duplicate_periods\": [], \"latest_period\": 115000159, \"latest_date\": \"2026-07-01\"}"
+    "message": "{\"rows\": 5904, \"invalid_periods\": [], \"duplicate_periods\": [], \"latest_period\": 115000160, \"latest_date\": \"2026-07-02\"}"
   },
   "pending_predictions": 1,
-  "settled_predictions": 27,
-  "prediction_snapshots": 205,
+  "settled_predictions": 28,
+  "prediction_snapshots": 206,
   "prediction_performance": {
-    "settled": 27,
-    "top5_avg_hits": 0.667,
-    "top10_avg_hits": 1.333,
-    "top15_avg_hits": 1.963,
-    "set_avg_hits": 0.658,
+    "settled": 28,
+    "top5_avg_hits": 0.679,
+    "top10_avg_hits": 1.321,
+    "top15_avg_hits": 1.964,
+    "set_avg_hits": 0.648,
     "strong_pack_stats": {
       "strong_single": {
-        "rounds": 27,
-        "pass_rate": 0.111,
-        "avg_hits": 0.111
+        "rounds": 28,
+        "pass_rate": 0.107,
+        "avg_hits": 0.107
       },
       "two_hit_one": {
-        "rounds": 27,
-        "pass_rate": 0.296,
-        "avg_hits": 0.296
+        "rounds": 28,
+        "pass_rate": 0.286,
+        "avg_hits": 0.286
       },
       "three_hit_one": {
-        "rounds": 27,
-        "pass_rate": 0.407,
-        "avg_hits": 0.481
+        "rounds": 28,
+        "pass_rate": 0.393,
+        "avg_hits": 0.464
       },
       "five_hit_two": {
-        "rounds": 27,
-        "pass_rate": 0.111,
-        "avg_hits": 0.667
+        "rounds": 28,
+        "pass_rate": 0.107,
+        "avg_hits": 0.643
       },
       "nine_hit_three": {
-        "rounds": 27,
-        "pass_rate": 0.111,
-        "avg_hits": 1.074
+        "rounds": 28,
+        "pass_rate": 0.107,
+        "avg_hits": 1.071
       }
     },
     "research_kpi": {
       "status": "insufficient_samples",
-      "settled_samples": 27,
+      "settled_samples": 28,
       "minimum_settled_samples": 30,
       "target_pass_rate": 1.0,
       "all_observed_pass": false,
@@ -91,84 +91,84 @@
           "label": "15顆中3至5顆",
           "minimum_hits": 3,
           "maximum_hits": 5,
-          "settled_samples": 27,
+          "settled_samples": 28,
           "successes": 10,
           "target_band_successes": 10,
           "over_target_successes": 0,
-          "failures": 17,
-          "pass_rate": 0.3704,
-          "wilson_lower_95": 0.2153,
-          "average_hits": 1.963,
+          "failures": 18,
+          "pass_rate": 0.3571,
+          "wilson_lower_95": 0.2071,
+          "average_hits": 1.9643,
           "met_in_observed_samples": false
         },
         "nine_hit_three": {
           "label": "9顆中3至5顆",
           "minimum_hits": 3,
           "maximum_hits": 5,
-          "settled_samples": 27,
+          "settled_samples": 28,
           "successes": 3,
           "target_band_successes": 3,
           "over_target_successes": 0,
-          "failures": 24,
-          "pass_rate": 0.1111,
-          "wilson_lower_95": 0.0385,
-          "average_hits": 1.0741,
+          "failures": 25,
+          "pass_rate": 0.1071,
+          "wilson_lower_95": 0.0371,
+          "average_hits": 1.0714,
           "met_in_observed_samples": false
         },
         "five_hit_two": {
           "label": "5顆中2至5顆",
           "minimum_hits": 2,
           "maximum_hits": 5,
-          "settled_samples": 27,
+          "settled_samples": 28,
           "successes": 3,
           "target_band_successes": 3,
           "over_target_successes": 0,
-          "failures": 24,
-          "pass_rate": 0.1111,
-          "wilson_lower_95": 0.0385,
-          "average_hits": 0.6667,
+          "failures": 25,
+          "pass_rate": 0.1071,
+          "wilson_lower_95": 0.0371,
+          "average_hits": 0.6429,
           "met_in_observed_samples": false
         },
         "three_hit_one": {
           "label": "3顆中1至3顆",
           "minimum_hits": 1,
           "maximum_hits": 3,
-          "settled_samples": 27,
+          "settled_samples": 28,
           "successes": 11,
           "target_band_successes": 11,
           "over_target_successes": 0,
-          "failures": 16,
-          "pass_rate": 0.4074,
-          "wilson_lower_95": 0.2451,
-          "average_hits": 0.4815,
+          "failures": 17,
+          "pass_rate": 0.3929,
+          "wilson_lower_95": 0.2357,
+          "average_hits": 0.4643,
           "met_in_observed_samples": false
         },
         "two_hit_one": {
           "label": "2顆中1至2顆",
           "minimum_hits": 1,
           "maximum_hits": 2,
-          "settled_samples": 27,
+          "settled_samples": 28,
           "successes": 8,
           "target_band_successes": 8,
           "over_target_successes": 0,
-          "failures": 19,
-          "pass_rate": 0.2963,
-          "wilson_lower_95": 0.1585,
-          "average_hits": 0.2963,
+          "failures": 20,
+          "pass_rate": 0.2857,
+          "wilson_lower_95": 0.1525,
+          "average_hits": 0.2857,
           "met_in_observed_samples": false
         },
         "strong_single": {
           "label": "1顆中1顆",
           "minimum_hits": 1,
           "maximum_hits": 1,
-          "settled_samples": 27,
+          "settled_samples": 28,
           "successes": 3,
           "target_band_successes": 3,
           "over_target_successes": 0,
-          "failures": 24,
-          "pass_rate": 0.1111,
-          "wilson_lower_95": 0.0385,
-          "average_hits": 0.1111,
+          "failures": 25,
+          "pass_rate": 0.1071,
+          "wilson_lower_95": 0.0371,
+          "average_hits": 0.1071,
           "met_in_observed_samples": false
         }
       }
@@ -176,9 +176,9 @@
   },
   "invalid_draw_count": 0,
   "analysis_sync": {
-    "database_latest_period": 115000159,
-    "analysis_latest_period": 115000159,
-    "prediction_based_on_period": 115000159,
+    "database_latest_period": 115000160,
+    "analysis_latest_period": 115000160,
+    "prediction_based_on_period": 115000160,
     "status": "synced"
   },
   "cleanup": {
@@ -188,21 +188,21 @@
     "cleanup_method": "handled automatically by the one-click Windows launcher"
   },
   "data": {
-    "latest_period": 115000159,
-    "latest_draw_date": "2026-07-01",
+    "latest_period": 115000160,
+    "latest_draw_date": "2026-07-02",
     "latest_numbers": [
       1,
-      3,
-      12,
-      14,
-      34
+      6,
+      8,
+      13,
+      30
     ],
     "freshness": "fresh"
   },
   "mobile": {
     "status": "built",
-    "version": "20260702013501",
-    "mobile_built_at": "2026-07-02T01:35:01+08:00",
+    "version": "20260702021059",
+    "mobile_built_at": "2026-07-02T02:10:59+08:00",
     "latest_period": 115000159,
     "latest_draw_date": "2026-07-01"
   }
