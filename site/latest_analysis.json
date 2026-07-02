@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-02T23:00:44",
+  "generated_at": "2026-07-02T23:14:39",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000160,
@@ -17,7 +17,7 @@
     "latest_date": "2026-07-02",
     "expected_latest_date": "2026-07-02",
     "lag_days": 0,
-    "checked_at": "2026-07-02T22:59:17"
+    "checked_at": "2026-07-02T23:12:42"
   },
   "windows": [
     {
@@ -2637,13 +2637,13 @@
           "hit_rate": 1.0
         },
         {
-          "reason": "與上期號碼近100期共現6次",
+          "reason": "上期失敗號碼僅微降權",
           "hit": 1,
           "miss": 1,
           "hit_rate": 0.5
         },
         {
-          "reason": "上期失敗號碼僅微降權",
+          "reason": "與上期號碼近100期共現6次",
           "hit": 1,
           "miss": 1,
           "hit_rate": 0.5
@@ -3286,13 +3286,13 @@
           "hit_rate": 0.167
         },
         {
-          "reason": "區間配額壓力",
+          "reason": "區間奇偶壓力",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
         },
         {
-          "reason": "區間奇偶壓力",
+          "reason": "區間配額壓力",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
@@ -4530,13 +4530,13 @@
           "hit_rate": 1.0
         },
         {
-          "reason": "與上期號碼近100期共現6次",
+          "reason": "上期失敗號碼僅微降權",
           "hit": 1,
           "miss": 1,
           "hit_rate": 0.5
         },
         {
-          "reason": "上期失敗號碼僅微降權",
+          "reason": "與上期號碼近100期共現6次",
           "hit": 1,
           "miss": 1,
           "hit_rate": 0.5
@@ -5994,13 +5994,13 @@
             "hit_rate": 1.0
           },
           {
-            "reason": "與上期號碼近100期共現6次",
+            "reason": "上期失敗號碼僅微降權",
             "hit": 1,
             "miss": 1,
             "hit_rate": 0.5
           },
           {
-            "reason": "上期失敗號碼僅微降權",
+            "reason": "與上期號碼近100期共現6次",
             "hit": 1,
             "miss": 1,
             "hit_rate": 0.5
@@ -6643,13 +6643,13 @@
             "hit_rate": 0.167
           },
           {
-            "reason": "區間配額壓力",
+            "reason": "區間奇偶壓力",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
           },
           {
-            "reason": "區間奇偶壓力",
+            "reason": "區間配額壓力",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
@@ -7887,13 +7887,13 @@
             "hit_rate": 1.0
           },
           {
-            "reason": "與上期號碼近100期共現6次",
+            "reason": "上期失敗號碼僅微降權",
             "hit": 1,
             "miss": 1,
             "hit_rate": 0.5
           },
           {
-            "reason": "上期失敗號碼僅微降權",
+            "reason": "與上期號碼近100期共現6次",
             "hit": 1,
             "miss": 1,
             "hit_rate": 0.5
@@ -64150,5 +64150,5 @@
       }
     }
   },
-  "official_prediction_status": "observation_only_inserted"
+  "official_prediction_status": "observation_only_recalculated_same_as_official_refreshed"
 }
