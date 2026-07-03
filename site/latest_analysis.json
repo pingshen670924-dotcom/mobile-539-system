@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-03T23:10:06",
+  "generated_at": "2026-07-04T00:45:40",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000161,
@@ -17,7 +17,7 @@
     "latest_date": "2026-07-03",
     "expected_latest_date": "2026-07-03",
     "lag_days": 0,
-    "checked_at": "2026-07-03T23:08:09"
+    "checked_at": "2026-07-04T00:44:12"
   },
   "windows": [
     {
@@ -3373,12 +3373,6 @@
           "hit_rate": 0.125
         },
         {
-          "reason": "區間配額壓力",
-          "hit": 1,
-          "miss": 9,
-          "hit_rate": 0.1
-        },
-        {
           "reason": "快慢趨勢一致",
           "hit": 1,
           "miss": 9,
@@ -3386,6 +3380,12 @@
         },
         {
           "reason": "區間奇偶壓力",
+          "hit": 1,
+          "miss": 9,
+          "hit_rate": 0.1
+        },
+        {
+          "reason": "區間配額壓力",
           "hit": 1,
           "miss": 9,
           "hit_rate": 0.1
@@ -6880,12 +6880,6 @@
             "hit_rate": 0.125
           },
           {
-            "reason": "區間配額壓力",
-            "hit": 1,
-            "miss": 9,
-            "hit_rate": 0.1
-          },
-          {
             "reason": "快慢趨勢一致",
             "hit": 1,
             "miss": 9,
@@ -6893,6 +6887,12 @@
           },
           {
             "reason": "區間奇偶壓力",
+            "hit": 1,
+            "miss": 9,
+            "hit_rate": 0.1
+          },
+          {
+            "reason": "區間配額壓力",
             "hit": 1,
             "miss": 9,
             "hit_rate": 0.1
