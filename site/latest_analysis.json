@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-04T22:28:46",
+  "generated_at": "2026-07-04T23:44:06",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000162,
@@ -17,7 +17,7 @@
     "latest_date": "2026-07-04",
     "expected_latest_date": "2026-07-04",
     "lag_days": 0,
-    "checked_at": "2026-07-04T22:26:51"
+    "checked_at": "2026-07-04T23:42:18"
   },
   "windows": [
     {
@@ -2644,13 +2644,13 @@
       ],
       "source_performance": [
         {
-          "reason": "近100期偏熱(14次)",
+          "reason": "月度漏抓壓力加權",
           "hit": 1,
           "miss": 0,
           "hit_rate": 1.0
         },
         {
-          "reason": "月度漏抓壓力加權",
+          "reason": "近100期偏熱(14次)",
           "hit": 1,
           "miss": 0,
           "hit_rate": 1.0
@@ -2668,13 +2668,13 @@
           "hit_rate": 0.5
         },
         {
-          "reason": "尾數轉移加權",
+          "reason": "相似牌",
           "hit": 1,
           "miss": 2,
           "hit_rate": 0.333
         },
         {
-          "reason": "相似牌",
+          "reason": "尾數轉移加權",
           "hit": 1,
           "miss": 2,
           "hit_rate": 0.333
@@ -3431,13 +3431,13 @@
           "hit_rate": 0.25
         },
         {
-          "reason": "漏命中回收",
+          "reason": "昨日預測號軟守門觀察",
           "hit": 1,
           "miss": 3,
           "hit_rate": 0.25
         },
         {
-          "reason": "昨日預測號軟守門觀察",
+          "reason": "漏命中回收",
           "hit": 1,
           "miss": 3,
           "hit_rate": 0.25
@@ -4817,13 +4817,13 @@
       ],
       "source_performance": [
         {
-          "reason": "近100期偏熱(14次)",
+          "reason": "月度漏抓壓力加權",
           "hit": 1,
           "miss": 0,
           "hit_rate": 1.0
         },
         {
-          "reason": "月度漏抓壓力加權",
+          "reason": "近100期偏熱(14次)",
           "hit": 1,
           "miss": 0,
           "hit_rate": 1.0
@@ -4841,13 +4841,13 @@
           "hit_rate": 0.5
         },
         {
-          "reason": "尾數轉移加權",
+          "reason": "相似牌",
           "hit": 1,
           "miss": 2,
           "hit_rate": 0.333
         },
         {
-          "reason": "相似牌",
+          "reason": "尾數轉移加權",
           "hit": 1,
           "miss": 2,
           "hit_rate": 0.333
@@ -6281,13 +6281,13 @@
         ],
         "source_performance": [
           {
-            "reason": "近100期偏熱(14次)",
+            "reason": "月度漏抓壓力加權",
             "hit": 1,
             "miss": 0,
             "hit_rate": 1.0
           },
           {
-            "reason": "月度漏抓壓力加權",
+            "reason": "近100期偏熱(14次)",
             "hit": 1,
             "miss": 0,
             "hit_rate": 1.0
@@ -6305,13 +6305,13 @@
             "hit_rate": 0.5
           },
           {
-            "reason": "尾數轉移加權",
+            "reason": "相似牌",
             "hit": 1,
             "miss": 2,
             "hit_rate": 0.333
           },
           {
-            "reason": "相似牌",
+            "reason": "尾數轉移加權",
             "hit": 1,
             "miss": 2,
             "hit_rate": 0.333
@@ -7068,13 +7068,13 @@
             "hit_rate": 0.25
           },
           {
-            "reason": "漏命中回收",
+            "reason": "昨日預測號軟守門觀察",
             "hit": 1,
             "miss": 3,
             "hit_rate": 0.25
           },
           {
-            "reason": "昨日預測號軟守門觀察",
+            "reason": "漏命中回收",
             "hit": 1,
             "miss": 3,
             "hit_rate": 0.25
@@ -8454,13 +8454,13 @@
         ],
         "source_performance": [
           {
-            "reason": "近100期偏熱(14次)",
+            "reason": "月度漏抓壓力加權",
             "hit": 1,
             "miss": 0,
             "hit_rate": 1.0
           },
           {
-            "reason": "月度漏抓壓力加權",
+            "reason": "近100期偏熱(14次)",
             "hit": 1,
             "miss": 0,
             "hit_rate": 1.0
@@ -8478,13 +8478,13 @@
             "hit_rate": 0.5
           },
           {
-            "reason": "尾數轉移加權",
+            "reason": "相似牌",
             "hit": 1,
             "miss": 2,
             "hit_rate": 0.333
           },
           {
-            "reason": "相似牌",
+            "reason": "尾數轉移加權",
             "hit": 1,
             "miss": 2,
             "hit_rate": 0.333
