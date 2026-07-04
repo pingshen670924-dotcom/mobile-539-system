@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-04T22:17:45",
+  "generated_at": "2026-07-04T22:28:46",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000162,
@@ -17,7 +17,7 @@
     "latest_date": "2026-07-04",
     "expected_latest_date": "2026-07-04",
     "lag_days": 0,
-    "checked_at": "2026-07-04T22:15:48"
+    "checked_at": "2026-07-04T22:26:51"
   },
   "windows": [
     {
@@ -2668,13 +2668,13 @@
           "hit_rate": 0.5
         },
         {
-          "reason": "相似牌",
+          "reason": "尾數轉移加權",
           "hit": 1,
           "miss": 2,
           "hit_rate": 0.333
         },
         {
-          "reason": "尾數轉移加權",
+          "reason": "相似牌",
           "hit": 1,
           "miss": 2,
           "hit_rate": 0.333
@@ -3425,13 +3425,13 @@
           "hit_rate": 0.25
         },
         {
-          "reason": "漏命中回收",
+          "reason": "失敗號回補驗算",
           "hit": 1,
           "miss": 3,
           "hit_rate": 0.25
         },
         {
-          "reason": "失敗號回補驗算",
+          "reason": "漏命中回收",
           "hit": 1,
           "miss": 3,
           "hit_rate": 0.25
@@ -3455,13 +3455,13 @@
           "hit_rate": 0.167
         },
         {
-          "reason": "共現關聯",
+          "reason": "區間奇偶壓力",
           "hit": 2,
           "miss": 12,
           "hit_rate": 0.143
         },
         {
-          "reason": "區間奇偶壓力",
+          "reason": "共現關聯",
           "hit": 2,
           "miss": 12,
           "hit_rate": 0.143
@@ -4841,13 +4841,13 @@
           "hit_rate": 0.5
         },
         {
-          "reason": "相似牌",
+          "reason": "尾數轉移加權",
           "hit": 1,
           "miss": 2,
           "hit_rate": 0.333
         },
         {
-          "reason": "尾數轉移加權",
+          "reason": "相似牌",
           "hit": 1,
           "miss": 2,
           "hit_rate": 0.333
@@ -6305,13 +6305,13 @@
             "hit_rate": 0.5
           },
           {
-            "reason": "相似牌",
+            "reason": "尾數轉移加權",
             "hit": 1,
             "miss": 2,
             "hit_rate": 0.333
           },
           {
-            "reason": "尾數轉移加權",
+            "reason": "相似牌",
             "hit": 1,
             "miss": 2,
             "hit_rate": 0.333
@@ -7062,13 +7062,13 @@
             "hit_rate": 0.25
           },
           {
-            "reason": "漏命中回收",
+            "reason": "失敗號回補驗算",
             "hit": 1,
             "miss": 3,
             "hit_rate": 0.25
           },
           {
-            "reason": "失敗號回補驗算",
+            "reason": "漏命中回收",
             "hit": 1,
             "miss": 3,
             "hit_rate": 0.25
@@ -7092,13 +7092,13 @@
             "hit_rate": 0.167
           },
           {
-            "reason": "共現關聯",
+            "reason": "區間奇偶壓力",
             "hit": 2,
             "miss": 12,
             "hit_rate": 0.143
           },
           {
-            "reason": "區間奇偶壓力",
+            "reason": "共現關聯",
             "hit": 2,
             "miss": 12,
             "hit_rate": 0.143
@@ -8478,13 +8478,13 @@
             "hit_rate": 0.5
           },
           {
-            "reason": "相似牌",
+            "reason": "尾數轉移加權",
             "hit": 1,
             "miss": 2,
             "hit_rate": 0.333
           },
           {
-            "reason": "尾數轉移加權",
+            "reason": "相似牌",
             "hit": 1,
             "miss": 2,
             "hit_rate": 0.333
@@ -64642,5 +64642,5 @@
       }
     }
   },
-  "official_prediction_status": "observation_only_inserted"
+  "official_prediction_status": "observation_only_recalculated_same_as_official_refreshed"
 }
