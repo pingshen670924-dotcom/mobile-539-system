@@ -360,12 +360,6 @@
       "hit_rate": 0.5
     },
     {
-      "reason": "昨日預測號軟守門觀察",
-      "hit": 2,
-      "miss": 3,
-      "hit_rate": 0.4
-    },
-    {
       "reason": "牌型相似跟隨",
       "hit": 2,
       "miss": 3,
@@ -373,6 +367,12 @@
     },
     {
       "reason": "失敗號回補驗算",
+      "hit": 2,
+      "miss": 3,
+      "hit_rate": 0.4
+    },
+    {
+      "reason": "昨日預測號軟守門觀察",
       "hit": 2,
       "miss": 3,
       "hit_rate": 0.4
