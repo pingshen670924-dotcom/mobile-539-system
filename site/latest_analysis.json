@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-08T01:47:37",
+  "generated_at": "2026-07-08T02:16:58",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000164,
@@ -17,7 +17,7 @@
     "latest_date": "2026-07-07",
     "expected_latest_date": "2026-07-07",
     "lag_days": 0,
-    "checked_at": "2026-07-08T01:45:42"
+    "checked_at": "2026-07-08T02:15:05"
   },
   "windows": [
     {
@@ -2027,13 +2027,13 @@
           "hit_rate": 0.5
         },
         {
-          "reason": "失敗號回補驗算",
+          "reason": "昨日預測號軟守門觀察",
           "hit": 2,
           "miss": 3,
           "hit_rate": 0.4
         },
         {
-          "reason": "昨日預測號軟守門觀察",
+          "reason": "失敗號回補驗算",
           "hit": 2,
           "miss": 3,
           "hit_rate": 0.4
@@ -2876,13 +2876,13 @@
           "hit_rate": 0.5
         },
         {
-          "reason": "失敗號回補驗算",
+          "reason": "昨日預測號軟守門觀察",
           "hit": 2,
           "miss": 3,
           "hit_rate": 0.4
         },
         {
-          "reason": "昨日預測號軟守門觀察",
+          "reason": "失敗號回補驗算",
           "hit": 2,
           "miss": 3,
           "hit_rate": 0.4
@@ -5184,13 +5184,13 @@
             "hit_rate": 0.5
           },
           {
-            "reason": "失敗號回補驗算",
+            "reason": "昨日預測號軟守門觀察",
             "hit": 2,
             "miss": 3,
             "hit_rate": 0.4
           },
           {
-            "reason": "昨日預測號軟守門觀察",
+            "reason": "失敗號回補驗算",
             "hit": 2,
             "miss": 3,
             "hit_rate": 0.4
@@ -6033,13 +6033,13 @@
             "hit_rate": 0.5
           },
           {
-            "reason": "失敗號回補驗算",
+            "reason": "昨日預測號軟守門觀察",
             "hit": 2,
             "miss": 3,
             "hit_rate": 0.4
           },
           {
-            "reason": "昨日預測號軟守門觀察",
+            "reason": "失敗號回補驗算",
             "hit": 2,
             "miss": 3,
             "hit_rate": 0.4
