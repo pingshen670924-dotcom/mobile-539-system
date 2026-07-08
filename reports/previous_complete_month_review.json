@@ -1027,25 +1027,25 @@
   ],
   "source_performance": [
     {
-      "reason": "近100期偏熱(14次)",
-      "hit": 1,
-      "miss": 0,
-      "hit_rate": 1.0
-    },
-    {
       "reason": "月度漏抓壓力加權",
       "hit": 1,
       "miss": 0,
       "hit_rate": 1.0
     },
     {
-      "reason": "與上期號碼近100期共現6次",
+      "reason": "近100期偏熱(14次)",
+      "hit": 1,
+      "miss": 0,
+      "hit_rate": 1.0
+    },
+    {
+      "reason": "上期失敗號碼僅微降權",
       "hit": 1,
       "miss": 1,
       "hit_rate": 0.5
     },
     {
-      "reason": "上期失敗號碼僅微降權",
+      "reason": "與上期號碼近100期共現6次",
       "hit": 1,
       "miss": 1,
       "hit_rate": 0.5
