@@ -527,7 +527,7 @@
       "hit_rate": 0.105
     },
     {
-      "reason": "快慢趨勢一致",
+      "reason": "尾數區間",
       "hit": 3,
       "miss": 28,
       "hit_rate": 0.097
