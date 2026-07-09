@@ -1,0 +1,120 @@
+{
+  "based_on_period": 115000166,
+  "based_on_date": "2026-07-09",
+  "target_period": 115000167,
+  "target_expected_date": "2026-07-10",
+  "top5": [
+    26,
+    8,
+    29,
+    1,
+    30
+  ],
+  "top10": [
+    26,
+    8,
+    29,
+    1,
+    30,
+    10,
+    12,
+    34,
+    14,
+    3
+  ],
+  "top15": [
+    26,
+    8,
+    29,
+    1,
+    30,
+    10,
+    12,
+    34,
+    14,
+    3,
+    23,
+    20,
+    19,
+    32,
+    39
+  ],
+  "unlikely_packs": {
+    "five_miss": {
+      "name": "5不中",
+      "numbers": [
+        37,
+        36,
+        35,
+        31,
+        27
+      ],
+      "status": "已產出",
+      "avg_avoid_score": 1.0,
+      "min_avoid_score": 1.0,
+      "confidence_index": 100.0,
+      "confidence_label": "高",
+      "warning": "低機率研究不是絕對不開保證，只作避險與組合污染控管"
+    },
+    "ten_miss": {
+      "name": "10不中",
+      "numbers": [
+        37,
+        36,
+        35,
+        31,
+        27,
+        22,
+        21,
+        18,
+        17,
+        16
+      ],
+      "status": "已產出",
+      "avg_avoid_score": 1.0,
+      "min_avoid_score": 1.0,
+      "confidence_index": 100.0,
+      "confidence_label": "高",
+      "warning": "低機率研究不是絕對不開保證，只作避險與組合污染控管"
+    },
+    "fifteen_miss": {
+      "name": "15不中",
+      "numbers": [
+        37,
+        36,
+        35,
+        31,
+        27,
+        22,
+        21,
+        18,
+        17,
+        16,
+        15,
+        13,
+        11,
+        9,
+        6
+      ],
+      "status": "已產出",
+      "avg_avoid_score": 1.0,
+      "min_avoid_score": 1.0,
+      "confidence_index": 100.0,
+      "confidence_label": "高",
+      "warning": "低機率研究不是絕對不開保證，只作避險與組合污染控管"
+    }
+  },
+  "actual_period": null,
+  "actual_date": null,
+  "actual_numbers": [],
+  "top5_hits": null,
+  "top10_hits": null,
+  "top15_hits": null,
+  "top10_hit_numbers": [],
+  "strong_pack_hits": {},
+  "unlikely_pack_hits": {},
+  "status": "pending",
+  "created_at": "2026-07-09T15:49:22",
+  "settled_at": null,
+  "snapshot_count": 1
+}
