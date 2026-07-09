@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-09T23:49:00",
+  "generated_at": "2026-07-09T23:56:13",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000166,
@@ -17,7 +17,7 @@
     "latest_date": "2026-07-09",
     "expected_latest_date": "2026-07-09",
     "lag_days": 0,
-    "checked_at": "2026-07-09T23:47:01"
+    "checked_at": "2026-07-09T23:54:43"
   },
   "windows": [
     {
@@ -4469,13 +4469,13 @@
           "hit_rate": 0.5
         },
         {
-          "reason": "相似牌",
+          "reason": "尾數轉移加權",
           "hit": 1,
           "miss": 2,
           "hit_rate": 0.333
         },
         {
-          "reason": "尾數轉移加權",
+          "reason": "相似牌",
           "hit": 1,
           "miss": 2,
           "hit_rate": 0.333
@@ -7740,13 +7740,13 @@
             "hit_rate": 0.5
           },
           {
-            "reason": "相似牌",
+            "reason": "尾數轉移加權",
             "hit": 1,
             "miss": 2,
             "hit_rate": 0.333
           },
           {
-            "reason": "尾數轉移加權",
+            "reason": "相似牌",
             "hit": 1,
             "miss": 2,
             "hit_rate": 0.333
@@ -63740,5 +63740,5 @@
       }
     }
   },
-  "official_prediction_status": "observation_only_inserted"
+  "official_prediction_status": "observation_only_recalculated_same_as_official_refreshed"
 }
