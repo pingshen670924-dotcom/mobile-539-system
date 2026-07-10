@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-10T23:31:41",
+  "generated_at": "2026-07-11T01:23:15",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000167,
@@ -17,7 +17,7 @@
     "latest_date": "2026-07-10",
     "expected_latest_date": "2026-07-10",
     "lag_days": 0,
-    "checked_at": "2026-07-10T23:29:42"
+    "checked_at": "2026-07-11T01:21:16"
   },
   "windows": [
     {
@@ -2154,13 +2154,13 @@
           "hit_rate": 0.2
         },
         {
-          "reason": "漏命中回收",
+          "reason": "牌型相似跟隨",
           "hit": 2,
           "miss": 10,
           "hit_rate": 0.167
         },
         {
-          "reason": "牌型相似跟隨",
+          "reason": "漏命中回收",
           "hit": 2,
           "miss": 10,
           "hit_rate": 0.167
@@ -3094,13 +3094,13 @@
           "hit_rate": 0.2
         },
         {
-          "reason": "漏命中回收",
+          "reason": "牌型相似跟隨",
           "hit": 2,
           "miss": 10,
           "hit_rate": 0.167
         },
         {
-          "reason": "牌型相似跟隨",
+          "reason": "漏命中回收",
           "hit": 2,
           "miss": 10,
           "hit_rate": 0.167
@@ -4526,25 +4526,25 @@
       ],
       "source_performance": [
         {
-          "reason": "月度漏抓壓力加權",
-          "hit": 1,
-          "miss": 0,
-          "hit_rate": 1.0
-        },
-        {
           "reason": "近100期偏熱(14次)",
           "hit": 1,
           "miss": 0,
           "hit_rate": 1.0
         },
         {
-          "reason": "上期失敗號碼僅微降權",
+          "reason": "月度漏抓壓力加權",
+          "hit": 1,
+          "miss": 0,
+          "hit_rate": 1.0
+        },
+        {
+          "reason": "與上期號碼近100期共現6次",
           "hit": 1,
           "miss": 1,
           "hit_rate": 0.5
         },
         {
-          "reason": "與上期號碼近100期共現6次",
+          "reason": "上期失敗號碼僅微降權",
           "hit": 1,
           "miss": 1,
           "hit_rate": 0.5
@@ -5493,13 +5493,13 @@
             "hit_rate": 0.2
           },
           {
-            "reason": "漏命中回收",
+            "reason": "牌型相似跟隨",
             "hit": 2,
             "miss": 10,
             "hit_rate": 0.167
           },
           {
-            "reason": "牌型相似跟隨",
+            "reason": "漏命中回收",
             "hit": 2,
             "miss": 10,
             "hit_rate": 0.167
@@ -6433,13 +6433,13 @@
             "hit_rate": 0.2
           },
           {
-            "reason": "漏命中回收",
+            "reason": "牌型相似跟隨",
             "hit": 2,
             "miss": 10,
             "hit_rate": 0.167
           },
           {
-            "reason": "牌型相似跟隨",
+            "reason": "漏命中回收",
             "hit": 2,
             "miss": 10,
             "hit_rate": 0.167
@@ -7865,25 +7865,25 @@
         ],
         "source_performance": [
           {
-            "reason": "月度漏抓壓力加權",
-            "hit": 1,
-            "miss": 0,
-            "hit_rate": 1.0
-          },
-          {
             "reason": "近100期偏熱(14次)",
             "hit": 1,
             "miss": 0,
             "hit_rate": 1.0
           },
           {
-            "reason": "上期失敗號碼僅微降權",
+            "reason": "月度漏抓壓力加權",
+            "hit": 1,
+            "miss": 0,
+            "hit_rate": 1.0
+          },
+          {
+            "reason": "與上期號碼近100期共現6次",
             "hit": 1,
             "miss": 1,
             "hit_rate": 0.5
           },
           {
-            "reason": "與上期號碼近100期共現6次",
+            "reason": "上期失敗號碼僅微降權",
             "hit": 1,
             "miss": 1,
             "hit_rate": 0.5
