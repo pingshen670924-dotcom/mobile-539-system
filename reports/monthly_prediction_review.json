@@ -530,13 +530,13 @@
       "hit_rate": 0.2
     },
     {
-      "reason": "牌型相似跟隨",
+      "reason": "漏命中回收",
       "hit": 2,
       "miss": 10,
       "hit_rate": 0.167
     },
     {
-      "reason": "漏命中回收",
+      "reason": "牌型相似跟隨",
       "hit": 2,
       "miss": 10,
       "hit_rate": 0.167
