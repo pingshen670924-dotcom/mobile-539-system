@@ -606,13 +606,13 @@
       "hit_rate": 0.2
     },
     {
-      "reason": "滾動檢討漏抓尾數區間補位",
+      "reason": "分區覆蓋回補",
       "hit": 1,
       "miss": 5,
       "hit_rate": 0.167
     },
     {
-      "reason": "分區覆蓋回補",
+      "reason": "滾動檢討漏抓尾數區間補位",
       "hit": 1,
       "miss": 5,
       "hit_rate": 0.167
