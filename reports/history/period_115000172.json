@@ -104,17 +104,197 @@
       "warning": "低機率研究不是絕對不開保證，只作避險與組合污染控管"
     }
   },
-  "actual_period": null,
-  "actual_date": null,
-  "actual_numbers": [],
-  "top5_hits": null,
-  "top10_hits": null,
-  "top15_hits": null,
-  "top10_hit_numbers": [],
-  "strong_pack_hits": {},
-  "unlikely_pack_hits": {},
-  "status": "pending",
+  "actual_period": 115000172,
+  "actual_date": "2026-07-16",
+  "actual_numbers": [
+    13,
+    25,
+    28,
+    30,
+    31
+  ],
+  "top5_hits": 1,
+  "top10_hits": 3,
+  "top15_hits": 3,
+  "top10_hit_numbers": [
+    13,
+    25,
+    31
+  ],
+  "strong_pack_hits": {
+    "strong_single": {
+      "name": "最強單支",
+      "hit_goal": 1,
+      "numbers": [
+        37
+      ],
+      "hits": 0,
+      "passed": false
+    },
+    "two_hit_one": {
+      "name": "最強2中1",
+      "hit_goal": 1,
+      "numbers": [
+        1,
+        15
+      ],
+      "hits": 0,
+      "passed": false
+    },
+    "three_hit_one": {
+      "name": "最強3中1",
+      "hit_goal": 1,
+      "numbers": [
+        1,
+        15,
+        37
+      ],
+      "hits": 0,
+      "passed": false
+    },
+    "five_hit_two": {
+      "name": "最強5中2",
+      "hit_goal": 2,
+      "numbers": [
+        1,
+        10,
+        13,
+        15,
+        37
+      ],
+      "hits": 1,
+      "passed": false
+    },
+    "nine_hit_three": {
+      "name": "最強9中3",
+      "hit_goal": 3,
+      "numbers": [
+        1,
+        2,
+        10,
+        13,
+        15,
+        25,
+        31,
+        36,
+        37
+      ],
+      "hits": 3,
+      "passed": true
+    }
+  },
+  "unlikely_pack_hits": {
+    "five_miss": {
+      "name": "5不中",
+      "numbers": [
+        35,
+        30,
+        29,
+        22,
+        21
+      ],
+      "target": "不中",
+      "hit_goal": 0,
+      "accidental_hits": 1,
+      "hit_numbers": [
+        30
+      ],
+      "avoided_numbers": [
+        21,
+        22,
+        29,
+        35
+      ],
+      "passed": false,
+      "confidence_index": 100.0,
+      "avg_avoid_score": 1.0,
+      "min_avoid_score": 1.0
+    },
+    "ten_miss": {
+      "name": "10不中",
+      "numbers": [
+        35,
+        30,
+        29,
+        22,
+        21,
+        16,
+        14,
+        12,
+        8,
+        7
+      ],
+      "target": "不中",
+      "hit_goal": 0,
+      "accidental_hits": 1,
+      "hit_numbers": [
+        30
+      ],
+      "avoided_numbers": [
+        7,
+        8,
+        12,
+        14,
+        16,
+        21,
+        22,
+        29,
+        35
+      ],
+      "passed": false,
+      "confidence_index": 100.0,
+      "avg_avoid_score": 1.0,
+      "min_avoid_score": 1.0
+    },
+    "fifteen_miss": {
+      "name": "15不中",
+      "numbers": [
+        35,
+        30,
+        29,
+        22,
+        21,
+        16,
+        14,
+        12,
+        8,
+        7,
+        6,
+        5,
+        3,
+        9,
+        34
+      ],
+      "target": "不中",
+      "hit_goal": 0,
+      "accidental_hits": 1,
+      "hit_numbers": [
+        30
+      ],
+      "avoided_numbers": [
+        3,
+        5,
+        6,
+        7,
+        8,
+        9,
+        12,
+        14,
+        16,
+        21,
+        22,
+        29,
+        34,
+        35
+      ],
+      "passed": false,
+      "confidence_index": 97.9,
+      "avg_avoid_score": 0.9794,
+      "min_avoid_score": 0.8005
+    }
+  },
+  "status": "settled",
   "created_at": "2026-07-15T17:37:09",
-  "settled_at": null,
+  "settled_at": "2026-07-16T14:47:03",
   "snapshot_count": 4
 }
