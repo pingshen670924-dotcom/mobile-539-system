@@ -64,16 +64,16 @@
 <body>
 <header>
   <h1>539 精算預測戰報</h1>
-  <p>產生時間 2026-07-18 00:05:13 / 全歷史資料 2007-01-01 到 2026-07-17 / 共 5917 期 / 期別 96000001 到 115000173</p>
+  <p>產生時間 2026-07-18 01:23:24 / 全歷史資料 2007-01-01 到 2026-07-17 / 共 5917 期 / 期別 96000001 到 115000173</p>
   <p>最新開獎 115000173 期 / 2026-07-17 / 10 12 28 29 35　預測目標 2026-07-18</p>
 </header>
 <main>
     <section class="band">
       <h2>手機獨立操作</h2>
-      <p><strong>手機版最後建立：2026-07-18 00:05:38</strong></p>
-      <p>最新資料：115000173期 / 2026-07-17 / 版本 20260718000538</p>
-      <p><a class="mobile-action refresh" href="clear-cache.html?v=20260718000538">清除舊版快取並打開最新手機版</a></p>
-      <p><a class="mobile-action history" href="prediction-history.html?v=20260718000538">查看每期預測對比</a></p>
+      <p><strong>手機版最後建立：2026-07-18 01:23:48</strong></p>
+      <p>最新資料：115000173期 / 2026-07-17 / 版本 20260718012348</p>
+      <p><a class="mobile-action refresh" href="clear-cache.html?v=20260718012348">清除舊版快取並打開最新手機版</a></p>
+      <p><a class="mobile-action history" href="prediction-history.html?v=20260718012348">查看每期預測對比</a></p>
       <p><a class="mobile-action" href="https://github.com/pingshen670924-dotcom/mobile-539-system/actions/workflows/daily-update.yml">登入雲端平台後立即更新</a></p>
       <p><button class="mobile-action refresh" type="button" onclick="forceRefresh()">強制重新載入最新手機成果</button></p>
       <p>手機版開獎後即時同步：台北時間 20:35 起進入密集追蹤，每45秒追台彩最新資料，抓到後立刻重算、重建電腦戰報與手機版。</p>
@@ -95,7 +95,7 @@
       <div class="card"><div class="label">資料依據最新開獎日</div><div class="value">2026-07-17</div></div>
       <div class="card"><div class="label">最新開獎期別</div><div class="value">115000173</div></div>
       <div class="card"><div class="label">下期預測目標日</div><div class="value">2026-07-18</div></div>
-      <div class="card"><div class="label">戰報產生時間</div><div class="value">2026-07-18 00:05:13</div></div>
+      <div class="card"><div class="label">戰報產生時間</div><div class="value">2026-07-18 01:23:24</div></div>
     </div>
   </section>
   <section id="prediction" class="panel active">
@@ -249,7 +249,7 @@
       </div>
     
     <div class="band">
-      <h2>模型成效（資料截至 2026-07-17 / 回測產生 2026-07-18 00:05:13）</h2>
+      <h2>模型成效（資料截至 2026-07-17 / 回測產生 2026-07-18 01:23:24）</h2>
       <table><thead><tr><th>模型</th><th>回測期</th><th>前5平均</th><th>前10平均</th><th>前15平均</th><th>前10優勢</th></tr></thead><tbody><tr><td>相似牌</td><td>240</td><td>0.675</td><td>1.354</td><td>2.000</td><td>0.072</td></tr><tr><td>連莊鄰號</td><td>240</td><td>0.683</td><td>1.346</td><td>1.967</td><td>0.064</td></tr><tr><td>尾數區間</td><td>240</td><td>0.629</td><td>1.292</td><td>1.938</td><td>0.010</td></tr><tr><td>雙生牌</td><td>240</td><td>0.613</td><td>1.283</td><td>1.896</td><td>0.001</td></tr><tr><td>遺漏期數</td><td>240</td><td>0.646</td><td>1.275</td><td>1.992</td><td>-0.007</td></tr><tr><td>中期熱度</td><td>240</td><td>0.667</td><td>1.271</td><td>1.904</td><td>-0.011</td></tr><tr><td>日期牌</td><td>240</td><td>0.625</td><td>1.262</td><td>1.979</td><td>-0.020</td></tr><tr><td>短期熱度</td><td>240</td><td>0.621</td><td>1.262</td><td>1.929</td><td>-0.020</td></tr></tbody></table>
     </div>
     <div class="band">
@@ -334,7 +334,7 @@
 </script>
 
     <script>
-      window.MOBILE_BUILD_VERSION="20260718000538";
+      window.MOBILE_BUILD_VERSION="20260718012348";
       async function forceRefresh(){
         try{
           if("serviceWorker" in navigator){
@@ -357,7 +357,7 @@
           }
         }catch(e){}
       }
-      if("serviceWorker" in navigator)navigator.serviceWorker.register("service-worker.js?v=20260718000538");
+      if("serviceWorker" in navigator)navigator.serviceWorker.register("service-worker.js?v=20260718012348");
       setInterval(checkMobileVersion, 15000);
       window.addEventListener("focus", checkMobileVersion);
       document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkMobileVersion();});
