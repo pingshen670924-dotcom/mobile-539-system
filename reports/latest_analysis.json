@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-17T22:18:45",
+  "generated_at": "2026-07-17T22:41:38",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000173,
@@ -17,7 +17,7 @@
     "latest_date": "2026-07-17",
     "expected_latest_date": "2026-07-17",
     "lag_days": 0,
-    "checked_at": "2026-07-17T22:16:45"
+    "checked_at": "2026-07-17T22:40:26"
   },
   "windows": [
     {
@@ -4889,25 +4889,25 @@
           "hit_rate": 1.0
         },
         {
-          "reason": "與上期號碼近100期共現6次",
-          "hit": 1,
-          "miss": 1,
-          "hit_rate": 0.5
-        },
-        {
           "reason": "上期失敗號碼僅微降權",
           "hit": 1,
           "miss": 1,
           "hit_rate": 0.5
         },
         {
-          "reason": "相似牌",
+          "reason": "與上期號碼近100期共現6次",
+          "hit": 1,
+          "miss": 1,
+          "hit_rate": 0.5
+        },
+        {
+          "reason": "尾數轉移加權",
           "hit": 1,
           "miss": 2,
           "hit_rate": 0.333
         },
         {
-          "reason": "尾數轉移加權",
+          "reason": "相似牌",
           "hit": 1,
           "miss": 2,
           "hit_rate": 0.333
@@ -8580,25 +8580,25 @@
             "hit_rate": 1.0
           },
           {
-            "reason": "與上期號碼近100期共現6次",
-            "hit": 1,
-            "miss": 1,
-            "hit_rate": 0.5
-          },
-          {
             "reason": "上期失敗號碼僅微降權",
             "hit": 1,
             "miss": 1,
             "hit_rate": 0.5
           },
           {
-            "reason": "相似牌",
+            "reason": "與上期號碼近100期共現6次",
+            "hit": 1,
+            "miss": 1,
+            "hit_rate": 0.5
+          },
+          {
+            "reason": "尾數轉移加權",
             "hit": 1,
             "miss": 2,
             "hit_rate": 0.333
           },
           {
-            "reason": "尾數轉移加權",
+            "reason": "相似牌",
             "hit": 1,
             "miss": 2,
             "hit_rate": 0.333
@@ -64642,5 +64642,5 @@
       }
     }
   },
-  "official_prediction_status": "observation_only_inserted"
+  "official_prediction_status": "observation_only_recalculated_same_as_official_refreshed"
 }
