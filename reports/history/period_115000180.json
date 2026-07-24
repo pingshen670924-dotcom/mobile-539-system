@@ -1,0 +1,120 @@
+{
+  "based_on_period": 115000179,
+  "based_on_date": "2026-07-24",
+  "target_period": 115000180,
+  "target_expected_date": "2026-07-25",
+  "top5": [
+    34,
+    12,
+    28,
+    37,
+    15
+  ],
+  "top10": [
+    34,
+    12,
+    28,
+    37,
+    15,
+    25,
+    1,
+    30,
+    14,
+    24
+  ],
+  "top15": [
+    34,
+    12,
+    28,
+    37,
+    15,
+    25,
+    1,
+    30,
+    14,
+    24,
+    2,
+    26,
+    4,
+    35,
+    8
+  ],
+  "unlikely_packs": {
+    "five_miss": {
+      "name": "5不中",
+      "numbers": [
+        31,
+        29,
+        27,
+        23,
+        22
+      ],
+      "status": "已產出",
+      "avg_avoid_score": 1.0,
+      "min_avoid_score": 1.0,
+      "confidence_index": 100.0,
+      "confidence_label": "高",
+      "warning": "低機率研究不是絕對不開保證，只作避險與組合污染控管"
+    },
+    "ten_miss": {
+      "name": "10不中",
+      "numbers": [
+        31,
+        29,
+        27,
+        23,
+        22,
+        21,
+        19,
+        17,
+        16,
+        13
+      ],
+      "status": "已產出",
+      "avg_avoid_score": 1.0,
+      "min_avoid_score": 1.0,
+      "confidence_index": 100.0,
+      "confidence_label": "高",
+      "warning": "低機率研究不是絕對不開保證，只作避險與組合污染控管"
+    },
+    "fifteen_miss": {
+      "name": "15不中",
+      "numbers": [
+        31,
+        29,
+        27,
+        23,
+        22,
+        21,
+        19,
+        17,
+        16,
+        13,
+        11,
+        10,
+        7,
+        6,
+        5
+      ],
+      "status": "已產出",
+      "avg_avoid_score": 1.0,
+      "min_avoid_score": 1.0,
+      "confidence_index": 100.0,
+      "confidence_label": "高",
+      "warning": "低機率研究不是絕對不開保證，只作避險與組合污染控管"
+    }
+  },
+  "actual_period": null,
+  "actual_date": null,
+  "actual_numbers": [],
+  "top5_hits": null,
+  "top10_hits": null,
+  "top15_hits": null,
+  "top10_hit_numbers": [],
+  "strong_pack_hits": {},
+  "unlikely_pack_hits": {},
+  "status": "pending",
+  "created_at": "2026-07-24T14:28:16",
+  "settled_at": null,
+  "snapshot_count": 1
+}
