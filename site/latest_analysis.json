@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-25T22:30:14",
+  "generated_at": "2026-07-25T23:44:00",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000180,
@@ -17,7 +17,7 @@
     "latest_date": "2026-07-25",
     "expected_latest_date": "2026-07-25",
     "lag_days": 0,
-    "checked_at": "2026-07-25T22:28:16"
+    "checked_at": "2026-07-25T23:42:01"
   },
   "windows": [
     {
