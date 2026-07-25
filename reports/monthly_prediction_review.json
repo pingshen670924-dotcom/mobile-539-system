@@ -1,19 +1,19 @@
 {
   "month": "2026-07",
-  "sample_size": 21,
+  "sample_size": 22,
   "status": "critical_recall_gap",
   "diagnosis": "本月主要問題是召回率不足：實開號大量落在 Top15 後段或候選外，必須優先修正排序回拉與包組合覆蓋。",
-  "top5_avg_hits": 0.762,
-  "top10_avg_hits": 1.571,
+  "top5_avg_hits": 0.773,
+  "top10_avg_hits": 1.545,
   "top15_avg_hits": 2.0,
-  "front_hit_rate": 0.314,
+  "front_hit_rate": 0.309,
   "late_or_missing_rate": 0.6,
   "rank_buckets": {
-    "16-25": 28,
-    "26-39": 35,
+    "16-25": 30,
+    "26-39": 36,
     "06-10": 17,
-    "01-05": 16,
-    "11-15": 9
+    "01-05": 17,
+    "11-15": 10
   },
   "daily_reviews": [
     {
@@ -675,6 +675,38 @@
         27,
         36
       ]
+    },
+    {
+      "actual_date": "2026-07-25",
+      "target_period": 115000180,
+      "actual_numbers": [
+        8,
+        12,
+        16,
+        23,
+        39
+      ],
+      "top5_hits": 1,
+      "top10_hits": 1,
+      "top15_hits": 2,
+      "actual_ranks": {
+        "8": 15,
+        "12": 2,
+        "16": 37,
+        "23": 24,
+        "39": 22
+      },
+      "missed_top10": [
+        8,
+        16,
+        23,
+        39
+      ],
+      "missed_top15": [
+        16,
+        23,
+        39
+      ]
     }
   ],
   "missed_top10_numbers": [
@@ -735,7 +767,7 @@
       "missed_count": 2
     },
     {
-      "number": 36,
+      "number": 8,
       "missed_count": 2
     }
   ],
@@ -785,6 +817,10 @@
       "missed_count": 2
     },
     {
+      "number": 23,
+      "missed_count": 2
+    },
+    {
       "number": 18,
       "missed_count": 2
     },
@@ -794,10 +830,6 @@
     },
     {
       "number": 13,
-      "missed_count": 2
-    },
-    {
-      "number": 5,
       "missed_count": 2
     }
   ],
@@ -811,16 +843,20 @@
       "missed_count": 9
     },
     {
+      "tail": 3,
+      "missed_count": 8
+    },
+    {
       "tail": 4,
       "missed_count": 8
     },
     {
-      "tail": 3,
-      "missed_count": 7
+      "tail": 8,
+      "missed_count": 8
     },
     {
-      "tail": 8,
-      "missed_count": 7
+      "tail": 9,
+      "missed_count": 8
     },
     {
       "tail": 0,
@@ -831,34 +867,30 @@
       "missed_count": 7
     },
     {
-      "tail": 9,
-      "missed_count": 7
-    },
-    {
       "tail": 2,
       "missed_count": 6
     },
     {
       "tail": 6,
-      "missed_count": 5
+      "missed_count": 6
     }
   ],
   "missed_zones": [
     {
       "zone": "01-10",
-      "missed_count": 19
+      "missed_count": 20
     },
     {
       "zone": "11-20",
-      "missed_count": 19
+      "missed_count": 20
     },
     {
       "zone": "21-30",
-      "missed_count": 19
+      "missed_count": 20
     },
     {
       "zone": "31-39",
-      "missed_count": 15
+      "missed_count": 16
     }
   ],
   "source_performance": [
@@ -869,12 +901,6 @@
       "hit_rate": 0.333
     },
     {
-      "reason": "漏命中回收",
-      "hit": 6,
-      "miss": 16,
-      "hit_rate": 0.273
-    },
-    {
       "reason": "昨日預測號軟守門觀察",
       "hit": 3,
       "miss": 8,
@@ -882,15 +908,21 @@
     },
     {
       "reason": "時間序列動能",
-      "hit": 16,
-      "miss": 47,
-      "hit_rate": 0.254
+      "hit": 17,
+      "miss": 52,
+      "hit_rate": 0.246
+    },
+    {
+      "reason": "漏命中回收",
+      "hit": 6,
+      "miss": 19,
+      "hit_rate": 0.24
     },
     {
       "reason": "蒙地卡羅穩定",
       "hit": 10,
-      "miss": 37,
-      "hit_rate": 0.213
+      "miss": 38,
+      "hit_rate": 0.208
     },
     {
       "reason": "分布平衡風控",
@@ -899,22 +931,22 @@
       "hit_rate": 0.204
     },
     {
-      "reason": "快慢趨勢一致",
-      "hit": 11,
-      "miss": 55,
-      "hit_rate": 0.167
-    },
-    {
       "reason": "月度尾數區間回拉",
       "hit": 1,
       "miss": 5,
       "hit_rate": 0.167
     },
     {
+      "reason": "快慢趨勢一致",
+      "hit": 11,
+      "miss": 57,
+      "hit_rate": 0.162
+    },
+    {
       "reason": "共現關聯",
-      "hit": 8,
-      "miss": 48,
-      "hit_rate": 0.143
+      "hit": 10,
+      "miss": 52,
+      "hit_rate": 0.161
     },
     {
       "reason": "牌型相似跟隨",
@@ -930,41 +962,41 @@
     },
     {
       "reason": "神經網路綜合",
-      "hit": 18,
-      "miss": 110,
-      "hit_rate": 0.141
+      "hit": 19,
+      "miss": 119,
+      "hit_rate": 0.138
     }
   ],
   "pack_summary": {
     "strong_single": {
-      "rounds": 21,
-      "pass_rate": 0.143,
-      "avg_hits": 0.143,
-      "zero_hit_rate": 0.857
+      "rounds": 22,
+      "pass_rate": 0.136,
+      "avg_hits": 0.136,
+      "zero_hit_rate": 0.864
     },
     "two_hit_one": {
-      "rounds": 21,
-      "pass_rate": 0.238,
-      "avg_hits": 0.238,
-      "zero_hit_rate": 0.762
+      "rounds": 22,
+      "pass_rate": 0.273,
+      "avg_hits": 0.273,
+      "zero_hit_rate": 0.727
     },
     "three_hit_one": {
-      "rounds": 21,
-      "pass_rate": 0.429,
-      "avg_hits": 0.429,
-      "zero_hit_rate": 0.571
+      "rounds": 22,
+      "pass_rate": 0.455,
+      "avg_hits": 0.455,
+      "zero_hit_rate": 0.545
     },
     "five_hit_two": {
-      "rounds": 21,
-      "pass_rate": 0.095,
-      "avg_hits": 0.762,
-      "zero_hit_rate": 0.333
+      "rounds": 22,
+      "pass_rate": 0.091,
+      "avg_hits": 0.773,
+      "zero_hit_rate": 0.318
     },
     "nine_hit_three": {
-      "rounds": 21,
-      "pass_rate": 0.095,
-      "avg_hits": 1.429,
-      "zero_hit_rate": 0.095
+      "rounds": 22,
+      "pass_rate": 0.091,
+      "avg_hits": 1.409,
+      "zero_hit_rate": 0.091
     }
   },
   "best_days": [
@@ -1291,7 +1323,7 @@
   ],
   "active_source": "current_month",
   "active_reason": "本月已累積足夠已結算樣本，使用本月檢討作為主校正基準。",
-  "current_month_sample_size": 21,
+  "current_month_sample_size": 22,
   "previous_complete_month": "2026-06",
   "previous_complete_month_sample_size": 26
 }
