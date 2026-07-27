@@ -1051,13 +1051,13 @@
       "hit_rate": 0.5
     },
     {
-      "reason": "尾數轉移加權",
+      "reason": "相似牌",
       "hit": 1,
       "miss": 2,
       "hit_rate": 0.333
     },
     {
-      "reason": "相似牌",
+      "reason": "尾數轉移加權",
       "hit": 1,
       "miss": 2,
       "hit_rate": 0.333
