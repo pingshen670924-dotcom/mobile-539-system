@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-28T23:07:56",
+  "generated_at": "2026-07-28T23:18:40",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000182,
@@ -17,7 +17,7 @@
     "latest_date": "2026-07-28",
     "expected_latest_date": "2026-07-28",
     "lag_days": 0,
-    "checked_at": "2026-07-28T23:06:00"
+    "checked_at": "2026-07-28T23:16:47"
   },
   "windows": [
     {
@@ -5431,13 +5431,13 @@
       ],
       "source_performance": [
         {
-          "reason": "近100期偏熱(14次)",
+          "reason": "月度漏抓壓力加權",
           "hit": 1,
           "miss": 0,
           "hit_rate": 1.0
         },
         {
-          "reason": "月度漏抓壓力加權",
+          "reason": "近100期偏熱(14次)",
           "hit": 1,
           "miss": 0,
           "hit_rate": 1.0
@@ -5455,13 +5455,13 @@
           "hit_rate": 0.5
         },
         {
-          "reason": "尾數轉移加權",
+          "reason": "相似牌",
           "hit": 1,
           "miss": 2,
           "hit_rate": 0.333
         },
         {
-          "reason": "相似牌",
+          "reason": "尾數轉移加權",
           "hit": 1,
           "miss": 2,
           "hit_rate": 0.333
@@ -9684,13 +9684,13 @@
         ],
         "source_performance": [
           {
-            "reason": "近100期偏熱(14次)",
+            "reason": "月度漏抓壓力加權",
             "hit": 1,
             "miss": 0,
             "hit_rate": 1.0
           },
           {
-            "reason": "月度漏抓壓力加權",
+            "reason": "近100期偏熱(14次)",
             "hit": 1,
             "miss": 0,
             "hit_rate": 1.0
@@ -9708,13 +9708,13 @@
             "hit_rate": 0.5
           },
           {
-            "reason": "尾數轉移加權",
+            "reason": "相似牌",
             "hit": 1,
             "miss": 2,
             "hit_rate": 0.333
           },
           {
-            "reason": "相似牌",
+            "reason": "尾數轉移加權",
             "hit": 1,
             "miss": 2,
             "hit_rate": 0.333
@@ -65753,5 +65753,5 @@
       }
     }
   },
-  "official_prediction_status": "observation_only_inserted"
+  "official_prediction_status": "observation_only_recalculated_same_as_official_refreshed"
 }
