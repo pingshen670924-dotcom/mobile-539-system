@@ -1104,13 +1104,13 @@
       "hit_rate": 0.15
     },
     {
-      "reason": "月度尾數區間回拉",
+      "reason": "區間配額補強",
       "hit": 1,
       "miss": 6,
       "hit_rate": 0.143
     },
     {
-      "reason": "區間配額補強",
+      "reason": "月度尾數區間回拉",
       "hit": 1,
       "miss": 6,
       "hit_rate": 0.143

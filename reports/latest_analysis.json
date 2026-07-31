@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-01T01:00:39",
+  "generated_at": "2026-08-01T01:51:08",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000185,
@@ -17,7 +17,7 @@
     "latest_date": "2026-07-31",
     "expected_latest_date": "2026-07-31",
     "lag_days": 0,
-    "checked_at": "2026-08-01T00:58:41"
+    "checked_at": "2026-08-01T01:49:13"
   },
   "windows": [
     {
@@ -2722,13 +2722,13 @@
           "hit_rate": 0.15
         },
         {
-          "reason": "月度尾數區間回拉",
+          "reason": "區間配額補強",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
         },
         {
-          "reason": "區間配額補強",
+          "reason": "月度尾數區間回拉",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
@@ -4229,13 +4229,13 @@
           "hit_rate": 0.15
         },
         {
-          "reason": "月度尾數區間回拉",
+          "reason": "區間配額補強",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
         },
         {
-          "reason": "區間配額補強",
+          "reason": "月度尾數區間回拉",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
@@ -5726,13 +5726,13 @@
             "hit_rate": 0.15
           },
           {
-            "reason": "月度尾數區間回拉",
+            "reason": "區間配額補強",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
           },
           {
-            "reason": "區間配額補強",
+            "reason": "月度尾數區間回拉",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
@@ -7233,13 +7233,13 @@
             "hit_rate": 0.15
           },
           {
-            "reason": "月度尾數區間回拉",
+            "reason": "區間配額補強",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
           },
           {
-            "reason": "區間配額補強",
+            "reason": "月度尾數區間回拉",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
