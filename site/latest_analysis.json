@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-01T22:16:40",
+  "generated_at": "2026-08-01T22:26:25",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000186,
@@ -17,7 +17,7 @@
     "latest_date": "2026-08-01",
     "expected_latest_date": "2026-08-01",
     "lag_days": 0,
-    "checked_at": "2026-08-01T22:14:41"
+    "checked_at": "2026-08-01T22:24:25"
   },
   "windows": [
     {
@@ -2727,13 +2727,13 @@
           "hit_rate": 0.15
         },
         {
-          "reason": "月度尾數區間回拉",
+          "reason": "區間配額補強",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
         },
         {
-          "reason": "區間配額補強",
+          "reason": "月度尾數區間回拉",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
@@ -3242,13 +3242,13 @@
           "hit_rate": 0.5
         },
         {
-          "reason": "區間配額壓力",
+          "reason": "漏命中回收",
           "hit": 1,
           "miss": 1,
           "hit_rate": 0.5
         },
         {
-          "reason": "漏命中回收",
+          "reason": "區間配額壓力",
           "hit": 1,
           "miss": 1,
           "hit_rate": 0.5
@@ -3278,7 +3278,7 @@
           "hit_rate": 0.0
         },
         {
-          "reason": "分區覆蓋回補",
+          "reason": "日期牌",
           "hit": 0,
           "miss": 1,
           "hit_rate": 0.0
@@ -3290,19 +3290,19 @@
           "hit_rate": 0.0
         },
         {
-          "reason": "月度漏抓壓力回拉",
-          "hit": 0,
-          "miss": 1,
-          "hit_rate": 0.0
-        },
-        {
-          "reason": "日期牌",
-          "hit": 0,
-          "miss": 1,
-          "hit_rate": 0.0
-        },
-        {
           "reason": "中期穩定",
+          "hit": 0,
+          "miss": 1,
+          "hit_rate": 0.0
+        },
+        {
+          "reason": "分區覆蓋回補",
+          "hit": 0,
+          "miss": 1,
+          "hit_rate": 0.0
+        },
+        {
+          "reason": "月度漏抓壓力回拉",
           "hit": 0,
           "miss": 1,
           "hit_rate": 0.0
@@ -4521,13 +4521,13 @@
           "hit_rate": 0.15
         },
         {
-          "reason": "月度尾數區間回拉",
+          "reason": "區間配額補強",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
         },
         {
-          "reason": "區間配額補強",
+          "reason": "月度尾數區間回拉",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
@@ -6018,13 +6018,13 @@
             "hit_rate": 0.15
           },
           {
-            "reason": "月度尾數區間回拉",
+            "reason": "區間配額補強",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
           },
           {
-            "reason": "區間配額補強",
+            "reason": "月度尾數區間回拉",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
@@ -6533,13 +6533,13 @@
             "hit_rate": 0.5
           },
           {
-            "reason": "區間配額壓力",
+            "reason": "漏命中回收",
             "hit": 1,
             "miss": 1,
             "hit_rate": 0.5
           },
           {
-            "reason": "漏命中回收",
+            "reason": "區間配額壓力",
             "hit": 1,
             "miss": 1,
             "hit_rate": 0.5
@@ -6569,7 +6569,7 @@
             "hit_rate": 0.0
           },
           {
-            "reason": "分區覆蓋回補",
+            "reason": "日期牌",
             "hit": 0,
             "miss": 1,
             "hit_rate": 0.0
@@ -6581,19 +6581,19 @@
             "hit_rate": 0.0
           },
           {
-            "reason": "月度漏抓壓力回拉",
-            "hit": 0,
-            "miss": 1,
-            "hit_rate": 0.0
-          },
-          {
-            "reason": "日期牌",
-            "hit": 0,
-            "miss": 1,
-            "hit_rate": 0.0
-          },
-          {
             "reason": "中期穩定",
+            "hit": 0,
+            "miss": 1,
+            "hit_rate": 0.0
+          },
+          {
+            "reason": "分區覆蓋回補",
+            "hit": 0,
+            "miss": 1,
+            "hit_rate": 0.0
+          },
+          {
+            "reason": "月度漏抓壓力回拉",
             "hit": 0,
             "miss": 1,
             "hit_rate": 0.0
@@ -7812,13 +7812,13 @@
             "hit_rate": 0.15
           },
           {
-            "reason": "月度尾數區間回拉",
+            "reason": "區間配額補強",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
           },
           {
-            "reason": "區間配額補強",
+            "reason": "月度尾數區間回拉",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
@@ -64160,5 +64160,5 @@
       }
     }
   },
-  "official_prediction_status": "observation_only_inserted"
+  "official_prediction_status": "observation_only_recalculated_same_as_official_refreshed"
 }
