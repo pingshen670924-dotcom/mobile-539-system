@@ -1104,13 +1104,13 @@
       "hit_rate": 0.15
     },
     {
-      "reason": "區間配額補強",
+      "reason": "月度尾數區間回拉",
       "hit": 1,
       "miss": 6,
       "hit_rate": 0.143
     },
     {
-      "reason": "月度尾數區間回拉",
+      "reason": "區間配額補強",
       "hit": 1,
       "miss": 6,
       "hit_rate": 0.143
@@ -1493,7 +1493,7 @@
   ],
   "active_source": "previous_complete_month",
   "active_reason": "本月樣本不足，沿用上一完整月份檢討作為7月初校正基準，避免換月後失去6月失敗教訓。",
-  "current_month_sample_size": 0,
+  "current_month_sample_size": 1,
   "previous_complete_month": "2026-07",
   "previous_complete_month_sample_size": 27
 }
