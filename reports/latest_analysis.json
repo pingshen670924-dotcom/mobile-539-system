@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-01T22:26:25",
+  "generated_at": "2026-08-01T23:37:14",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000186,
@@ -17,7 +17,7 @@
     "latest_date": "2026-08-01",
     "expected_latest_date": "2026-08-01",
     "lag_days": 0,
-    "checked_at": "2026-08-01T22:24:25"
+    "checked_at": "2026-08-01T23:35:15"
   },
   "windows": [
     {
@@ -2727,13 +2727,13 @@
           "hit_rate": 0.15
         },
         {
-          "reason": "區間配額補強",
+          "reason": "月度尾數區間回拉",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
         },
         {
-          "reason": "月度尾數區間回拉",
+          "reason": "區間配額補強",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
@@ -3272,7 +3272,13 @@
           "hit_rate": 0.167
         },
         {
-          "reason": "滾動檢討後段命中前移",
+          "reason": "中期穩定",
+          "hit": 0,
+          "miss": 1,
+          "hit_rate": 0.0
+        },
+        {
+          "reason": "週期位置",
           "hit": 0,
           "miss": 1,
           "hit_rate": 0.0
@@ -3284,25 +3290,19 @@
           "hit_rate": 0.0
         },
         {
+          "reason": "滾動檢討後段命中前移",
+          "hit": 0,
+          "miss": 1,
+          "hit_rate": 0.0
+        },
+        {
+          "reason": "滾動檢討漏抓尾數區間補位",
+          "hit": 0,
+          "miss": 1,
+          "hit_rate": 0.0
+        },
+        {
           "reason": "多模型共識",
-          "hit": 0,
-          "miss": 1,
-          "hit_rate": 0.0
-        },
-        {
-          "reason": "中期穩定",
-          "hit": 0,
-          "miss": 1,
-          "hit_rate": 0.0
-        },
-        {
-          "reason": "分區覆蓋回補",
-          "hit": 0,
-          "miss": 1,
-          "hit_rate": 0.0
-        },
-        {
-          "reason": "月度漏抓壓力回拉",
           "hit": 0,
           "miss": 1,
           "hit_rate": 0.0
@@ -4521,13 +4521,13 @@
           "hit_rate": 0.15
         },
         {
-          "reason": "區間配額補強",
+          "reason": "月度尾數區間回拉",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
         },
         {
-          "reason": "月度尾數區間回拉",
+          "reason": "區間配額補強",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
@@ -6018,13 +6018,13 @@
             "hit_rate": 0.15
           },
           {
-            "reason": "區間配額補強",
+            "reason": "月度尾數區間回拉",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
           },
           {
-            "reason": "月度尾數區間回拉",
+            "reason": "區間配額補強",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
@@ -6563,7 +6563,13 @@
             "hit_rate": 0.167
           },
           {
-            "reason": "滾動檢討後段命中前移",
+            "reason": "中期穩定",
+            "hit": 0,
+            "miss": 1,
+            "hit_rate": 0.0
+          },
+          {
+            "reason": "週期位置",
             "hit": 0,
             "miss": 1,
             "hit_rate": 0.0
@@ -6575,25 +6581,19 @@
             "hit_rate": 0.0
           },
           {
+            "reason": "滾動檢討後段命中前移",
+            "hit": 0,
+            "miss": 1,
+            "hit_rate": 0.0
+          },
+          {
+            "reason": "滾動檢討漏抓尾數區間補位",
+            "hit": 0,
+            "miss": 1,
+            "hit_rate": 0.0
+          },
+          {
             "reason": "多模型共識",
-            "hit": 0,
-            "miss": 1,
-            "hit_rate": 0.0
-          },
-          {
-            "reason": "中期穩定",
-            "hit": 0,
-            "miss": 1,
-            "hit_rate": 0.0
-          },
-          {
-            "reason": "分區覆蓋回補",
-            "hit": 0,
-            "miss": 1,
-            "hit_rate": 0.0
-          },
-          {
-            "reason": "月度漏抓壓力回拉",
             "hit": 0,
             "miss": 1,
             "hit_rate": 0.0
@@ -7812,13 +7812,13 @@
             "hit_rate": 0.15
           },
           {
-            "reason": "區間配額補強",
+            "reason": "月度尾數區間回拉",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
           },
           {
-            "reason": "月度尾數區間回拉",
+            "reason": "區間配額補強",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
