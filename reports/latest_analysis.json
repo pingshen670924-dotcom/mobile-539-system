@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-02T00:35:14",
+  "generated_at": "2026-08-02T01:13:03",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000186,
@@ -17,7 +17,7 @@
     "latest_date": "2026-08-01",
     "expected_latest_date": "2026-08-01",
     "lag_days": 0,
-    "checked_at": "2026-08-02T00:33:16"
+    "checked_at": "2026-08-02T01:11:10"
   },
   "windows": [
     {
@@ -3242,13 +3242,13 @@
           "hit_rate": 0.5
         },
         {
-          "reason": "漏命中回收",
+          "reason": "區間配額壓力",
           "hit": 1,
           "miss": 1,
           "hit_rate": 0.5
         },
         {
-          "reason": "區間配額壓力",
+          "reason": "漏命中回收",
           "hit": 1,
           "miss": 1,
           "hit_rate": 0.5
@@ -3272,19 +3272,13 @@
           "hit_rate": 0.167
         },
         {
-          "reason": "滾動檢討後段命中前移",
-          "hit": 0,
-          "miss": 1,
-          "hit_rate": 0.0
-        },
-        {
-          "reason": "月度漏抓壓力回拉",
-          "hit": 0,
-          "miss": 1,
-          "hit_rate": 0.0
-        },
-        {
           "reason": "週期位置",
+          "hit": 0,
+          "miss": 1,
+          "hit_rate": 0.0
+        },
+        {
+          "reason": "滾動檢討漏抓尾數區間補位",
           "hit": 0,
           "miss": 1,
           "hit_rate": 0.0
@@ -3296,13 +3290,19 @@
           "hit_rate": 0.0
         },
         {
-          "reason": "日期牌",
+          "reason": "多模型共識",
           "hit": 0,
           "miss": 1,
           "hit_rate": 0.0
         },
         {
-          "reason": "多模型共識",
+          "reason": "中期穩定",
+          "hit": 0,
+          "miss": 1,
+          "hit_rate": 0.0
+        },
+        {
+          "reason": "滾動檢討後段命中前移",
           "hit": 0,
           "miss": 1,
           "hit_rate": 0.0
@@ -6533,13 +6533,13 @@
             "hit_rate": 0.5
           },
           {
-            "reason": "漏命中回收",
+            "reason": "區間配額壓力",
             "hit": 1,
             "miss": 1,
             "hit_rate": 0.5
           },
           {
-            "reason": "區間配額壓力",
+            "reason": "漏命中回收",
             "hit": 1,
             "miss": 1,
             "hit_rate": 0.5
@@ -6563,19 +6563,13 @@
             "hit_rate": 0.167
           },
           {
-            "reason": "滾動檢討後段命中前移",
-            "hit": 0,
-            "miss": 1,
-            "hit_rate": 0.0
-          },
-          {
-            "reason": "月度漏抓壓力回拉",
-            "hit": 0,
-            "miss": 1,
-            "hit_rate": 0.0
-          },
-          {
             "reason": "週期位置",
+            "hit": 0,
+            "miss": 1,
+            "hit_rate": 0.0
+          },
+          {
+            "reason": "滾動檢討漏抓尾數區間補位",
             "hit": 0,
             "miss": 1,
             "hit_rate": 0.0
@@ -6587,13 +6581,19 @@
             "hit_rate": 0.0
           },
           {
-            "reason": "日期牌",
+            "reason": "多模型共識",
             "hit": 0,
             "miss": 1,
             "hit_rate": 0.0
           },
           {
-            "reason": "多模型共識",
+            "reason": "中期穩定",
+            "hit": 0,
+            "miss": 1,
+            "hit_rate": 0.0
+          },
+          {
+            "reason": "滾動檢討後段命中前移",
             "hit": 0,
             "miss": 1,
             "hit_rate": 0.0
