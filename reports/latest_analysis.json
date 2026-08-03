@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-04T01:31:08",
+  "generated_at": "2026-08-04T02:03:24",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000187,
@@ -17,7 +17,7 @@
     "latest_date": "2026-08-03",
     "expected_latest_date": "2026-08-03",
     "lag_days": 0,
-    "checked_at": "2026-08-04T01:29:11"
+    "checked_at": "2026-08-04T02:01:26"
   },
   "windows": [
     {
@@ -2728,13 +2728,13 @@
           "hit_rate": 0.15
         },
         {
-          "reason": "區間配額補強",
+          "reason": "月度尾數區間回拉",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
         },
         {
-          "reason": "月度尾數區間回拉",
+          "reason": "區間配額補強",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
@@ -3320,13 +3320,13 @@
           "hit_rate": 0.364
         },
         {
-          "reason": "區間配額壓力",
+          "reason": "開獎型態切換",
           "hit": 1,
           "miss": 3,
           "hit_rate": 0.25
         },
         {
-          "reason": "漏命中回收",
+          "reason": "區間配額壓力",
           "hit": 1,
           "miss": 3,
           "hit_rate": 0.25
@@ -3338,7 +3338,7 @@
           "hit_rate": 0.25
         },
         {
-          "reason": "開獎型態切換",
+          "reason": "漏命中回收",
           "hit": 1,
           "miss": 3,
           "hit_rate": 0.25
@@ -3362,7 +3362,7 @@
           "hit_rate": 0.118
         },
         {
-          "reason": "多窗口袋裝共識",
+          "reason": "滾動檢討漏抓尾數區間補位",
           "hit": 0,
           "miss": 1,
           "hit_rate": 0.0
@@ -4655,13 +4655,13 @@
           "hit_rate": 0.15
         },
         {
-          "reason": "區間配額補強",
+          "reason": "月度尾數區間回拉",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
         },
         {
-          "reason": "月度尾數區間回拉",
+          "reason": "區間配額補強",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
@@ -6152,13 +6152,13 @@
             "hit_rate": 0.15
           },
           {
-            "reason": "區間配額補強",
+            "reason": "月度尾數區間回拉",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
           },
           {
-            "reason": "月度尾數區間回拉",
+            "reason": "區間配額補強",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
@@ -6744,13 +6744,13 @@
             "hit_rate": 0.364
           },
           {
-            "reason": "區間配額壓力",
+            "reason": "開獎型態切換",
             "hit": 1,
             "miss": 3,
             "hit_rate": 0.25
           },
           {
-            "reason": "漏命中回收",
+            "reason": "區間配額壓力",
             "hit": 1,
             "miss": 3,
             "hit_rate": 0.25
@@ -6762,7 +6762,7 @@
             "hit_rate": 0.25
           },
           {
-            "reason": "開獎型態切換",
+            "reason": "漏命中回收",
             "hit": 1,
             "miss": 3,
             "hit_rate": 0.25
@@ -6786,7 +6786,7 @@
             "hit_rate": 0.118
           },
           {
-            "reason": "多窗口袋裝共識",
+            "reason": "滾動檢討漏抓尾數區間補位",
             "hit": 0,
             "miss": 1,
             "hit_rate": 0.0
@@ -8079,13 +8079,13 @@
             "hit_rate": 0.15
           },
           {
-            "reason": "區間配額補強",
+            "reason": "月度尾數區間回拉",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
           },
           {
-            "reason": "月度尾數區間回拉",
+            "reason": "區間配額補強",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
