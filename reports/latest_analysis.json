@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-03T23:43:06",
+  "generated_at": "2026-08-04T01:31:08",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000187,
@@ -17,7 +17,7 @@
     "latest_date": "2026-08-03",
     "expected_latest_date": "2026-08-03",
     "lag_days": 0,
-    "checked_at": "2026-08-03T23:41:12"
+    "checked_at": "2026-08-04T01:29:11"
   },
   "windows": [
     {
@@ -3320,12 +3320,6 @@
           "hit_rate": 0.364
         },
         {
-          "reason": "共現關聯",
-          "hit": 1,
-          "miss": 3,
-          "hit_rate": 0.25
-        },
-        {
           "reason": "區間配額壓力",
           "hit": 1,
           "miss": 3,
@@ -3333,6 +3327,12 @@
         },
         {
           "reason": "漏命中回收",
+          "hit": 1,
+          "miss": 3,
+          "hit_rate": 0.25
+        },
+        {
+          "reason": "共現關聯",
           "hit": 1,
           "miss": 3,
           "hit_rate": 0.25
@@ -3362,19 +3362,19 @@
           "hit_rate": 0.118
         },
         {
-          "reason": "分區覆蓋回補",
+          "reason": "多窗口袋裝共識",
           "hit": 0,
           "miss": 1,
           "hit_rate": 0.0
         },
         {
-          "reason": "日期牌",
+          "reason": "滾動檢討後段命中前移",
           "hit": 0,
           "miss": 1,
           "hit_rate": 0.0
         },
         {
-          "reason": "快慢趨勢一致",
+          "reason": "月度漏抓壓力回拉",
           "hit": 0,
           "miss": 1,
           "hit_rate": 0.0
@@ -6744,12 +6744,6 @@
             "hit_rate": 0.364
           },
           {
-            "reason": "共現關聯",
-            "hit": 1,
-            "miss": 3,
-            "hit_rate": 0.25
-          },
-          {
             "reason": "區間配額壓力",
             "hit": 1,
             "miss": 3,
@@ -6757,6 +6751,12 @@
           },
           {
             "reason": "漏命中回收",
+            "hit": 1,
+            "miss": 3,
+            "hit_rate": 0.25
+          },
+          {
+            "reason": "共現關聯",
             "hit": 1,
             "miss": 3,
             "hit_rate": 0.25
@@ -6786,19 +6786,19 @@
             "hit_rate": 0.118
           },
           {
-            "reason": "分區覆蓋回補",
+            "reason": "多窗口袋裝共識",
             "hit": 0,
             "miss": 1,
             "hit_rate": 0.0
           },
           {
-            "reason": "日期牌",
+            "reason": "滾動檢討後段命中前移",
             "hit": 0,
             "miss": 1,
             "hit_rate": 0.0
           },
           {
-            "reason": "快慢趨勢一致",
+            "reason": "月度漏抓壓力回拉",
             "hit": 0,
             "miss": 1,
             "hit_rate": 0.0
