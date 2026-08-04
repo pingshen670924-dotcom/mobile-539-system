@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-04T23:12:00",
+  "generated_at": "2026-08-04T23:23:39",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000188,
@@ -17,7 +17,7 @@
     "latest_date": "2026-08-04",
     "expected_latest_date": "2026-08-04",
     "lag_days": 0,
-    "checked_at": "2026-08-04T23:10:02"
+    "checked_at": "2026-08-04T23:22:13"
   },
   "windows": [
     {
@@ -3356,13 +3356,13 @@
           "hit_rate": 0.2
         },
         {
-          "reason": "共現關聯",
+          "reason": "快慢趨勢一致",
           "hit": 1,
           "miss": 4,
           "hit_rate": 0.2
         },
         {
-          "reason": "快慢趨勢一致",
+          "reason": "共現關聯",
           "hit": 1,
           "miss": 4,
           "hit_rate": 0.2
@@ -3392,7 +3392,7 @@
           "hit_rate": 0.13
         },
         {
-          "reason": "馬可夫轉移",
+          "reason": "分布平衡風控",
           "hit": 1,
           "miss": 7,
           "hit_rate": 0.125
@@ -6897,13 +6897,13 @@
             "hit_rate": 0.2
           },
           {
-            "reason": "共現關聯",
+            "reason": "快慢趨勢一致",
             "hit": 1,
             "miss": 4,
             "hit_rate": 0.2
           },
           {
-            "reason": "快慢趨勢一致",
+            "reason": "共現關聯",
             "hit": 1,
             "miss": 4,
             "hit_rate": 0.2
@@ -6933,7 +6933,7 @@
             "hit_rate": 0.13
           },
           {
-            "reason": "馬可夫轉移",
+            "reason": "分布平衡風控",
             "hit": 1,
             "miss": 7,
             "hit_rate": 0.125
@@ -64567,5 +64567,5 @@
       }
     }
   },
-  "official_prediction_status": "observation_only_inserted"
+  "official_prediction_status": "observation_only_recalculated_same_as_official_refreshed"
 }
