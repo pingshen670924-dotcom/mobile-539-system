@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-06T00:56:14",
+  "generated_at": "2026-08-06T01:52:32",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000189,
@@ -17,7 +17,7 @@
     "latest_date": "2026-08-05",
     "expected_latest_date": "2026-08-05",
     "lag_days": 0,
-    "checked_at": "2026-08-06T00:54:16"
+    "checked_at": "2026-08-06T01:51:06"
   },
   "windows": [
     {
@@ -2716,13 +2716,13 @@
           "hit_rate": 0.15
         },
         {
-          "reason": "月度尾數區間回拉",
+          "reason": "區間配額補強",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
         },
         {
-          "reason": "區間配額補強",
+          "reason": "月度尾數區間回拉",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
@@ -3428,13 +3428,13 @@
           "hit_rate": 0.235
         },
         {
-          "reason": "尾數區間",
+          "reason": "神經網路綜合",
           "hit": 5,
           "miss": 25,
           "hit_rate": 0.167
         },
         {
-          "reason": "神經網路綜合",
+          "reason": "尾數區間",
           "hit": 5,
           "miss": 25,
           "hit_rate": 0.167
@@ -4865,13 +4865,13 @@
           "hit_rate": 0.15
         },
         {
-          "reason": "月度尾數區間回拉",
+          "reason": "區間配額補強",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
         },
         {
-          "reason": "區間配額補強",
+          "reason": "月度尾數區間回拉",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
@@ -6362,13 +6362,13 @@
             "hit_rate": 0.15
           },
           {
-            "reason": "月度尾數區間回拉",
+            "reason": "區間配額補強",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
           },
           {
-            "reason": "區間配額補強",
+            "reason": "月度尾數區間回拉",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
@@ -7074,13 +7074,13 @@
             "hit_rate": 0.235
           },
           {
-            "reason": "尾數區間",
+            "reason": "神經網路綜合",
             "hit": 5,
             "miss": 25,
             "hit_rate": 0.167
           },
           {
-            "reason": "神經網路綜合",
+            "reason": "尾數區間",
             "hit": 5,
             "miss": 25,
             "hit_rate": 0.167
@@ -8511,13 +8511,13 @@
             "hit_rate": 0.15
           },
           {
-            "reason": "月度尾數區間回拉",
+            "reason": "區間配額補強",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
           },
           {
-            "reason": "區間配額補強",
+            "reason": "月度尾數區間回拉",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
