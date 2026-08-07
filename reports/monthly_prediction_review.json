@@ -441,13 +441,13 @@
       "hit_rate": 0.146
     },
     {
-      "reason": "快慢趨勢一致",
+      "reason": "共現關聯",
       "hit": 2,
       "miss": 12,
       "hit_rate": 0.143
     },
     {
-      "reason": "共現關聯",
+      "reason": "快慢趨勢一致",
       "hit": 2,
       "miss": 12,
       "hit_rate": 0.143
