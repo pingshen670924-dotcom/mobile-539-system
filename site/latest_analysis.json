@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-07T23:13:11",
+  "generated_at": "2026-08-08T00:12:35",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000191,
@@ -17,7 +17,7 @@
     "latest_date": "2026-08-07",
     "expected_latest_date": "2026-08-07",
     "lag_days": 0,
-    "checked_at": "2026-08-07T23:11:12"
+    "checked_at": "2026-08-08T00:10:40"
   },
   "windows": [
     {
@@ -2069,13 +2069,13 @@
           "hit_rate": 0.146
         },
         {
-          "reason": "共現關聯",
+          "reason": "快慢趨勢一致",
           "hit": 2,
           "miss": 12,
           "hit_rate": 0.143
         },
         {
-          "reason": "快慢趨勢一致",
+          "reason": "共現關聯",
           "hit": 2,
           "miss": 12,
           "hit_rate": 0.143
@@ -2888,13 +2888,13 @@
           "hit_rate": 0.146
         },
         {
-          "reason": "共現關聯",
+          "reason": "快慢趨勢一致",
           "hit": 2,
           "miss": 12,
           "hit_rate": 0.143
         },
         {
-          "reason": "快慢趨勢一致",
+          "reason": "共現關聯",
           "hit": 2,
           "miss": 12,
           "hit_rate": 0.143
@@ -4365,13 +4365,13 @@
           "hit_rate": 0.15
         },
         {
-          "reason": "月度尾數區間回拉",
+          "reason": "區間配額補強",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
         },
         {
-          "reason": "區間配額補強",
+          "reason": "月度尾數區間回拉",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
@@ -5199,13 +5199,13 @@
             "hit_rate": 0.146
           },
           {
-            "reason": "共現關聯",
+            "reason": "快慢趨勢一致",
             "hit": 2,
             "miss": 12,
             "hit_rate": 0.143
           },
           {
-            "reason": "快慢趨勢一致",
+            "reason": "共現關聯",
             "hit": 2,
             "miss": 12,
             "hit_rate": 0.143
@@ -6018,13 +6018,13 @@
             "hit_rate": 0.146
           },
           {
-            "reason": "共現關聯",
+            "reason": "快慢趨勢一致",
             "hit": 2,
             "miss": 12,
             "hit_rate": 0.143
           },
           {
-            "reason": "快慢趨勢一致",
+            "reason": "共現關聯",
             "hit": 2,
             "miss": 12,
             "hit_rate": 0.143
@@ -7495,13 +7495,13 @@
             "hit_rate": 0.15
           },
           {
-            "reason": "月度尾數區間回拉",
+            "reason": "區間配額補強",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
           },
           {
-            "reason": "區間配額補強",
+            "reason": "月度尾數區間回拉",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
