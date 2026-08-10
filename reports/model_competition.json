@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-08-08T16:50:58",
+  "generated_at": "2026-08-10T14:08:51",
   "models": [
     {
       "rounds": 240,
       "top5_avg_hits": 0.613,
       "top10_avg_hits": 1.3,
-      "top15_avg_hits": 1.954,
+      "top15_avg_hits": 1.958,
       "top5_edge_vs_random": -0.029,
       "top10_edge_vs_random": 0.018,
-      "top15_edge_vs_random": 0.031,
+      "top15_edge_vs_random": 0.035,
       "top10_distribution": {
         "0": 51,
         "1": 100,
@@ -18,8 +18,8 @@
         "5": 0
       },
       "top15_distribution": {
-        "0": 19,
-        "1": 56,
+        "0": 18,
+        "1": 57,
         "2": 101,
         "3": 46,
         "4": 17,
@@ -29,11 +29,11 @@
         "top10_ge_1": 0.787,
         "top10_ge_2": 0.371,
         "top10_ge_3": 0.121,
-        "top15_ge_1": 0.921,
+        "top15_ge_1": 0.925,
         "top15_ge_2": 0.688,
         "top15_ge_3": 0.267
       },
-      "last_20_avg_top10": 1.45,
+      "last_20_avg_top10": 1.4,
       "segmented_backtest": {
         "last_60": {
           "rounds": 60,
@@ -67,19 +67,19 @@
             "top15_ge_2": 0.617,
             "top15_ge_3": 0.283
           },
-          "last_20_avg_top10": 1.45
+          "last_20_avg_top10": 1.4
         },
         "last_120": {
           "rounds": 120,
           "top5_avg_hits": 0.667,
-          "top10_avg_hits": 1.333,
-          "top15_avg_hits": 1.933,
+          "top10_avg_hits": 1.325,
+          "top15_avg_hits": 1.925,
           "top5_edge_vs_random": 0.026,
-          "top10_edge_vs_random": 0.051,
-          "top15_edge_vs_random": 0.01,
+          "top10_edge_vs_random": 0.043,
+          "top15_edge_vs_random": 0.002,
           "top10_distribution": {
-            "0": 24,
-            "1": 51,
+            "0": 25,
+            "1": 50,
             "2": 30,
             "3": 11,
             "4": 4,
@@ -87,30 +87,30 @@
           },
           "top15_distribution": {
             "0": 9,
-            "1": 31,
-            "2": 49,
+            "1": 32,
+            "2": 48,
             "3": 21,
             "4": 10,
             "5": 0
           },
           "hit_rates": {
-            "top10_ge_1": 0.8,
+            "top10_ge_1": 0.792,
             "top10_ge_2": 0.375,
             "top10_ge_3": 0.125,
             "top15_ge_1": 0.925,
-            "top15_ge_2": 0.667,
+            "top15_ge_2": 0.658,
             "top15_ge_3": 0.258
           },
-          "last_20_avg_top10": 1.45
+          "last_20_avg_top10": 1.4
         },
         "last_240": {
           "rounds": 240,
           "top5_avg_hits": 0.613,
           "top10_avg_hits": 1.3,
-          "top15_avg_hits": 1.954,
+          "top15_avg_hits": 1.958,
           "top5_edge_vs_random": -0.029,
           "top10_edge_vs_random": 0.018,
-          "top15_edge_vs_random": 0.031,
+          "top15_edge_vs_random": 0.035,
           "top10_distribution": {
             "0": 51,
             "1": 100,
@@ -120,8 +120,8 @@
             "5": 0
           },
           "top15_distribution": {
-            "0": 19,
-            "1": 56,
+            "0": 18,
+            "1": 57,
             "2": 101,
             "3": 46,
             "4": 17,
@@ -131,11 +131,11 @@
             "top10_ge_1": 0.787,
             "top10_ge_2": 0.371,
             "top10_ge_3": 0.121,
-            "top15_ge_1": 0.921,
+            "top15_ge_1": 0.925,
             "top15_ge_2": 0.688,
             "top15_ge_3": 0.267
           },
-          "last_20_avg_top10": 1.45
+          "last_20_avg_top10": 1.4
         }
       },
       "profile": "冷號與遺漏補償派，補充長期未出風險區",
@@ -144,16 +144,16 @@
         15,
         30,
         34,
-        20,
         10,
+        20,
         17,
         27,
         38,
         33,
         36,
-        1,
-        14,
         26,
+        14,
+        28,
         8,
         18
       ],
@@ -161,8 +161,8 @@
         15,
         30,
         34,
-        20,
         10,
+        20,
         17,
         27,
         38,
@@ -172,15 +172,15 @@
     },
     {
       "rounds": 240,
-      "top5_avg_hits": 0.683,
-      "top10_avg_hits": 1.283,
+      "top5_avg_hits": 0.679,
+      "top10_avg_hits": 1.279,
       "top15_avg_hits": 1.867,
-      "top5_edge_vs_random": 0.042,
-      "top10_edge_vs_random": 0.001,
+      "top5_edge_vs_random": 0.038,
+      "top10_edge_vs_random": -0.003,
       "top15_edge_vs_random": -0.056,
       "top10_distribution": {
-        "0": 48,
-        "1": 105,
+        "0": 49,
+        "1": 104,
         "2": 61,
         "3": 23,
         "4": 3,
@@ -195,23 +195,23 @@
         "5": 1
       },
       "hit_rates": {
-        "top10_ge_1": 0.8,
+        "top10_ge_1": 0.796,
         "top10_ge_2": 0.362,
         "top10_ge_3": 0.108,
         "top15_ge_1": 0.929,
         "top15_ge_2": 0.637,
         "top15_ge_3": 0.25
       },
-      "last_20_avg_top10": 1.2,
+      "last_20_avg_top10": 1.15,
       "segmented_backtest": {
         "last_60": {
           "rounds": 60,
           "top5_avg_hits": 0.717,
           "top10_avg_hits": 1.267,
-          "top15_avg_hits": 1.85,
+          "top15_avg_hits": 1.867,
           "top5_edge_vs_random": 0.076,
           "top10_edge_vs_random": -0.015,
-          "top15_edge_vs_random": -0.073,
+          "top15_edge_vs_random": -0.056,
           "top10_distribution": {
             "0": 13,
             "1": 23,
@@ -221,8 +221,8 @@
             "5": 0
           },
           "top15_distribution": {
-            "0": 6,
-            "1": 14,
+            "0": 5,
+            "1": 15,
             "2": 25,
             "3": 13,
             "4": 2,
@@ -232,11 +232,11 @@
             "top10_ge_1": 0.783,
             "top10_ge_2": 0.4,
             "top10_ge_3": 0.083,
-            "top15_ge_1": 0.9,
+            "top15_ge_1": 0.917,
             "top15_ge_2": 0.667,
             "top15_ge_3": 0.25
           },
-          "last_20_avg_top10": 1.2
+          "last_20_avg_top10": 1.15
         },
         "last_120": {
           "rounds": 120,
@@ -270,19 +270,19 @@
             "top15_ge_2": 0.675,
             "top15_ge_3": 0.233
           },
-          "last_20_avg_top10": 1.2
+          "last_20_avg_top10": 1.15
         },
         "last_240": {
           "rounds": 240,
-          "top5_avg_hits": 0.683,
-          "top10_avg_hits": 1.283,
+          "top5_avg_hits": 0.679,
+          "top10_avg_hits": 1.279,
           "top15_avg_hits": 1.867,
-          "top5_edge_vs_random": 0.042,
-          "top10_edge_vs_random": 0.001,
+          "top5_edge_vs_random": 0.038,
+          "top10_edge_vs_random": -0.003,
           "top15_edge_vs_random": -0.056,
           "top10_distribution": {
-            "0": 48,
-            "1": 105,
+            "0": 49,
+            "1": 104,
             "2": 61,
             "3": 23,
             "4": 3,
@@ -297,59 +297,228 @@
             "5": 1
           },
           "hit_rates": {
-            "top10_ge_1": 0.8,
+            "top10_ge_1": 0.796,
             "top10_ge_2": 0.362,
             "top10_ge_3": 0.108,
             "top15_ge_1": 0.929,
             "top15_ge_2": 0.637,
             "top15_ge_3": 0.25
           },
-          "last_20_avg_top10": 1.2
+          "last_20_avg_top10": 1.15
         }
       },
       "profile": "綜合投票派，把多個模型得分合併成主線判斷",
       "model": "ensemble",
       "top15": [
+        8,
+        34,
         6,
         25,
-        8,
-        36,
-        34,
-        37,
-        4,
         21,
+        36,
+        37,
         12,
+        28,
+        15,
+        1,
         29,
-        30,
-        31,
-        7,
-        10,
-        14
+        14,
+        26,
+        31
       ],
       "top10": [
+        8,
+        34,
         6,
         25,
-        8,
-        36,
-        34,
-        37,
-        4,
         21,
+        36,
+        37,
         12,
-        29
+        28,
+        15
       ]
     },
     {
       "rounds": 240,
-      "top5_avg_hits": 0.658,
-      "top10_avg_hits": 1.275,
+      "top5_avg_hits": 0.629,
+      "top10_avg_hits": 1.271,
+      "top15_avg_hits": 1.929,
+      "top5_edge_vs_random": -0.012,
+      "top10_edge_vs_random": -0.011,
+      "top15_edge_vs_random": 0.006,
+      "top10_distribution": {
+        "0": 46,
+        "1": 105,
+        "2": 68,
+        "3": 20,
+        "4": 1,
+        "5": 0
+      },
+      "top15_distribution": {
+        "0": 7,
+        "1": 71,
+        "2": 103,
+        "3": 51,
+        "4": 7,
+        "5": 1
+      },
+      "hit_rates": {
+        "top10_ge_1": 0.808,
+        "top10_ge_2": 0.371,
+        "top10_ge_3": 0.087,
+        "top15_ge_1": 0.971,
+        "top15_ge_2": 0.675,
+        "top15_ge_3": 0.246
+      },
+      "last_20_avg_top10": 1.45,
+      "segmented_backtest": {
+        "last_60": {
+          "rounds": 60,
+          "top5_avg_hits": 0.633,
+          "top10_avg_hits": 1.283,
+          "top15_avg_hits": 1.883,
+          "top5_edge_vs_random": -0.008,
+          "top10_edge_vs_random": 0.001,
+          "top15_edge_vs_random": -0.04,
+          "top10_distribution": {
+            "0": 9,
+            "1": 31,
+            "2": 14,
+            "3": 6,
+            "4": 0,
+            "5": 0
+          },
+          "top15_distribution": {
+            "0": 3,
+            "1": 17,
+            "2": 27,
+            "3": 10,
+            "4": 3,
+            "5": 0
+          },
+          "hit_rates": {
+            "top10_ge_1": 0.85,
+            "top10_ge_2": 0.333,
+            "top10_ge_3": 0.1,
+            "top15_ge_1": 0.95,
+            "top15_ge_2": 0.667,
+            "top15_ge_3": 0.217
+          },
+          "last_20_avg_top10": 1.45
+        },
+        "last_120": {
+          "rounds": 120,
+          "top5_avg_hits": 0.625,
+          "top10_avg_hits": 1.267,
+          "top15_avg_hits": 1.975,
+          "top5_edge_vs_random": -0.016,
+          "top10_edge_vs_random": -0.015,
+          "top15_edge_vs_random": 0.052,
+          "top10_distribution": {
+            "0": 24,
+            "1": 53,
+            "2": 31,
+            "3": 11,
+            "4": 1,
+            "5": 0
+          },
+          "top15_distribution": {
+            "0": 4,
+            "1": 33,
+            "2": 49,
+            "3": 30,
+            "4": 4,
+            "5": 0
+          },
+          "hit_rates": {
+            "top10_ge_1": 0.8,
+            "top10_ge_2": 0.358,
+            "top10_ge_3": 0.1,
+            "top15_ge_1": 0.967,
+            "top15_ge_2": 0.692,
+            "top15_ge_3": 0.283
+          },
+          "last_20_avg_top10": 1.45
+        },
+        "last_240": {
+          "rounds": 240,
+          "top5_avg_hits": 0.629,
+          "top10_avg_hits": 1.271,
+          "top15_avg_hits": 1.929,
+          "top5_edge_vs_random": -0.012,
+          "top10_edge_vs_random": -0.011,
+          "top15_edge_vs_random": 0.006,
+          "top10_distribution": {
+            "0": 46,
+            "1": 105,
+            "2": 68,
+            "3": 20,
+            "4": 1,
+            "5": 0
+          },
+          "top15_distribution": {
+            "0": 7,
+            "1": 71,
+            "2": 103,
+            "3": 51,
+            "4": 7,
+            "5": 1
+          },
+          "hit_rates": {
+            "top10_ge_1": 0.808,
+            "top10_ge_2": 0.371,
+            "top10_ge_3": 0.087,
+            "top15_ge_1": 0.971,
+            "top15_ge_2": 0.675,
+            "top15_ge_3": 0.246
+          },
+          "last_20_avg_top10": 1.45
+        }
+      },
+      "profile": "日期牌與鄭近牌派，提供特殊信號的輔助分",
+      "model": "date_neighbor",
+      "top15": [
+        6,
+        8,
+        9,
+        11,
+        19,
+        20,
+        31,
+        37,
+        2,
+        15,
+        17,
+        22,
+        24,
+        34,
+        36
+      ],
+      "top10": [
+        6,
+        8,
+        9,
+        11,
+        19,
+        20,
+        31,
+        37,
+        2,
+        15
+      ]
+    },
+    {
+      "rounds": 240,
+      "top5_avg_hits": 0.654,
+      "top10_avg_hits": 1.271,
       "top15_avg_hits": 1.842,
-      "top5_edge_vs_random": 0.017,
-      "top10_edge_vs_random": -0.007,
+      "top5_edge_vs_random": 0.013,
+      "top10_edge_vs_random": -0.011,
       "top15_edge_vs_random": -0.081,
       "top10_distribution": {
-        "0": 54,
-        "1": 96,
+        "0": 55,
+        "1": 95,
         "2": 65,
         "3": 20,
         "4": 5,
@@ -364,7 +533,7 @@
         "5": 1
       },
       "hit_rates": {
-        "top10_ge_1": 0.775,
+        "top10_ge_1": 0.771,
         "top10_ge_2": 0.375,
         "top10_ge_3": 0.104,
         "top15_ge_1": 0.9,
@@ -409,15 +578,15 @@
         },
         "last_120": {
           "rounds": 120,
-          "top5_avg_hits": 0.667,
-          "top10_avg_hits": 1.308,
-          "top15_avg_hits": 1.858,
-          "top5_edge_vs_random": 0.026,
-          "top10_edge_vs_random": 0.026,
-          "top15_edge_vs_random": -0.065,
+          "top5_avg_hits": 0.658,
+          "top10_avg_hits": 1.3,
+          "top15_avg_hits": 1.85,
+          "top5_edge_vs_random": 0.017,
+          "top10_edge_vs_random": 0.018,
+          "top15_edge_vs_random": -0.073,
           "top10_distribution": {
-            "0": 24,
-            "1": 47,
+            "0": 25,
+            "1": 46,
             "2": 37,
             "3": 12,
             "4": 0,
@@ -425,33 +594,33 @@
           },
           "top15_distribution": {
             "0": 11,
-            "1": 36,
-            "2": 36,
+            "1": 37,
+            "2": 35,
             "3": 33,
             "4": 4,
             "5": 0
           },
           "hit_rates": {
-            "top10_ge_1": 0.8,
+            "top10_ge_1": 0.792,
             "top10_ge_2": 0.408,
             "top10_ge_3": 0.1,
             "top15_ge_1": 0.908,
-            "top15_ge_2": 0.608,
+            "top15_ge_2": 0.6,
             "top15_ge_3": 0.308
           },
           "last_20_avg_top10": 1.05
         },
         "last_240": {
           "rounds": 240,
-          "top5_avg_hits": 0.658,
-          "top10_avg_hits": 1.275,
+          "top5_avg_hits": 0.654,
+          "top10_avg_hits": 1.271,
           "top15_avg_hits": 1.842,
-          "top5_edge_vs_random": 0.017,
-          "top10_edge_vs_random": -0.007,
+          "top5_edge_vs_random": 0.013,
+          "top10_edge_vs_random": -0.011,
           "top15_edge_vs_random": -0.081,
           "top10_distribution": {
-            "0": 54,
-            "1": 96,
+            "0": 55,
+            "1": 95,
             "2": 65,
             "3": 20,
             "4": 5,
@@ -466,7 +635,7 @@
             "5": 1
           },
           "hit_rates": {
-            "top10_ge_1": 0.775,
+            "top10_ge_1": 0.771,
             "top10_ge_2": 0.375,
             "top10_ge_3": 0.104,
             "top15_ge_1": 0.9,
@@ -480,209 +649,40 @@
       "model": "stable_hot",
       "top15": [
         12,
-        29,
         25,
-        8,
-        31,
+        29,
         37,
-        6,
+        1,
+        16,
         5,
+        35,
         21,
+        8,
         13,
+        31,
         36,
-        11,
-        14,
-        34,
-        35
+        6,
+        7
       ],
       "top10": [
         12,
+        25,
         29,
-        25,
-        8,
-        31,
         37,
-        6,
+        1,
+        16,
         5,
+        35,
         21,
-        13
+        8
       ]
     },
     {
       "rounds": 240,
-      "top5_avg_hits": 0.629,
-      "top10_avg_hits": 1.267,
-      "top15_avg_hits": 1.925,
-      "top5_edge_vs_random": -0.012,
-      "top10_edge_vs_random": -0.015,
-      "top15_edge_vs_random": 0.002,
-      "top10_distribution": {
-        "0": 47,
-        "1": 104,
-        "2": 68,
-        "3": 20,
-        "4": 1,
-        "5": 0
-      },
-      "top15_distribution": {
-        "0": 7,
-        "1": 72,
-        "2": 102,
-        "3": 51,
-        "4": 7,
-        "5": 1
-      },
-      "hit_rates": {
-        "top10_ge_1": 0.804,
-        "top10_ge_2": 0.371,
-        "top10_ge_3": 0.087,
-        "top15_ge_1": 0.971,
-        "top15_ge_2": 0.671,
-        "top15_ge_3": 0.246
-      },
-      "last_20_avg_top10": 1.45,
-      "segmented_backtest": {
-        "last_60": {
-          "rounds": 60,
-          "top5_avg_hits": 0.633,
-          "top10_avg_hits": 1.267,
-          "top15_avg_hits": 1.883,
-          "top5_edge_vs_random": -0.008,
-          "top10_edge_vs_random": -0.015,
-          "top15_edge_vs_random": -0.04,
-          "top10_distribution": {
-            "0": 10,
-            "1": 30,
-            "2": 14,
-            "3": 6,
-            "4": 0,
-            "5": 0
-          },
-          "top15_distribution": {
-            "0": 3,
-            "1": 17,
-            "2": 27,
-            "3": 10,
-            "4": 3,
-            "5": 0
-          },
-          "hit_rates": {
-            "top10_ge_1": 0.833,
-            "top10_ge_2": 0.333,
-            "top10_ge_3": 0.1,
-            "top15_ge_1": 0.95,
-            "top15_ge_2": 0.667,
-            "top15_ge_3": 0.217
-          },
-          "last_20_avg_top10": 1.45
-        },
-        "last_120": {
-          "rounds": 120,
-          "top5_avg_hits": 0.625,
-          "top10_avg_hits": 1.258,
-          "top15_avg_hits": 1.958,
-          "top5_edge_vs_random": -0.016,
-          "top10_edge_vs_random": -0.024,
-          "top15_edge_vs_random": 0.035,
-          "top10_distribution": {
-            "0": 25,
-            "1": 52,
-            "2": 31,
-            "3": 11,
-            "4": 1,
-            "5": 0
-          },
-          "top15_distribution": {
-            "0": 5,
-            "1": 33,
-            "2": 48,
-            "3": 30,
-            "4": 4,
-            "5": 0
-          },
-          "hit_rates": {
-            "top10_ge_1": 0.792,
-            "top10_ge_2": 0.358,
-            "top10_ge_3": 0.1,
-            "top15_ge_1": 0.958,
-            "top15_ge_2": 0.683,
-            "top15_ge_3": 0.283
-          },
-          "last_20_avg_top10": 1.45
-        },
-        "last_240": {
-          "rounds": 240,
-          "top5_avg_hits": 0.629,
-          "top10_avg_hits": 1.267,
-          "top15_avg_hits": 1.925,
-          "top5_edge_vs_random": -0.012,
-          "top10_edge_vs_random": -0.015,
-          "top15_edge_vs_random": 0.002,
-          "top10_distribution": {
-            "0": 47,
-            "1": 104,
-            "2": 68,
-            "3": 20,
-            "4": 1,
-            "5": 0
-          },
-          "top15_distribution": {
-            "0": 7,
-            "1": 72,
-            "2": 102,
-            "3": 51,
-            "4": 7,
-            "5": 1
-          },
-          "hit_rates": {
-            "top10_ge_1": 0.804,
-            "top10_ge_2": 0.371,
-            "top10_ge_3": 0.087,
-            "top15_ge_1": 0.971,
-            "top15_ge_2": 0.671,
-            "top15_ge_3": 0.246
-          },
-          "last_20_avg_top10": 1.45
-        }
-      },
-      "profile": "日期牌與鄭近牌派，提供特殊信號的輔助分",
-      "model": "date_neighbor",
-      "top15": [
-        6,
-        10,
-        30,
-        8,
-        18,
-        19,
-        37,
-        4,
-        12,
-        23,
-        25,
-        31,
-        32,
-        33,
-        1
-      ],
-      "top10": [
-        6,
-        10,
-        30,
-        8,
-        18,
-        19,
-        37,
-        4,
-        12,
-        23
-      ]
-    },
-    {
-      "rounds": 240,
-      "top5_avg_hits": 0.708,
+      "top5_avg_hits": 0.704,
       "top10_avg_hits": 1.258,
       "top15_avg_hits": 1.887,
-      "top5_edge_vs_random": 0.067,
+      "top5_edge_vs_random": 0.063,
       "top10_edge_vs_random": -0.024,
       "top15_edge_vs_random": -0.036,
       "top10_distribution": {
@@ -714,45 +714,45 @@
         "last_60": {
           "rounds": 60,
           "top5_avg_hits": 0.783,
-          "top10_avg_hits": 1.3,
-          "top15_avg_hits": 1.917,
+          "top10_avg_hits": 1.317,
+          "top15_avg_hits": 1.95,
           "top5_edge_vs_random": 0.142,
-          "top10_edge_vs_random": 0.018,
-          "top15_edge_vs_random": -0.006,
+          "top10_edge_vs_random": 0.035,
+          "top15_edge_vs_random": 0.027,
           "top10_distribution": {
-            "0": 11,
-            "1": 24,
+            "0": 10,
+            "1": 25,
             "2": 21,
             "3": 4,
             "4": 0,
             "5": 0
           },
           "top15_distribution": {
-            "0": 6,
+            "0": 5,
             "1": 13,
-            "2": 25,
+            "2": 26,
             "3": 12,
             "4": 4,
             "5": 0
           },
           "hit_rates": {
-            "top10_ge_1": 0.817,
+            "top10_ge_1": 0.833,
             "top10_ge_2": 0.417,
             "top10_ge_3": 0.067,
-            "top15_ge_1": 0.9,
-            "top15_ge_2": 0.683,
+            "top15_ge_1": 0.917,
+            "top15_ge_2": 0.7,
             "top15_ge_3": 0.267
           },
           "last_20_avg_top10": 1.25
         },
         "last_120": {
           "rounds": 120,
-          "top5_avg_hits": 0.742,
+          "top5_avg_hits": 0.733,
           "top10_avg_hits": 1.292,
-          "top15_avg_hits": 1.908,
-          "top5_edge_vs_random": 0.101,
+          "top15_avg_hits": 1.917,
+          "top5_edge_vs_random": 0.092,
           "top10_edge_vs_random": 0.01,
-          "top15_edge_vs_random": -0.015,
+          "top15_edge_vs_random": -0.006,
           "top10_distribution": {
             "0": 24,
             "1": 46,
@@ -763,8 +763,8 @@
           },
           "top15_distribution": {
             "0": 11,
-            "1": 29,
-            "2": 48,
+            "1": 28,
+            "2": 49,
             "3": 24,
             "4": 8,
             "5": 0
@@ -774,17 +774,17 @@
             "top10_ge_2": 0.417,
             "top10_ge_3": 0.075,
             "top15_ge_1": 0.908,
-            "top15_ge_2": 0.667,
+            "top15_ge_2": 0.675,
             "top15_ge_3": 0.267
           },
           "last_20_avg_top10": 1.25
         },
         "last_240": {
           "rounds": 240,
-          "top5_avg_hits": 0.708,
+          "top5_avg_hits": 0.704,
           "top10_avg_hits": 1.258,
           "top15_avg_hits": 1.887,
-          "top5_edge_vs_random": 0.067,
+          "top5_edge_vs_random": 0.063,
           "top10_edge_vs_random": -0.024,
           "top15_edge_vs_random": -0.036,
           "top10_distribution": {
@@ -818,74 +818,74 @@
       "model": "anti_failure",
       "top15": [
         8,
-        36,
-        34,
         25,
+        34,
         21,
-        6,
-        29,
-        37,
-        1,
-        14,
-        7,
-        15,
+        36,
         12,
+        37,
         28,
-        4
+        6,
+        14,
+        29,
+        10,
+        1,
+        26,
+        15
       ],
       "top10": [
         8,
-        36,
-        34,
         25,
+        34,
         21,
-        6,
-        29,
+        36,
+        12,
         37,
-        1,
+        28,
+        6,
         14
       ]
     },
     {
       "rounds": 240,
-      "top5_avg_hits": 0.667,
-      "top10_avg_hits": 1.233,
-      "top15_avg_hits": 1.833,
-      "top5_edge_vs_random": 0.026,
-      "top10_edge_vs_random": -0.049,
-      "top15_edge_vs_random": -0.09,
+      "top5_avg_hits": 0.662,
+      "top10_avg_hits": 1.229,
+      "top15_avg_hits": 1.829,
+      "top5_edge_vs_random": 0.021,
+      "top10_edge_vs_random": -0.053,
+      "top15_edge_vs_random": -0.094,
       "top10_distribution": {
         "0": 57,
-        "1": 90,
-        "2": 74,
+        "1": 91,
+        "2": 73,
         "3": 18,
         "4": 1,
         "5": 0
       },
       "top15_distribution": {
         "0": 22,
-        "1": 69,
-        "2": 88,
+        "1": 70,
+        "2": 87,
         "3": 49,
         "4": 12,
         "5": 0
       },
       "hit_rates": {
         "top10_ge_1": 0.762,
-        "top10_ge_2": 0.388,
+        "top10_ge_2": 0.383,
         "top10_ge_3": 0.079,
         "top15_ge_1": 0.908,
-        "top15_ge_2": 0.621,
+        "top15_ge_2": 0.617,
         "top15_ge_3": 0.254
       },
-      "last_20_avg_top10": 1.4,
+      "last_20_avg_top10": 1.45,
       "segmented_backtest": {
         "last_60": {
           "rounds": 60,
-          "top5_avg_hits": 0.65,
+          "top5_avg_hits": 0.667,
           "top10_avg_hits": 1.367,
           "top15_avg_hits": 1.967,
-          "top5_edge_vs_random": 0.009,
+          "top5_edge_vs_random": 0.026,
           "top10_edge_vs_random": 0.085,
           "top15_edge_vs_random": 0.044,
           "top10_distribution": {
@@ -912,7 +912,7 @@
             "top15_ge_2": 0.667,
             "top15_ge_3": 0.35
           },
-          "last_20_avg_top10": 1.4
+          "last_20_avg_top10": 1.45
         },
         "last_120": {
           "rounds": 120,
@@ -946,73 +946,73 @@
             "top15_ge_2": 0.708,
             "top15_ge_3": 0.333
           },
-          "last_20_avg_top10": 1.4
+          "last_20_avg_top10": 1.45
         },
         "last_240": {
           "rounds": 240,
-          "top5_avg_hits": 0.667,
-          "top10_avg_hits": 1.233,
-          "top15_avg_hits": 1.833,
-          "top5_edge_vs_random": 0.026,
-          "top10_edge_vs_random": -0.049,
-          "top15_edge_vs_random": -0.09,
+          "top5_avg_hits": 0.662,
+          "top10_avg_hits": 1.229,
+          "top15_avg_hits": 1.829,
+          "top5_edge_vs_random": 0.021,
+          "top10_edge_vs_random": -0.053,
+          "top15_edge_vs_random": -0.094,
           "top10_distribution": {
             "0": 57,
-            "1": 90,
-            "2": 74,
+            "1": 91,
+            "2": 73,
             "3": 18,
             "4": 1,
             "5": 0
           },
           "top15_distribution": {
             "0": 22,
-            "1": 69,
-            "2": 88,
+            "1": 70,
+            "2": 87,
             "3": 49,
             "4": 12,
             "5": 0
           },
           "hit_rates": {
             "top10_ge_1": 0.762,
-            "top10_ge_2": 0.388,
+            "top10_ge_2": 0.383,
             "top10_ge_3": 0.079,
             "top15_ge_1": 0.908,
-            "top15_ge_2": 0.621,
+            "top15_ge_2": 0.617,
             "top15_ge_3": 0.254
           },
-          "last_20_avg_top10": 1.4
+          "last_20_avg_top10": 1.45
         }
       },
       "profile": "共現、尾數與區間結構派，重視牌型分散",
       "model": "pair_tail",
       "top15": [
-        6,
-        4,
-        7,
-        31,
-        36,
-        24,
-        25,
         8,
+        1,
+        7,
         21,
-        11,
+        25,
+        6,
+        26,
+        16,
+        9,
+        23,
+        28,
+        35,
+        24,
         2,
-        29,
-        5,
-        17,
-        15
+        11
       ],
       "top10": [
-        6,
-        4,
-        7,
-        31,
-        36,
-        24,
-        25,
         8,
+        1,
+        7,
         21,
-        11
+        25,
+        6,
+        26,
+        16,
+        9,
+        23
       ]
     }
   ],
@@ -1020,10 +1020,10 @@
     "rounds": 240,
     "top5_avg_hits": 0.613,
     "top10_avg_hits": 1.3,
-    "top15_avg_hits": 1.954,
+    "top15_avg_hits": 1.958,
     "top5_edge_vs_random": -0.029,
     "top10_edge_vs_random": 0.018,
-    "top15_edge_vs_random": 0.031,
+    "top15_edge_vs_random": 0.035,
     "top10_distribution": {
       "0": 51,
       "1": 100,
@@ -1033,8 +1033,8 @@
       "5": 0
     },
     "top15_distribution": {
-      "0": 19,
-      "1": 56,
+      "0": 18,
+      "1": 57,
       "2": 101,
       "3": 46,
       "4": 17,
@@ -1044,11 +1044,11 @@
       "top10_ge_1": 0.787,
       "top10_ge_2": 0.371,
       "top10_ge_3": 0.121,
-      "top15_ge_1": 0.921,
+      "top15_ge_1": 0.925,
       "top15_ge_2": 0.688,
       "top15_ge_3": 0.267
     },
-    "last_20_avg_top10": 1.45,
+    "last_20_avg_top10": 1.4,
     "segmented_backtest": {
       "last_60": {
         "rounds": 60,
@@ -1082,19 +1082,19 @@
           "top15_ge_2": 0.617,
           "top15_ge_3": 0.283
         },
-        "last_20_avg_top10": 1.45
+        "last_20_avg_top10": 1.4
       },
       "last_120": {
         "rounds": 120,
         "top5_avg_hits": 0.667,
-        "top10_avg_hits": 1.333,
-        "top15_avg_hits": 1.933,
+        "top10_avg_hits": 1.325,
+        "top15_avg_hits": 1.925,
         "top5_edge_vs_random": 0.026,
-        "top10_edge_vs_random": 0.051,
-        "top15_edge_vs_random": 0.01,
+        "top10_edge_vs_random": 0.043,
+        "top15_edge_vs_random": 0.002,
         "top10_distribution": {
-          "0": 24,
-          "1": 51,
+          "0": 25,
+          "1": 50,
           "2": 30,
           "3": 11,
           "4": 4,
@@ -1102,30 +1102,30 @@
         },
         "top15_distribution": {
           "0": 9,
-          "1": 31,
-          "2": 49,
+          "1": 32,
+          "2": 48,
           "3": 21,
           "4": 10,
           "5": 0
         },
         "hit_rates": {
-          "top10_ge_1": 0.8,
+          "top10_ge_1": 0.792,
           "top10_ge_2": 0.375,
           "top10_ge_3": 0.125,
           "top15_ge_1": 0.925,
-          "top15_ge_2": 0.667,
+          "top15_ge_2": 0.658,
           "top15_ge_3": 0.258
         },
-        "last_20_avg_top10": 1.45
+        "last_20_avg_top10": 1.4
       },
       "last_240": {
         "rounds": 240,
         "top5_avg_hits": 0.613,
         "top10_avg_hits": 1.3,
-        "top15_avg_hits": 1.954,
+        "top15_avg_hits": 1.958,
         "top5_edge_vs_random": -0.029,
         "top10_edge_vs_random": 0.018,
-        "top15_edge_vs_random": 0.031,
+        "top15_edge_vs_random": 0.035,
         "top10_distribution": {
           "0": 51,
           "1": 100,
@@ -1135,8 +1135,8 @@
           "5": 0
         },
         "top15_distribution": {
-          "0": 19,
-          "1": 56,
+          "0": 18,
+          "1": 57,
           "2": 101,
           "3": 46,
           "4": 17,
@@ -1146,11 +1146,11 @@
           "top10_ge_1": 0.787,
           "top10_ge_2": 0.371,
           "top10_ge_3": 0.121,
-          "top15_ge_1": 0.921,
+          "top15_ge_1": 0.925,
           "top15_ge_2": 0.688,
           "top15_ge_3": 0.267
         },
-        "last_20_avg_top10": 1.45
+        "last_20_avg_top10": 1.4
       }
     },
     "profile": "冷號與遺漏補償派，補充長期未出風險區",
@@ -1159,16 +1159,16 @@
       15,
       30,
       34,
-      20,
       10,
+      20,
       17,
       27,
       38,
       33,
       36,
-      1,
-      14,
       26,
+      14,
+      28,
       8,
       18
     ],
@@ -1176,8 +1176,8 @@
       15,
       30,
       34,
-      20,
       10,
+      20,
       17,
       27,
       38,
