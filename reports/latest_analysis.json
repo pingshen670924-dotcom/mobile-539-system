@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-13T00:25:54",
+  "generated_at": "2026-08-13T01:10:02",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000195,
@@ -17,7 +17,7 @@
     "latest_date": "2026-08-12",
     "expected_latest_date": "2026-08-12",
     "lag_days": 0,
-    "checked_at": "2026-08-13T00:24:27"
+    "checked_at": "2026-08-13T01:08:04"
   },
   "windows": [
     {
@@ -2183,13 +2183,13 @@
           "hit_rate": 0.186
         },
         {
-          "reason": "快慢趨勢一致",
+          "reason": "多模型共識",
           "hit": 4,
           "miss": 18,
           "hit_rate": 0.182
         },
         {
-          "reason": "多模型共識",
+          "reason": "快慢趨勢一致",
           "hit": 4,
           "miss": 18,
           "hit_rate": 0.182
@@ -3138,13 +3138,13 @@
           "hit_rate": 0.186
         },
         {
-          "reason": "快慢趨勢一致",
+          "reason": "多模型共識",
           "hit": 4,
           "miss": 18,
           "hit_rate": 0.182
         },
         {
-          "reason": "多模型共識",
+          "reason": "快慢趨勢一致",
           "hit": 4,
           "miss": 18,
           "hit_rate": 0.182
@@ -4634,13 +4634,13 @@
           "hit_rate": 0.15
         },
         {
-          "reason": "月度尾數區間回拉",
+          "reason": "區間配額補強",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
         },
         {
-          "reason": "區間配額補強",
+          "reason": "月度尾數區間回拉",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
@@ -5585,13 +5585,13 @@
             "hit_rate": 0.186
           },
           {
-            "reason": "快慢趨勢一致",
+            "reason": "多模型共識",
             "hit": 4,
             "miss": 18,
             "hit_rate": 0.182
           },
           {
-            "reason": "多模型共識",
+            "reason": "快慢趨勢一致",
             "hit": 4,
             "miss": 18,
             "hit_rate": 0.182
@@ -6540,13 +6540,13 @@
             "hit_rate": 0.186
           },
           {
-            "reason": "快慢趨勢一致",
+            "reason": "多模型共識",
             "hit": 4,
             "miss": 18,
             "hit_rate": 0.182
           },
           {
-            "reason": "多模型共識",
+            "reason": "快慢趨勢一致",
             "hit": 4,
             "miss": 18,
             "hit_rate": 0.182
@@ -8036,13 +8036,13 @@
             "hit_rate": 0.15
           },
           {
-            "reason": "月度尾數區間回拉",
+            "reason": "區間配額補強",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
           },
           {
-            "reason": "區間配額補強",
+            "reason": "月度尾數區間回拉",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
