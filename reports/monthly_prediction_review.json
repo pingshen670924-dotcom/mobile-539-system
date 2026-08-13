@@ -607,13 +607,13 @@
       "hit_rate": 0.167
     },
     {
-      "reason": "快慢趨勢一致",
+      "reason": "分布平衡風控",
       "hit": 4,
       "miss": 22,
       "hit_rate": 0.154
     },
     {
-      "reason": "分布平衡風控",
+      "reason": "快慢趨勢一致",
       "hit": 4,
       "miss": 22,
       "hit_rate": 0.154
