@@ -669,13 +669,13 @@
       "hit_rate": 0.154
     },
     {
-      "reason": "快慢趨勢一致",
+      "reason": "多模型共識",
       "hit": 4,
       "miss": 23,
       "hit_rate": 0.148
     },
     {
-      "reason": "多模型共識",
+      "reason": "快慢趨勢一致",
       "hit": 4,
       "miss": 23,
       "hit_rate": 0.148
