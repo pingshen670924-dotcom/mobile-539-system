@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-08-17T13:29:09",
+  "generated_at": "2026-08-17T13:38:34",
   "database_exists": true,
   "backup_count": 1,
-  "latest_backup": "/home/runner/work/mobile-539-system/mobile-539-system/backups/539_20260817_132650.sqlite",
+  "latest_backup": "/home/runner/work/mobile-539-system/mobile-539-system/backups/539_20260817_133616.sqlite",
   "log_exists": true,
   "latest_analysis_exists": true,
   "status": "ok",
@@ -37,14 +37,14 @@
   },
   "last_run": {
     "run_type": "latest",
-    "started_at": "2026-08-17T13:26:50",
-    "finished_at": "2026-08-17T13:26:54",
+    "started_at": "2026-08-17T13:36:16",
+    "finished_at": "2026-08-17T13:36:18",
     "status": "success",
     "message": "{\"rows\": 5943, \"invalid_periods\": [], \"duplicate_periods\": [], \"latest_period\": 115000199, \"latest_date\": \"2026-08-17\"}"
   },
   "pending_predictions": 1,
   "settled_predictions": 67,
-  "prediction_snapshots": 376,
+  "prediction_snapshots": 377,
   "prediction_performance": {
     "settled": 67,
     "top5_avg_hits": 0.642,
@@ -201,9 +201,9 @@
   },
   "mobile": {
     "status": "built",
-    "version": "20260816003854",
-    "mobile_built_at": "2026-08-16T00:38:54+08:00",
-    "latest_period": 115000198,
-    "latest_draw_date": "2026-08-15"
+    "version": "20260817212913",
+    "mobile_built_at": "2026-08-17T21:29:13+08:00",
+    "latest_period": 115000199,
+    "latest_draw_date": "2026-08-17"
   }
 }
