@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-17T23:01:44",
+  "generated_at": "2026-08-18T00:43:05",
   "prediction_mode": "current_precision_stability_v44_micro_confidence_short_packs",
   "latest_draw": {
     "period": 115000199,
@@ -17,7 +17,7 @@
     "latest_date": "2026-08-17",
     "expected_latest_date": "2026-08-17",
     "lag_days": 0,
-    "checked_at": "2026-08-17T22:59:49"
+    "checked_at": "2026-08-18T00:41:08"
   },
   "windows": [
     {
@@ -4898,13 +4898,13 @@
           "hit_rate": 0.15
         },
         {
-          "reason": "月度尾數區間回拉",
+          "reason": "區間配額補強",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
         },
         {
-          "reason": "區間配額補強",
+          "reason": "月度尾數區間回拉",
           "hit": 1,
           "miss": 6,
           "hit_rate": 0.143
@@ -8566,13 +8566,13 @@
             "hit_rate": 0.15
           },
           {
-            "reason": "月度尾數區間回拉",
+            "reason": "區間配額補強",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
           },
           {
-            "reason": "區間配額補強",
+            "reason": "月度尾數區間回拉",
             "hit": 1,
             "miss": 6,
             "hit_rate": 0.143
