@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-18T22:56:45",
+  "generated_at": "2026-08-18T23:29:24",
   "total_periods": 81,
   "settled_periods": 68,
   "pending_periods": 1,
@@ -120,9 +120,9 @@
       "strong_pack_hits": {},
       "unlikely_pack_hits": {},
       "status": "pending",
-      "created_at": "2026-08-18T14:56:44",
+      "created_at": "2026-08-18T15:29:22",
       "settled_at": null,
-      "snapshot_count": 4
+      "snapshot_count": 5
     },
     {
       "based_on_period": 115000199,
